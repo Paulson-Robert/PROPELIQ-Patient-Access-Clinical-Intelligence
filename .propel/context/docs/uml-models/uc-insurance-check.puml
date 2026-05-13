@@ -1,0 +1,16 @@
+@startuml uc-insurance-check
+!theme plain
+left to right direction
+
+actor "Patient" as patient
+
+rectangle "Insurance Validation" {
+  usecase "Enter Insurance Details" as UC17_ENTER
+  usecase "Validate Against Records" as UC17_VALIDATE
+  usecase "Display Validation Result" as UC17_RESULT
+}
+
+patient --> UC17_ENTER
+UC17_ENTER ..> UC17_VALIDATE : <<include>>
+UC17_VALIDATE ..> UC17_RESULT : <<include>>
+@enduml

@@ -1,0 +1,21 @@
+@startuml uc-code-mapping
+!theme plain
+left to right direction
+
+actor "Staff" as staff
+actor "Clinical Intelligence\nEngine" as ai
+
+rectangle "Medical Code Mapping" {
+  usecase "Generate ICD-10 Codes" as UC14_ICD
+  usecase "Generate CPT Codes" as UC14_CPT
+  usecase "Review Suggested Codes" as UC14_REVIEW
+  usecase "Verify/Override Codes" as UC14_VERIFY
+}
+
+ai --> UC14_ICD
+ai --> UC14_CPT
+staff --> UC14_REVIEW
+staff --> UC14_VERIFY
+UC14_ICD ..> UC14_REVIEW : <<include>>
+UC14_CPT ..> UC14_REVIEW : <<include>>
+@enduml

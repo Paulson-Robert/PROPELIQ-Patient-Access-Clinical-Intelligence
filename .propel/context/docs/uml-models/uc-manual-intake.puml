@@ -1,0 +1,19 @@
+@startuml uc-manual-intake
+!theme plain
+left to right direction
+
+actor "Patient" as patient
+
+rectangle "Manual Form Intake" {
+  usecase "Open Manual Form" as UC10_OPEN
+  usecase "Fill Form Fields" as UC10_FILL
+  usecase "Submit Intake Form" as UC10_SUBMIT
+  usecase "Switch to AI Intake" as UC10_SWITCH
+}
+
+patient --> UC10_OPEN
+patient --> UC10_FILL
+patient --> UC10_SUBMIT
+patient --> UC10_SWITCH
+UC10_FILL ..> UC10_SUBMIT : <<include>>
+@enduml

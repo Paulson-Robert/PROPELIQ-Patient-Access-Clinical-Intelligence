@@ -1,0 +1,17 @@
+@startuml uc-queue-management
+!theme plain
+left to right direction
+
+actor "Staff" as staff
+
+rectangle "Queue Management" {
+  usecase "View Same-Day Queue" as UC6_VIEW
+  usecase "Mark Patient Arrived" as UC6_ARRIVE
+  usecase "Search Queue" as UC6_SEARCH
+}
+
+staff --> UC6_VIEW
+staff --> UC6_ARRIVE
+staff --> UC6_SEARCH
+UC6_ARRIVE ..> UC6_SEARCH : <<include>>
+@enduml

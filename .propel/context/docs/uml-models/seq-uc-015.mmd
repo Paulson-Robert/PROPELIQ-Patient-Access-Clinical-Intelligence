@@ -1,0 +1,35 @@
+﻿sequenceDiagram
+    participant Hangfire as Hangfire Scheduler
+    participant DB as PostgreSQL
+    participant SMS as SMS Gateway
+    participant Email as Email Service
+    participant Staff
+
+    Note over Hangfire,Staff: UC-015 â€” Automated Appointment Reminders
+
+    Hangfire->>DB: Query appointments approaching reminder time
+    DB-->>Hangfire: Appointments with risk tiers
+
+    loop Each appointment
+        Hangfire->>DB: Get patient no-show risk tier
+        alt Low risk
+            Hangfire->>Hangfire: Standard sequence (48h, 2h)
+        else Medium/High risk
+            Hangfire->>Hangfire: Extended sequence (7d, 48h, 24h, 2h)
+        end
+
+        Hangfire->>SMS: Send SMS reminder
+        Hangfire->>Email: Send email reminder
+        Hangfire->>DB: Record notification (status=Sent)
+    end
+
+    alt Delivery failure
+        SMS-->>Hangfire: Failed
+        Hangfire->>SMS: Retry (exponential backoff)
+        Hangfire->>DB: Update retry count
+
+        opt All retries exhausted
+            Hangfire->>DB: Status â†’ Failed
+            Hangfire->>Staff: Notify permanent failure
+        end
+    end

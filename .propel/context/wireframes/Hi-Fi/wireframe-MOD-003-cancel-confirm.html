@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>MOD-003 · Cancellation Confirmation</title>
+<link rel="stylesheet" href="shared-tokens.css">
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #btn-cancel-appt | click | wireframe-SCR-002-patient-dashboard.html (shows toast "Appointment cancelled") |
+| #btn-keep | click | Closes dialog, returns to SCR-007 |
+| UC: UC-008 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="modal-backdrop">
+  <div class="modal" role="alertdialog" aria-labelledby="mod003-title" aria-describedby="mod003-desc" id="main">
+    <div class="modal-header">
+      <h2 class="modal-title" id="mod003-title" style="color:var(--destructive);">Cancel appointment</h2>
+    </div>
+    <div class="modal-body">
+      <p id="mod003-desc" class="text-sm mb-4">Are you sure you want to cancel your appointment?</p>
+      <div class="alert alert-warning mb-4" role="status">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="alert-icon" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div class="alert-content text-sm">This action cannot be undone. You will need to rebook if you change your mind.</div>
+      </div>
+      <div class="flex flex-col gap-2" style="background:var(--background-secondary);padding:var(--space-3);border-radius:var(--radius-md);">
+        <div class="flex justify-between"><span class="text-sm text-muted">Provider</span><span class="font-medium text-sm">Dr. Sarah Chen</span></div>
+        <div class="flex justify-between"><span class="text-sm text-muted">Date</span><span class="font-medium text-sm">Mon, Jan 27, 2025 · 09:00 AM</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a href="wireframe-SCR-002-patient-dashboard.html" class="btn btn-destructive" id="btn-cancel-appt">Yes, cancel appointment</a>
+      <button class="btn btn-ghost" id="btn-keep">Keep appointment</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,22 @@
+@startuml uc-ai-intake
+!theme plain
+left to right direction
+
+actor "Patient" as patient
+actor "Clinical Intelligence\nEngine" as ai
+
+rectangle "Patient Intake" {
+  usecase "Start AI Conversational Intake" as UC9_START
+  usecase "Answer Questions" as UC9_ANSWER
+  usecase "Review & Confirm Data" as UC9_REVIEW
+  usecase "Switch to Manual Form" as UC9_SWITCH
+  usecase "Fallback to Manual" as UC9_FALLBACK
+}
+
+patient --> UC9_START
+patient --> UC9_ANSWER
+patient --> UC9_REVIEW
+patient --> UC9_SWITCH
+UC9_START --> ai
+UC9_START ..> UC9_FALLBACK : <<extend>>\n[AI unavailable]
+@enduml

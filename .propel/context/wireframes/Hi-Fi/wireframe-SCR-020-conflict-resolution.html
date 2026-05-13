@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-020 · Conflict Resolution Panel</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+.conflict-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-4); margin-bottom: var(--space-4); }
+.conflict-card.active-conflict { border-color: var(--warning); background: color-mix(in srgb, var(--warning) 5%, transparent); }
+.conflict-values { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin: var(--space-3) 0; }
+.conflict-value { padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--border); }
+.conflict-value.selected { border-color: var(--primary); background: var(--primary-muted); }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #back | click | wireframe-SCR-019-patient-360.html |
+| .btn-detail | click | Opens MOD-005 inline |
+| UC: UC-014 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Staff navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-003-staff-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-017-same-day-queue.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 3h5v5"/><path d="M4 20L21 3"/></svg> Queue</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-019-patient-360.html" class="btn btn-ghost btn-sm" id="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <h1 class="header-title">Conflict resolution — Maria Santos</h1>
+      </div>
+      <div class="header-actions"><span class="badge badge-warning">2 pending</span><div class="avatar">JW</div></div>
+    </header>
+    <main class="page" id="main" style="max-width:720px;">
+      <!-- Conflict 1 — Active -->
+      <div class="conflict-card active-conflict">
+        <div class="flex items-center justify-between mb-2">
+          <div><span class="font-medium">Blood pressure</span> <span class="badge badge-warning ml-2">Pending</span></div>
+          <button class="btn btn-ghost btn-sm btn-detail">Details</button>
+        </div>
+        <div class="conflict-values">
+          <div class="conflict-value">
+            <div class="text-xs text-muted mb-1">EHR — Jan 20, 2025</div>
+            <div class="font-medium">142/88 mmHg</div>
+            <button class="btn btn-outline btn-sm mt-2" style="width:100%;">Accept EHR</button>
+          </div>
+          <div class="conflict-value">
+            <div class="text-xs text-muted mb-1">Patient intake — Jan 26, 2025</div>
+            <div class="font-medium">138/85 mmHg</div>
+            <button class="btn btn-outline btn-sm mt-2" style="width:100%;">Accept intake</button>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="width:100%;">Enter custom value</button>
+      </div>
+
+      <!-- Conflict 2 — Active -->
+      <div class="conflict-card active-conflict">
+        <div class="flex items-center justify-between mb-2">
+          <div><span class="font-medium">Primary phone</span> <span class="badge badge-warning ml-2">Pending</span></div>
+          <button class="btn btn-ghost btn-sm btn-detail">Details</button>
+        </div>
+        <div class="conflict-values">
+          <div class="conflict-value">
+            <div class="text-xs text-muted mb-1">Registration — Jan 1, 2025</div>
+            <div class="font-medium">(555) 234-5678</div>
+            <button class="btn btn-outline btn-sm mt-2" style="width:100%;">Accept</button>
+          </div>
+          <div class="conflict-value">
+            <div class="text-xs text-muted mb-1">Insurance form — Jan 25, 2025</div>
+            <div class="font-medium">(555) 234-9999</div>
+            <button class="btn btn-outline btn-sm mt-2" style="width:100%;">Accept</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conflict 3 — Resolved -->
+      <div class="conflict-card" style="opacity:0.7;">
+        <div class="flex items-center justify-between mb-2">
+          <div><span class="font-medium">Emergency contact</span> <span class="badge badge-success ml-2">Resolved</span></div>
+          <button class="btn btn-ghost btn-sm btn-detail">Details</button>
+        </div>
+        <div class="text-sm text-muted">Resolved by Dr. Sarah Chen on Jan 25, 2025 — accepted intake value: "John Santos — (555) 111-2222"</div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,24 @@
+@startuml uc-slot-swap
+!theme plain
+left to right direction
+
+actor "Patient" as patient
+actor "Staff" as staff
+actor "Email Service" as email
+actor "SMS Gateway" as sms
+
+rectangle "Preferred Slot Swap" {
+  usecase "Select Preferred Slot" as UC4_SELECT
+  usecase "Auto-Swap Appointment" as UC4_SWAP
+  usecase "Release Original Slot" as UC4_RELEASE
+  usecase "Notify Swap Result" as UC4_NOTIFY
+}
+
+patient --> UC4_SELECT
+UC4_SELECT ..> UC4_SWAP : <<extend>>\n[slot becomes available]
+UC4_SWAP ..> UC4_RELEASE : <<include>>
+UC4_SWAP ..> UC4_NOTIFY : <<include>>
+UC4_NOTIFY --> staff
+UC4_NOTIFY --> email
+UC4_NOTIFY --> sms
+@enduml

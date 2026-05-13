@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-016 · Appointment History</title>
+<link rel="stylesheet" href="shared-tokens.css">
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| .appt-view | click | wireframe-SCR-007-appointment-detail.html |
+| #back | click | wireframe-SCR-002-patient-dashboard.html |
+| #btn-book | click | wireframe-SCR-005-appointment-search.html |
+| UC: UC-042 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-002-patient-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-016-appointment-history.html" class="sidebar-item active" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> History</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-002-patient-dashboard.html" class="btn btn-ghost btn-sm" id="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <h1 class="header-title">Appointment history</h1>
+      </div>
+      <div class="header-actions"><a href="wireframe-SCR-005-appointment-search.html" class="btn btn-primary btn-sm" id="btn-book">Book new</a><div class="avatar">MS</div></div>
+    </header>
+    <main class="page" id="main">
+      <!-- Filters -->
+      <div class="flex gap-3 mb-4" style="flex-wrap:wrap;">
+        <select class="form-select" style="width:auto;min-width:140px;" aria-label="Filter by status">
+          <option value="">All statuses</option>
+          <option>Scheduled</option><option>Completed</option><option>Cancelled</option><option>No-show</option>
+        </select>
+        <input type="date" class="form-input" style="width:auto;" aria-label="From date" value="2025-01-01">
+        <input type="date" class="form-input" style="width:auto;" aria-label="To date" value="2025-01-31">
+      </div>
+
+      <div class="table-container">
+        <table aria-label="Appointment history">
+          <thead><tr><th>Date</th><th>Provider</th><th>Specialty</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="font-medium">Jan 27, 2025 · 09:00</td>
+              <td>Dr. Sarah Chen</td><td>Internal Medicine</td>
+              <td><span class="badge badge-primary">Scheduled</span></td>
+              <td><a href="wireframe-SCR-007-appointment-detail.html" class="btn btn-ghost btn-sm appt-view">View</a></td>
+            </tr>
+            <tr>
+              <td class="font-medium">Jan 20, 2025 · 14:00</td>
+              <td>Dr. Lisa Nakamura</td><td>Family Medicine</td>
+              <td><span class="badge badge-success">Completed</span></td>
+              <td><a href="wireframe-SCR-007-appointment-detail.html" class="btn btn-ghost btn-sm appt-view">View</a></td>
+            </tr>
+            <tr>
+              <td>Jan 15, 2025 · 11:00</td>
+              <td>Dr. Michael Okafor</td><td>Cardiology</td>
+              <td><span class="badge badge-success">Completed</span></td>
+              <td><a href="wireframe-SCR-007-appointment-detail.html" class="btn btn-ghost btn-sm appt-view">View</a></td>
+            </tr>
+            <tr>
+              <td>Jan 10, 2025 · 09:00</td>
+              <td>Dr. Sarah Chen</td><td>Internal Medicine</td>
+              <td><span class="badge badge-destructive">No-show</span></td>
+              <td><a href="wireframe-SCR-007-appointment-detail.html" class="btn btn-ghost btn-sm appt-view">View</a></td>
+            </tr>
+            <tr>
+              <td>Jan 22, 2025 · 15:30</td>
+              <td>Dr. Raj Patel</td><td>Orthopedics</td>
+              <td><span class="badge badge-secondary">Cancelled</span></td>
+              <td><a href="wireframe-SCR-007-appointment-detail.html" class="btn btn-ghost btn-sm appt-view">View</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex items-center justify-between mt-4">
+        <div class="text-sm text-muted">Showing 1–5 of 12 appointments</div>
+        <div class="pagination">
+          <button class="page-btn" aria-label="Previous page" disabled>‹</button>
+          <button class="page-btn active" aria-current="page">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <button class="page-btn" aria-label="Next page">›</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

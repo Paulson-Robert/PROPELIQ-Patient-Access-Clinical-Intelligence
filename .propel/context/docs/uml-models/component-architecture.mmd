@@ -1,0 +1,81 @@
+﻿graph TB
+    subgraph "Frontend [Vercel]"
+        SPA["React SPA<br/>(Vite Build)"]
+    end
+
+    subgraph "Backend [Railway/Render]"
+        subgraph "API Layer"
+            Controllers["Controllers<br/>(REST Endpoints)"]
+            Middleware["Middleware<br/>(Auth, RateLimit, CORS, Audit)"]
+            Filters["Filters<br/>(Validation, Exception)"]
+        end
+
+        subgraph "Application Layer"
+            Commands["Commands<br/>(MediatR Handlers)"]
+            Queries["Queries<br/>(MediatR Handlers)"]
+            Validators["Validators<br/>(FluentValidation)"]
+            PipelineBehaviors["Pipeline Behaviors<br/>(Audit, Logging)"]
+        end
+
+        subgraph "Domain Layer"
+            Entities["Domain Entities"]
+            ValueObjects["Value Objects"]
+            DomainServices["Domain Services"]
+            Interfaces["Repository Interfaces"]
+        end
+
+        subgraph "Infrastructure Layer"
+            EFCore["EF Core Repositories"]
+            RedisClient["Redis Client<br/>(Upstash)"]
+            FileStorage["File Storage<br/>(Documents)"]
+            ExternalClients["External Service Clients"]
+            HangfireJobs["Hangfire Job Processors"]
+        end
+
+        subgraph "AI Pipeline"
+            MLNet["ML.NET NER Engine<br/>(Local PHI Processing)"]
+            CloudLLM["Cloud LLM Client<br/>(De-identified Only)"]
+            CodeMapper["ICD-10/CPT Mapper<br/>(Rule + ML Hybrid)"]
+            RiskScorer["No-Show Risk Scorer<br/>(Deterministic)"]
+        end
+    end
+
+    subgraph "Data Stores"
+        PostgreSQL[("PostgreSQL<br/>(Supabase)")]
+        Redis[("Upstash Redis")]
+    end
+
+    subgraph "External Services"
+        GoogleCal["Google Calendar API"]
+        MSGraph["Microsoft Graph API"]
+        SMSGateway["SMS Gateway"]
+        EmailSvc["Email Service"]
+        OpenAI["Cloud LLM API<br/>(OpenAI/Gemini)"]
+        ClamAV["ClamAV<br/>(Malware Scan)"]
+    end
+
+    SPA -->|"HTTPS/REST"| Controllers
+    Controllers --> Middleware
+    Middleware --> Filters
+    Filters --> Commands
+    Filters --> Queries
+    Commands --> Validators
+    Commands --> DomainServices
+    Queries --> EFCore
+    DomainServices --> Entities
+    DomainServices --> Interfaces
+    Interfaces --> EFCore
+    EFCore --> PostgreSQL
+    RedisClient --> Redis
+    Commands --> HangfireJobs
+    HangfireJobs --> MLNet
+    HangfireJobs --> ExternalClients
+    CloudLLM --> OpenAI
+    ExternalClients --> GoogleCal
+    ExternalClients --> MSGraph
+    ExternalClients --> SMSGateway
+    ExternalClients --> EmailSvc
+    ExternalClients --> ClamAV
+    MLNet --> EFCore
+    CodeMapper --> EFCore
+    RiskScorer --> EFCore

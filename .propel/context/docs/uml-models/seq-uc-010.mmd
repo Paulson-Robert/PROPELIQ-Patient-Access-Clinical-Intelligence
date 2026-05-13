@@ -1,0 +1,36 @@
+﻿sequenceDiagram
+    participant Patient
+    participant SPA as React SPA
+    participant API as ASP.NET Core API
+    participant DB as PostgreSQL
+
+    Note over Patient,DB: UC-010 â€” Manual Form Intake
+
+    Patient->>SPA: Select Manual Form Intake
+    SPA->>API: GET /intake/form
+    API->>DB: Check existing IntakeRecord
+    DB-->>API: Existing data (if any from AI mode)
+    API-->>SPA: Form with pre-filled data
+    SPA-->>Patient: Display structured form
+
+    Patient->>SPA: Fill form fields
+    SPA->>SPA: Real-time field validation
+
+    Patient->>SPA: Submit form
+    SPA->>API: POST /intake/submit
+    API->>API: Server-side validation
+    API->>DB: Store/update IntakeRecord
+    DB-->>API: Saved
+    API-->>SPA: Intake complete
+    SPA-->>Patient: Confirmation
+
+    alt Validation errors
+        API-->>SPA: 422 Validation errors
+        SPA-->>Patient: Highlight invalid fields
+    end
+
+    opt Toggle to AI mode
+        Patient->>SPA: Switch to AI Conversational
+        SPA->>API: POST /intake/start?mode=ai&preserve=true
+        API-->>SPA: AI session (data preserved)
+    end

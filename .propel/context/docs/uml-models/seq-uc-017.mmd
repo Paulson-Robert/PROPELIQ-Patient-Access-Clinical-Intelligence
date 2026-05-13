@@ -1,0 +1,25 @@
+﻿sequenceDiagram
+    participant Patient
+    participant SPA as React SPA
+    participant API as ASP.NET Core API
+    participant DB as PostgreSQL
+
+    Note over Patient,DB: UC-017 â€” Insurance Pre-Check
+
+    Patient->>SPA: Enter insurance name + ID
+    SPA->>API: POST /insurance/validate
+    API->>DB: Query InsuranceRecord table
+    DB-->>API: Match result
+
+    alt Match found
+        API-->>SPA: "Insurance Verified" + provider details
+        SPA-->>Patient: Green confirmation
+    else No match
+        API-->>SPA: "Insurance Not Found" (soft check)
+        SPA-->>Patient: Warning (does not block booking)
+    end
+
+    opt Patient skips insurance
+        Patient->>SPA: Skip
+        SPA-->>Patient: Proceed to booking (no validation)
+    end

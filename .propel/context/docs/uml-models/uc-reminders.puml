@@ -1,0 +1,25 @@
+@startuml uc-reminders
+!theme plain
+left to right direction
+
+actor "Patient" as patient
+actor "SMS Gateway" as sms
+actor "Email Service" as email
+actor "Staff" as staff
+
+rectangle "Appointment Reminders" {
+  usecase "Schedule Reminders" as UC15_SCHEDULE
+  usecase "Send SMS Reminder" as UC15_SMS
+  usecase "Send Email Reminder" as UC15_EMAIL
+  usecase "Escalate Failure" as UC15_ESCALATE
+}
+
+UC15_SCHEDULE --> patient
+UC15_SCHEDULE ..> UC15_SMS : <<include>>
+UC15_SCHEDULE ..> UC15_EMAIL : <<include>>
+UC15_SMS --> sms
+UC15_EMAIL --> email
+UC15_SMS ..> UC15_ESCALATE : <<extend>>\n[all retries failed]
+UC15_EMAIL ..> UC15_ESCALATE : <<extend>>\n[all retries failed]
+UC15_ESCALATE --> staff
+@enduml

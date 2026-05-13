@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-028 · Email Verification</title>
+<link rel="stylesheet" href="shared-tokens.css">
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #btn-login | click | wireframe-SCR-001-login-registration.html |
+| #link-resend | click | Resends verification email |
+| UC: UC-001 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="auth-layout">
+  <div class="auth-brand">
+    <div class="auth-brand-inner">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg>
+      <h1 style="font-size:var(--text-2xl);font-weight:700;margin-top:var(--space-4);">HealthAccess</h1>
+    </div>
+  </div>
+  <div class="auth-form">
+    <main class="auth-form-inner" id="main" style="text-align:center;">
+      <!-- Success State -->
+      <div style="width:64px;height:64px;border-radius:var(--radius-full);background:color-mix(in srgb, var(--success) 15%, transparent);display:flex;align-items:center;justify-content:center;margin:0 auto var(--space-4);">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2 style="font-size:var(--text-xl);font-weight:600;margin-bottom:var(--space-2);">Email verified</h2>
+      <p class="text-sm text-muted mb-6">Your email address has been confirmed. You can now sign in to your account.</p>
+      <a href="wireframe-SCR-001-login-registration.html" class="btn btn-primary" id="btn-login" style="width:100%;text-align:center;">Sign in</a>
+
+      <hr style="margin:var(--space-6) 0;border:none;border-top:1px solid var(--border);">
+
+      <!-- Pending State (shown when awaiting verification) -->
+      <div style="opacity:0.5;">
+        <h3 class="font-medium mb-2">Still waiting?</h3>
+        <p class="text-sm text-muted mb-3">Check your spam folder, or request a new verification link.</p>
+        <a href="#" class="form-link" id="link-resend">Resend verification email</a>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

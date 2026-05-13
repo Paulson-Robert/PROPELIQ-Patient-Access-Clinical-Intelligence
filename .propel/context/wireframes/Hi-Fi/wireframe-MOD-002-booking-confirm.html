@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>MOD-002 · Booking Confirmation Dialog</title>
+<link rel="stylesheet" href="shared-tokens.css">
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #btn-confirm | click | wireframe-SCR-006-booking-confirmation.html |
+| #btn-cancel | click | Closes dialog, returns to SCR-005 |
+| UC: UC-003 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="modal-backdrop">
+  <div class="modal" role="dialog" aria-labelledby="mod002-title" id="main">
+    <div class="modal-header">
+      <h2 class="modal-title" id="mod002-title">Confirm booking</h2>
+      <button class="btn btn-ghost btn-sm" aria-label="Close" id="btn-cancel"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="flex flex-col gap-3">
+        <div class="flex justify-between"><span class="text-sm text-muted">Provider</span><span class="font-medium text-sm">Dr. Sarah Chen</span></div>
+        <div style="border-top:1px solid var(--border);padding-top:var(--space-3);" class="flex justify-between"><span class="text-sm text-muted">Specialty</span><span class="font-medium text-sm">Internal Medicine</span></div>
+        <div style="border-top:1px solid var(--border);padding-top:var(--space-3);" class="flex justify-between"><span class="text-sm text-muted">Date &amp; time</span><span class="font-medium text-sm">Mon, Jan 27, 2025 · 09:00 AM</span></div>
+        <div style="border-top:1px solid var(--border);padding-top:var(--space-3);" class="flex justify-between"><span class="text-sm text-muted">Type</span><span class="font-medium text-sm">In-person</span></div>
+        <div style="border-top:1px solid var(--border);padding-top:var(--space-3);" class="flex justify-between"><span class="text-sm text-muted">Duration</span><span class="font-medium text-sm">30 minutes</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a href="wireframe-SCR-006-booking-confirmation.html" class="btn btn-primary" id="btn-confirm">Confirm booking</a>
+      <button class="btn btn-ghost">Cancel</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

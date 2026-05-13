@@ -1,0 +1,20 @@
+@startuml uc-staff-auth
+!theme plain
+left to right direction
+
+actor "Staff" as staff
+actor "Admin" as admin
+
+rectangle "Staff/Admin Authentication" {
+  usecase "Login with Email/Password" as UC2_LOGIN
+  usecase "Complete MFA Verification" as UC2_MFA
+  usecase "Setup MFA Device" as UC2_SETUP
+  usecase "Unlock Account" as UC2_UNLOCK
+}
+
+staff --> UC2_LOGIN
+admin --> UC2_LOGIN
+UC2_LOGIN ..> UC2_MFA : <<include>>
+UC2_MFA ..> UC2_SETUP : <<extend>>\n[first login]
+admin --> UC2_UNLOCK
+@enduml

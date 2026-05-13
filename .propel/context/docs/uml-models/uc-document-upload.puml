@@ -1,0 +1,20 @@
+@startuml uc-document-upload
+!theme plain
+left to right direction
+
+actor "Patient" as patient
+
+rectangle "Document Management" {
+  usecase "Upload Document" as UC11_UPLOAD
+  usecase "Validate Format & Size" as UC11_VALIDATE
+  usecase "Scan for Malware" as UC11_SCAN
+  usecase "View Upload Status" as UC11_STATUS
+  usecase "Request Document Deletion" as UC11_DELETE
+}
+
+patient --> UC11_UPLOAD
+patient --> UC11_STATUS
+patient --> UC11_DELETE
+UC11_UPLOAD ..> UC11_VALIDATE : <<include>>
+UC11_UPLOAD ..> UC11_SCAN : <<include>>
+@enduml

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-012 · Document List &amp; Status</title>
+<link rel="stylesheet" href="shared-tokens.css">
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #btn-upload | click | wireframe-SCR-011-document-upload.html |
+| #back | click | wireframe-SCR-002-patient-dashboard.html |
+| UC: UC-011, UC-012 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-002-patient-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-011-document-upload.html" class="sidebar-item active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> Documents</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-002-patient-dashboard.html" class="btn btn-ghost btn-sm" id="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <h1 class="header-title">Documents</h1>
+      </div>
+      <div class="header-actions"><a href="wireframe-SCR-011-document-upload.html" class="btn btn-primary btn-sm" id="btn-upload">Upload</a><div class="avatar">MS</div></div>
+    </header>
+    <main class="page" id="main">
+      <div class="table-container">
+        <table aria-label="Uploaded documents">
+          <thead>
+            <tr><th>File name</th><th>Format</th><th>Upload date</th><th>Size</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="font-medium">CBC-Results-2025-01.pdf</td>
+              <td><span class="badge badge-secondary">PDF</span></td>
+              <td>Jan 25, 2025</td>
+              <td class="table-numeric">2.4 MB</td>
+              <td>
+                <div class="step-indicator">
+                  <div class="step completed"><div class="step-dot">✓</div></div>
+                  <div class="step-connector" style="background:var(--success);"></div>
+                  <div class="step completed"><div class="step-dot">✓</div></div>
+                  <div class="step-connector" style="background:var(--success);"></div>
+                  <div class="step completed"><div class="step-dot">✓</div></div>
+                  <div class="step-connector" style="background:var(--success);"></div>
+                  <div class="step completed"><div class="step-dot">✓</div></div>
+                </div>
+                <div class="text-xs text-muted mt-1">Completed</div>
+              </td>
+              <td><button class="btn btn-ghost btn-sm">View</button></td>
+            </tr>
+            <tr>
+              <td class="font-medium">Chest-Xray-Anterior.dicom</td>
+              <td><span class="badge badge-secondary">DICOM</span></td>
+              <td>Jan 25, 2025</td>
+              <td class="table-numeric">18.7 MB</td>
+              <td>
+                <div class="step-indicator">
+                  <div class="step completed"><div class="step-dot">✓</div></div>
+                  <div class="step-connector" style="background:var(--success);"></div>
+                  <div class="step completed"><div class="step-dot">✓</div></div>
+                  <div class="step-connector" style="background:var(--success);"></div>
+                  <div class="step active"><div class="step-dot">3</div></div>
+                  <div class="step-connector"></div>
+                  <div class="step"><div class="step-dot">4</div></div>
+                </div>
+                <div class="text-xs mt-1" style="color:var(--warning);">Processing</div>
+              </td>
+              <td><button class="btn btn-ghost btn-sm" disabled>View</button></td>
+            </tr>
+            <tr>
+              <td class="font-medium">MRI-Knee-Left.dicom</td>
+              <td><span class="badge badge-secondary">DICOM</span></td>
+              <td>Jan 23, 2025</td>
+              <td class="table-numeric">45.2 MB</td>
+              <td>
+                <div class="step-indicator">
+                  <div class="step completed"><div class="step-dot">✓</div></div>
+                  <div class="step-connector" style="background:var(--success);"></div>
+                  <div class="step completed"><div class="step-dot">✓</div></div>
+                  <div class="step-connector" style="background:var(--destructive);"></div>
+                  <div class="step" style="color:var(--destructive);"><div class="step-dot" style="border-color:var(--destructive);color:var(--destructive);">✕</div></div>
+                </div>
+                <div class="text-xs mt-1" style="color:var(--destructive);">Processing failed. Staff has been notified.</div>
+              </td>
+              <td><button class="btn btn-outline btn-sm">Re-upload</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="text-xs text-muted mt-2">Pipeline: 1 Uploading → 2 Scanning → 3 Processing → 4 Completed</div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

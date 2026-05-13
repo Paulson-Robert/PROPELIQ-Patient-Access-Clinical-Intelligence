@@ -1,0 +1,37 @@
+﻿sequenceDiagram
+    participant Patient
+    participant SPA as React SPA
+    participant API as ASP.NET Core API
+    participant DB as PostgreSQL
+    participant Hangfire as Hangfire Worker
+    participant Email as Email Service
+
+    Note over Patient,Email: UC-008 â€” Appointment Cancellation/Rescheduling
+
+    Patient->>SPA: View appointment details
+    Patient->>SPA: Select "Cancel" or "Reschedule"
+
+    alt Cancellation
+        SPA->>API: DELETE /appointments/{id}
+        API->>DB: Update status â†’ Cancelled
+        API->>DB: Release slot (IsAvailable=true)
+        API->>Hangfire: Trigger preferred slot swap check
+        API->>Email: Send cancellation confirmation
+        API->>Hangfire: Update calendar sync
+        API-->>SPA: Cancelled
+    else Rescheduling
+        SPA->>API: GET /slots (available)
+        API-->>SPA: Available slots
+        Patient->>SPA: Select new slot
+        SPA->>API: PUT /appointments/{id}/reschedule
+        API->>DB: Move to new slot, release original
+        API->>Hangfire: Trigger preferred slot swap check (original)
+        API->>Email: Send reschedule confirmation
+        API->>Hangfire: Update calendar sync
+        API-->>SPA: Rescheduled
+    end
+
+    opt Email delivery fails
+        Email-->>Hangfire: Delivery failed
+        Hangfire->>Email: Retry (exponential backoff, max 3)
+    end

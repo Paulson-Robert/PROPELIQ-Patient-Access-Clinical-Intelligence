@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-017 · Same-Day Queue</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+.queue-row { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border); }
+.queue-row:last-child { border-bottom: none; }
+.queue-pos { width: 28px; height: 28px; border-radius: var(--radius-full); background: var(--background-tertiary); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: var(--text-sm); }
+.queue-summary { display: flex; gap: var(--space-4); padding: var(--space-3) var(--space-4); background: var(--background-secondary); border-radius: var(--radius-md); margin-bottom: var(--space-4); }
+.queue-summary-item { font-size: var(--text-sm); }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| .btn-patient-view | click | wireframe-SCR-019-patient-360.html |
+| #btn-walk-in | click | wireframe-SCR-018-walk-in-booking.html |
+| #back | click | wireframe-SCR-003-staff-dashboard.html |
+| UC: UC-006, UC-016 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Staff navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-003-staff-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-017-same-day-queue.html" class="sidebar-item active" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg> Queue</a>
+      <a href="wireframe-SCR-018-walk-in-booking.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg> Walk-in</a>
+      <a href="wireframe-SCR-022-staff-schedule.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Schedule</a>
+      <a href="wireframe-SCR-021-code-mapping.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Codes</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-003-staff-dashboard.html" class="btn btn-ghost btn-sm" id="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <h1 class="header-title">Same-day queue</h1>
+      </div>
+      <div class="header-actions">
+        <a href="wireframe-SCR-018-walk-in-booking.html" class="btn btn-primary btn-sm" id="btn-walk-in">+ Walk-in</a>
+        <div class="avatar">JW</div>
+      </div>
+    </header>
+    <main class="page" id="main">
+      <!-- Summary Bar -->
+      <div class="queue-summary" role="status">
+        <div class="queue-summary-item"><strong>8</strong> in queue</div>
+        <div class="queue-summary-item"><strong>3</strong> walk-ins</div>
+        <div class="queue-summary-item"><strong>2</strong> arrived</div>
+        <div class="queue-summary-item"><strong>~22 min</strong> avg wait</div>
+      </div>
+
+      <div class="table-container">
+        <table aria-label="Patient queue">
+          <thead><tr><th style="width:50px;">#</th><th>Patient</th><th>Time</th><th>Provider</th><th>Status</th><th>Risk</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="queue-pos">1</div></td>
+              <td class="font-medium">Maria Santos</td>
+              <td>09:00</td>
+              <td>Dr. Sarah Chen</td>
+              <td><span class="badge badge-success">Arrived</span></td>
+              <td><span class="risk-badge risk-high">High</span></td>
+              <td><a href="wireframe-SCR-019-patient-360.html" class="btn btn-ghost btn-sm btn-patient-view">View</a></td>
+            </tr>
+            <tr>
+              <td><div class="queue-pos">2</div></td>
+              <td class="font-medium">James O'Brien-Fitzgerald <span class="badge badge-secondary" style="font-size:10px;">Walk-in</span></td>
+              <td>09:15</td>
+              <td>Dr. Lisa Nakamura</td>
+              <td><span class="badge badge-warning">Waiting</span></td>
+              <td><span class="risk-badge risk-medium">Med</span></td>
+              <td><a href="wireframe-SCR-019-patient-360.html" class="btn btn-ghost btn-sm btn-patient-view">View</a></td>
+            </tr>
+            <tr>
+              <td><div class="queue-pos">3</div></td>
+              <td class="font-medium">Priya Sharma</td>
+              <td>09:30</td>
+              <td>Dr. Michael Okafor</td>
+              <td><span class="badge badge-secondary">Scheduled</span></td>
+              <td><span class="risk-badge risk-low">Low</span></td>
+              <td><a href="wireframe-SCR-019-patient-360.html" class="btn btn-ghost btn-sm btn-patient-view">View</a></td>
+            </tr>
+            <tr>
+              <td><div class="queue-pos">4</div></td>
+              <td class="font-medium">Robert Kim</td>
+              <td>09:30</td>
+              <td>Dr. Sarah Chen</td>
+              <td><span class="badge badge-secondary">Scheduled</span></td>
+              <td><span class="risk-badge risk-low">Low</span></td>
+              <td><a href="wireframe-SCR-019-patient-360.html" class="btn btn-ghost btn-sm btn-patient-view">View</a></td>
+            </tr>
+            <tr>
+              <td><div class="queue-pos">5</div></td>
+              <td class="font-medium">Aisha Johnson <span class="badge badge-secondary" style="font-size:10px;">Walk-in</span></td>
+              <td>09:45</td>
+              <td>Unassigned</td>
+              <td><span class="badge badge-warning">Waiting</span></td>
+              <td><span class="risk-badge risk-high">High</span></td>
+              <td><a href="wireframe-SCR-019-patient-360.html" class="btn btn-ghost btn-sm btn-patient-view">View</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="text-xs text-muted mt-2">Drag rows to reorder queue position. Walk-in patients are flagged.</div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

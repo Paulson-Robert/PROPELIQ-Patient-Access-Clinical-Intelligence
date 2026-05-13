@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-022 · Staff Schedule View</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+.cal-grid { display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.cal-header { background: var(--background-secondary); padding: var(--space-2) var(--space-3); font-weight: 600; font-size: var(--text-xs); text-align: center; }
+.cal-time { background: var(--background); padding: var(--space-2) var(--space-3); font-size: var(--text-xs); color: var(--foreground-secondary); text-align: right; }
+.cal-cell { background: var(--background); padding: var(--space-1); min-height: 48px; position: relative; }
+.cal-block { padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); font-size: 11px; line-height: 1.3; cursor: pointer; }
+.cal-block.scheduled { background: var(--primary-muted); color: var(--primary); border-left: 3px solid var(--primary); }
+.cal-block.arrived { background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success-foreground, #15803d); border-left: 3px solid var(--success); }
+.cal-block.walk-in { background: color-mix(in srgb, var(--warning) 15%, transparent); border-left: 3px solid var(--warning); }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| .cal-block | click | wireframe-SCR-019-patient-360.html |
+| #back | click | wireframe-SCR-003-staff-dashboard.html |
+| UC: UC-006 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Staff navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-003-staff-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-017-same-day-queue.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 3h5v5"/><path d="M4 20L21 3"/></svg> Queue</a>
+      <a href="wireframe-SCR-022-staff-schedule.html" class="sidebar-item active" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Schedule</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-003-staff-dashboard.html" class="btn btn-ghost btn-sm" id="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <h1 class="header-title">Schedule</h1>
+      </div>
+      <div class="header-actions">
+        <div class="tabs" role="tablist" style="border-bottom:none;">
+          <button class="tab active" role="tab" aria-selected="true">Day</button>
+          <button class="tab" role="tab" aria-selected="false">Week</button>
+        </div>
+        <div class="text-sm font-medium">Monday, Jan 27, 2025</div>
+        <div class="avatar">JW</div>
+      </div>
+    </header>
+    <main class="page" id="main">
+      <div class="flex gap-3 mb-4">
+        <div class="flex items-center gap-1"><div style="width:12px;height:12px;border-radius:2px;background:var(--primary-muted);border-left:3px solid var(--primary);"></div><span class="text-xs">Scheduled</span></div>
+        <div class="flex items-center gap-1"><div style="width:12px;height:12px;border-radius:2px;background:color-mix(in srgb, var(--success) 15%, transparent);border-left:3px solid var(--success);"></div><span class="text-xs">Arrived</span></div>
+        <div class="flex items-center gap-1"><div style="width:12px;height:12px;border-radius:2px;background:color-mix(in srgb, var(--warning) 15%, transparent);border-left:3px solid var(--warning);"></div><span class="text-xs">Walk-in</span></div>
+      </div>
+
+      <div class="cal-grid" role="grid" aria-label="Provider schedule">
+        <!-- Header row -->
+        <div class="cal-header"></div>
+        <div class="cal-header">Dr. Chen</div>
+        <div class="cal-header">Dr. Nakamura</div>
+        <div class="cal-header">Dr. Okafor</div>
+        <div class="cal-header">Dr. Patel</div>
+        <div class="cal-header">Dr. Rivera</div>
+        <!-- 09:00 -->
+        <div class="cal-time">09:00</div>
+        <div class="cal-cell"><a href="wireframe-SCR-019-patient-360.html" class="cal-block arrived" style="text-decoration:none;">M. Santos <span class="risk-badge risk-high" style="font-size:9px;padding:0 4px;">H</span></a></div>
+        <div class="cal-cell"><a href="wireframe-SCR-019-patient-360.html" class="cal-block scheduled" style="text-decoration:none;">P. Sharma</a></div>
+        <div class="cal-cell"></div>
+        <div class="cal-cell"><a href="wireframe-SCR-019-patient-360.html" class="cal-block scheduled" style="text-decoration:none;">R. Kim</a></div>
+        <div class="cal-cell"></div>
+        <!-- 09:30 -->
+        <div class="cal-time">09:30</div>
+        <div class="cal-cell"><a href="wireframe-SCR-019-patient-360.html" class="cal-block scheduled" style="text-decoration:none;">A. Johnson</a></div>
+        <div class="cal-cell"><a href="wireframe-SCR-019-patient-360.html" class="cal-block walk-in" style="text-decoration:none;">J. O'Brien-Fitz. <span style="font-size:9px;">(W)</span></a></div>
+        <div class="cal-cell"><a href="wireframe-SCR-019-patient-360.html" class="cal-block scheduled" style="text-decoration:none;">L. Washington</a></div>
+        <div class="cal-cell"></div>
+        <div class="cal-cell"><a href="wireframe-SCR-019-patient-360.html" class="cal-block scheduled" style="text-decoration:none;">T. Müller</a></div>
+        <!-- 10:00 -->
+        <div class="cal-time">10:00</div>
+        <div class="cal-cell"></div>
+        <div class="cal-cell"><a href="wireframe-SCR-019-patient-360.html" class="cal-block scheduled" style="text-decoration:none;">D. Harris</a></div>
+        <div class="cal-cell"></div>
+        <div class="cal-cell"><a href="wireframe-SCR-019-patient-360.html" class="cal-block scheduled" style="text-decoration:none;">M. Del Carmen</a></div>
+        <div class="cal-cell"></div>
+        <!-- 10:30 -->
+        <div class="cal-time">10:30</div>
+        <div class="cal-cell"><a href="wireframe-SCR-019-patient-360.html" class="cal-block scheduled" style="text-decoration:none;">B. Nguyen</a></div>
+        <div class="cal-cell"></div>
+        <div class="cal-cell"><a href="wireframe-SCR-019-patient-360.html" class="cal-block walk-in" style="text-decoration:none;">S. Park <span style="font-size:9px;">(W)</span></a></div>
+        <div class="cal-cell"></div>
+        <div class="cal-cell"></div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

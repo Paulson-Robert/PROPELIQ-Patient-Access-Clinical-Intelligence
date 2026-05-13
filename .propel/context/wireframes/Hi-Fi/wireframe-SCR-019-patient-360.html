@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-019 · 360° Patient View</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+.patient-header-card { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4); background: var(--background-secondary); border-radius: var(--radius-lg); margin-bottom: var(--space-6); }
+.patient-header-card .avatar { width: 56px; height: 56px; font-size: var(--text-xl); }
+.conflict-indicator { display: inline-flex; align-items: center; gap: 4px; color: var(--warning); font-size: var(--text-xs); cursor: pointer; }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #btn-conflicts | click | wireframe-SCR-020-conflict-resolution.html |
+| #btn-codes | click | wireframe-SCR-021-code-mapping.html |
+| #back | click | wireframe-SCR-017-same-day-queue.html |
+| UC: UC-013, UC-014 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Staff navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-003-staff-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-017-same-day-queue.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 3h5v5"/><path d="M4 20L21 3"/></svg> Queue</a>
+      <a href="wireframe-SCR-019-patient-360.html" class="sidebar-item active" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Patient</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-017-same-day-queue.html" class="btn btn-ghost btn-sm" id="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <h1 class="header-title">Patient view</h1>
+      </div>
+      <div class="header-actions">
+        <a href="wireframe-SCR-020-conflict-resolution.html" class="btn btn-outline btn-sm" id="btn-conflicts">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          2 conflicts
+        </a>
+        <a href="wireframe-SCR-021-code-mapping.html" class="btn btn-outline btn-sm" id="btn-codes">Code mapping</a>
+        <div class="avatar">JW</div>
+      </div>
+    </header>
+    <main class="page" id="main">
+      <!-- Patient Header -->
+      <div class="patient-header-card">
+        <div class="avatar">MS</div>
+        <div style="flex:1;">
+          <div class="font-medium text-lg">Maria Santos</div>
+          <div class="text-sm text-muted">DOB: Mar 15, 1988 (36 y/o) · Female · MRN: PAT-001</div>
+          <div class="text-sm text-muted">Insurance: Blue Cross Blue Shield — BCBS-882341 · <span style="color:var(--success);">Verified</span></div>
+        </div>
+        <span class="risk-badge risk-high">High risk</span>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs" role="tablist">
+        <button class="tab active" role="tab" aria-selected="true">Vitals</button>
+        <button class="tab" role="tab" aria-selected="false">Medications</button>
+        <button class="tab" role="tab" aria-selected="false">Allergies</button>
+        <button class="tab" role="tab" aria-selected="false">Diagnoses</button>
+        <button class="tab" role="tab" aria-selected="false">Procedures</button>
+      </div>
+
+      <!-- Vitals Tab Content -->
+      <div class="card mt-4" role="tabpanel">
+        <h3 class="card-title mb-4">Vitals — Last recorded Jan 20, 2025</h3>
+        <div class="grid grid-3 gap-4">
+          <div>
+            <div class="text-xs text-muted">Blood pressure</div>
+            <div class="font-medium">142/88 mmHg</div>
+            <span class="conflict-indicator" title="Conflict: Intake says 138/85">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+              Conflict
+            </span>
+          </div>
+          <div>
+            <div class="text-xs text-muted">Heart rate</div>
+            <div class="font-medium">78 bpm</div>
+            <div class="text-xs text-muted">Source: EHR</div>
+          </div>
+          <div>
+            <div class="text-xs text-muted">Temperature</div>
+            <div class="font-medium">98.6 °F</div>
+            <div class="text-xs text-muted">Source: EHR</div>
+          </div>
+          <div>
+            <div class="text-xs text-muted">SpO₂</div>
+            <div class="font-medium">97%</div>
+            <div class="text-xs text-muted">Source: EHR</div>
+          </div>
+          <div>
+            <div class="text-xs text-muted">Weight</div>
+            <div class="font-medium">165 lbs</div>
+            <div class="text-xs text-muted">Source: Intake</div>
+          </div>
+          <div>
+            <div class="text-xs text-muted">Height</div>
+            <div class="font-medium">5′ 6″</div>
+            <div class="text-xs text-muted">Source: EHR</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

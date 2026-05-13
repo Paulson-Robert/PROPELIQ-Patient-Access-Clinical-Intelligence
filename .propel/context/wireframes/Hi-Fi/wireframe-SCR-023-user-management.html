@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-023 · User Management</title>
+<link rel="stylesheet" href="shared-tokens.css">
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #btn-create-user | click | Opens MOD-004 inline |
+| .btn-edit | click | Opens MOD-004 inline |
+| #back | click | wireframe-SCR-004-admin-dashboard.html |
+| UC: UC-018, UC-019 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Admin navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-004-admin-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-023-user-management.html" class="sidebar-item active" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Users</a>
+      <a href="wireframe-SCR-024-audit-log.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Audit log</a>
+      <a href="wireframe-SCR-025-platform-metrics.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Metrics</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-004-admin-dashboard.html" class="btn btn-ghost btn-sm" id="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <h1 class="header-title">User management</h1>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary btn-sm" id="btn-create-user">+ Create user</button>
+        <div class="avatar">AD</div>
+      </div>
+    </header>
+    <main class="page" id="main">
+      <!-- Filters -->
+      <div class="flex gap-3 mb-4" style="flex-wrap:wrap;">
+        <input type="search" class="form-input" style="width:260px;" placeholder="Search by name or email…" aria-label="Search users">
+        <select class="form-select" style="width:auto;min-width:120px;" aria-label="Filter by role">
+          <option value="">All roles</option>
+          <option>Patient</option><option>Staff</option><option>Admin</option>
+        </select>
+      </div>
+
+      <div class="table-container">
+        <table aria-label="User accounts">
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Last login</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="font-medium">Maria Santos</td>
+              <td>maria.santos@email.com</td>
+              <td><span class="badge badge-secondary">Patient</span></td>
+              <td><span class="badge badge-success">Active</span></td>
+              <td>Jan 26, 2025</td>
+              <td><button class="btn btn-ghost btn-sm btn-edit">Edit</button></td>
+            </tr>
+            <tr>
+              <td class="font-medium">Jennifer Walsh</td>
+              <td>j.walsh@healthaccess.io</td>
+              <td><span class="badge badge-primary">Staff</span></td>
+              <td><span class="badge badge-success">Active</span></td>
+              <td>Jan 27, 2025</td>
+              <td><button class="btn btn-ghost btn-sm btn-edit">Edit</button></td>
+            </tr>
+            <tr>
+              <td class="font-medium">Admin User</td>
+              <td>admin@healthaccess.io</td>
+              <td><span class="badge badge-warning">Admin</span></td>
+              <td><span class="badge badge-success">Active</span></td>
+              <td>Jan 27, 2025</td>
+              <td><button class="btn btn-ghost btn-sm btn-edit">Edit</button></td>
+            </tr>
+            <tr>
+              <td class="font-medium">Robert Kim</td>
+              <td>r.kim@email.com</td>
+              <td><span class="badge badge-secondary">Patient</span></td>
+              <td><span class="badge badge-secondary">Inactive</span></td>
+              <td>Dec 15, 2024</td>
+              <td><button class="btn btn-ghost btn-sm btn-edit">Edit</button></td>
+            </tr>
+            <tr>
+              <td class="font-medium">Priya Sharma</td>
+              <td>priya.s@email.com</td>
+              <td><span class="badge badge-secondary">Patient</span></td>
+              <td><span class="badge badge-destructive">Locked</span></td>
+              <td>Jan 10, 2025</td>
+              <td><button class="btn btn-ghost btn-sm btn-edit">Edit</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex items-center justify-between mt-4">
+        <div class="text-sm text-muted">Showing 1–5 of 42 users</div>
+        <div class="pagination">
+          <button class="page-btn" disabled aria-label="Previous">‹</button>
+          <button class="page-btn active" aria-current="page">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">…</button>
+          <button class="page-btn">9</button>
+          <button class="page-btn" aria-label="Next">›</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

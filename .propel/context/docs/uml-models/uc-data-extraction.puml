@@ -1,0 +1,18 @@
+@startuml uc-data-extraction
+!theme plain
+left to right direction
+
+actor "Clinical Intelligence\nEngine" as ai
+
+rectangle "Clinical Data Extraction" {
+  usecase "Parse Document" as UC12_PARSE
+  usecase "Extract Clinical Data" as UC12_EXTRACT
+  usecase "Store Extracted Data" as UC12_STORE
+  usecase "Update Document Status" as UC12_STATUS
+}
+
+ai --> UC12_PARSE
+UC12_PARSE ..> UC12_EXTRACT : <<include>>
+UC12_EXTRACT ..> UC12_STORE : <<include>>
+UC12_STORE ..> UC12_STATUS : <<include>>
+@enduml

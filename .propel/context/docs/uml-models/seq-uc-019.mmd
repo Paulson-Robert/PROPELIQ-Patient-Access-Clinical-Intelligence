@@ -1,0 +1,35 @@
+﻿sequenceDiagram
+    participant Admin
+    participant SPA as React SPA
+    participant API as ASP.NET Core API
+    participant DB as PostgreSQL
+
+    Note over Admin,DB: UC-019 â€” Audit Log Access
+
+    Admin->>SPA: Navigate to audit log viewer
+    SPA->>API: GET /admin/audit-logs?page=1
+    API->>DB: Query audit logs (newest first, paginated)
+    DB-->>API: Log entries + total count
+    API-->>SPA: Display log entries
+
+    Admin->>SPA: Apply filters (date, actor, action, resource)
+    SPA->>API: GET /admin/audit-logs?filters=...
+    API->>DB: Filtered query
+    DB-->>API: Filtered results
+    API-->>SPA: Updated display
+
+    opt Export
+        Admin->>SPA: Export filtered results
+        SPA->>API: GET /admin/audit-logs/export
+        API->>DB: Stream filtered entries
+        API-->>SPA: CSV/JSON download
+    end
+
+    alt No results
+        API-->>SPA: Empty result set
+        SPA-->>Admin: "No entries found" with filter summary
+    end
+
+    opt Attempt to modify log
+        Note right of DB: UPDATE/DELETE blocked by<br/>database rules (immutable)
+    end

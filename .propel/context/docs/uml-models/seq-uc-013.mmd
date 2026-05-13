@@ -1,0 +1,31 @@
+﻿sequenceDiagram
+    participant Hangfire as Hangfire Worker
+    participant DB as PostgreSQL
+    participant Staff
+    participant SPA as React SPA
+    participant API as ASP.NET Core API
+
+    Note over Hangfire,API: UC-013 â€” 360-Degree Patient View
+
+    Hangfire->>DB: Load all ExtractedDataRecords for patient
+    DB-->>Hangfire: Records from multiple documents
+    Hangfire->>Hangfire: De-duplicate entries
+    Hangfire->>Hangfire: Detect conflicts (same field, different values)
+    Hangfire->>DB: Update PatientView (JSONB aggregation)
+    Hangfire->>DB: Create DataConflict records (if any)
+
+    Staff->>SPA: Open Patient View
+    SPA->>API: GET /patients/{id}/view
+    API->>DB: Query PatientView + DataConflicts
+    DB-->>API: Consolidated view + conflicts
+    API-->>SPA: Render 360-degree view
+    SPA-->>Staff: Display with conflict highlights
+
+    Staff->>SPA: Resolve conflict (select correct value)
+    SPA->>API: PATCH /conflicts/{id}/resolve
+    API->>DB: Update resolution + audit log
+    API-->>SPA: Conflict resolved
+
+    alt No conflicts
+        SPA-->>Staff: Clean consolidated view
+    end

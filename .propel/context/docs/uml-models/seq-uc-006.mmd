@@ -1,0 +1,31 @@
+﻿sequenceDiagram
+    participant Staff
+    participant SPA as React SPA
+    participant API as ASP.NET Core API
+    participant DB as PostgreSQL
+
+    Note over Staff,DB: UC-006 â€” Staff Queue Management and Arrival Marking
+
+    Staff->>SPA: View same-day queue dashboard
+    SPA->>API: GET /queue/today
+    API->>DB: Query today's appointments + walk-ins
+    DB-->>API: Queue list with statuses
+    API-->>SPA: Display queue
+
+    Staff->>SPA: Search/locate patient in queue
+    Staff->>SPA: Mark patient as "Arrived"
+    SPA->>API: PATCH /appointments/{id}/arrive
+    API->>DB: Update status â†’ Arrived, set arrival timestamp
+    DB-->>API: Updated
+    API-->>SPA: Status updated
+    SPA-->>Staff: Queue refreshed (real-time update)
+
+    alt Patient not in queue
+        API-->>SPA: 404 Not Found
+        SPA-->>Staff: "Patient not found â€” initiate walk-in?"
+    end
+
+    opt Already marked arrived
+        API-->>SPA: 409 Conflict (already arrived)
+        SPA-->>Staff: Warning displayed
+    end

@@ -1,0 +1,32 @@
+@startuml system-context
+!theme plain
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+
+title Unified Patient Access & Clinical Intelligence Platform - System Context
+
+actor "Patient" as patient
+actor "Staff" as staff
+actor "Admin" as admin
+
+rectangle "Unified Patient Access &\nClinical Intelligence Platform" as system {
+}
+
+cloud "Google Calendar API" as gcal
+cloud "Microsoft Graph API" as outlook
+cloud "SMS Gateway" as sms
+cloud "Email Service" as email
+database "PostgreSQL" as db
+database "Upstash Redis" as cache
+
+patient --> system : Register, Book,\nIntake, Upload Docs
+staff --> system : Walk-in Booking,\nQueue Mgmt, Verify Data
+admin --> system : User Mgmt,\nAudit Review
+
+system --> gcal : Sync Appointments\n(OAuth 2.0)
+system --> outlook : Sync Appointments\n(OAuth 2.0)
+system --> sms : Send Reminders\n(Async)
+system --> email : Send Confirmations,\nReminders, PDFs
+system --> db : Read/Write\nPatient & Clinical Data
+system --> cache : Session Cache,\nSlot Locks
+@enduml

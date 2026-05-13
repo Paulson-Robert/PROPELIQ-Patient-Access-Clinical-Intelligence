@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>MOD-001 · Session Timeout Warning</title>
+<link rel="stylesheet" href="shared-tokens.css">
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #btn-extend | click | Closes modal, extends session |
+| #btn-logout | click | wireframe-SCR-001-login-registration.html |
+| UC: UC-015 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="modal-backdrop">
+  <div class="modal" role="alertdialog" aria-labelledby="mod001-title" aria-describedby="mod001-desc" id="main">
+    <div class="modal-header">
+      <h2 class="modal-title" id="mod001-title">Session expiring</h2>
+    </div>
+    <div class="modal-body">
+      <p id="mod001-desc" class="text-sm text-muted mb-4">Your session will expire due to inactivity. You'll be signed out automatically.</p>
+      <div class="flex items-center justify-center mb-4">
+        <div class="countdown-ring" aria-label="2 minutes remaining">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="36" fill="none" stroke="var(--border)" stroke-width="4"/>
+            <circle cx="40" cy="40" r="36" fill="none" stroke="var(--warning)" stroke-width="4" stroke-dasharray="226" stroke-dashoffset="56" stroke-linecap="round" transform="rotate(-90 40 40)"/>
+          </svg>
+          <span class="countdown-text">2:00</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="btn-extend">Extend session</button>
+      <a href="wireframe-SCR-001-login-registration.html" class="btn btn-ghost" id="btn-logout">Log out</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

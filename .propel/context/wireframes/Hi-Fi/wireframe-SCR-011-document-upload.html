@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-011 · Document Upload</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+.upload-item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); background: var(--background-secondary); border-radius: var(--radius-md); margin-top: var(--space-2); }
+.upload-item-info { flex: 1; }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #btn-view-docs | click | wireframe-SCR-012-document-list.html |
+| #back | click | wireframe-SCR-002-patient-dashboard.html |
+| UC: UC-011 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-002-patient-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-011-document-upload.html" class="sidebar-item active" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> Documents</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-002-patient-dashboard.html" class="btn btn-ghost btn-sm" id="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <h1 class="header-title">Upload documents</h1>
+      </div>
+      <div class="header-actions"><a href="wireframe-SCR-012-document-list.html" class="btn btn-outline btn-sm" id="btn-view-docs">View all documents</a><div class="avatar">MS</div></div>
+    </header>
+    <main class="page" id="main" style="max-width:720px;">
+      <!-- Dropzone -->
+      <div class="dropzone" role="button" tabindex="0" aria-label="Drag files here or click to browse">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--foreground-muted);"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div>
+          <div class="font-medium">Drag files here or click to browse</div>
+          <div class="text-sm text-muted mt-1">Supported: PDF, DOCX, JPG, PNG, DICOM, FHIR</div>
+        </div>
+      </div>
+      <div class="text-xs text-muted mt-2" style="text-align:center;">Maximum file size: 50 MB per file</div>
+
+      <!-- Upload Queue -->
+      <div style="margin-top: var(--space-6);">
+        <h3 class="mb-4">Upload queue</h3>
+        <!-- Uploading -->
+        <div class="upload-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--foreground-secondary);" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          <div class="upload-item-info">
+            <div class="font-medium text-sm">Skin-Biopsy-Report.pdf</div>
+            <div class="text-xs text-muted">520 KB · Uploading...</div>
+            <div class="progress-bar mt-1"><div class="progress-fill" style="width:65%;"></div></div>
+          </div>
+          <span class="text-xs font-medium" style="color:var(--primary);">65%</span>
+        </div>
+        <!-- Completed -->
+        <div class="upload-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--success);" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          <div class="upload-item-info">
+            <div class="font-medium text-sm">CBC-Results-2025-01.pdf</div>
+            <div class="text-xs text-muted">2.4 MB · Uploaded</div>
+          </div>
+          <span class="badge badge-success">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Done
+          </span>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

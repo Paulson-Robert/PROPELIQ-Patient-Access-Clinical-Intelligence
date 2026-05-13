@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-018 · Walk-in Booking</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+.search-results { border: 1px solid var(--border); border-radius: var(--radius-md); margin-top: var(--space-2); max-height: 200px; overflow-y: auto; }
+.search-result-item { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.search-result-item:hover { background: var(--background-secondary); }
+.search-result-item:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| .btn-select-patient | click | Shows booking summary section |
+| #btn-add-queue | click | wireframe-SCR-017-same-day-queue.html |
+| #btn-new-patient | click | Shows inline patient create form |
+| #back | click | wireframe-SCR-003-staff-dashboard.html |
+| UC: UC-005 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Staff navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-003-staff-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-017-same-day-queue.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 3h5v5"/><path d="M4 20L21 3"/></svg> Queue</a>
+      <a href="wireframe-SCR-018-walk-in-booking.html" class="sidebar-item active" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg> Walk-in</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-003-staff-dashboard.html" class="btn btn-ghost btn-sm" id="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <h1 class="header-title">Walk-in booking</h1>
+      </div>
+      <div class="header-actions"><div class="avatar">JW</div></div>
+    </header>
+    <main class="page" id="main" style="max-width:640px;">
+      <!-- Patient Search -->
+      <div class="card mb-6">
+        <h3 class="card-title mb-4">Find patient</h3>
+        <div class="form-group">
+          <label class="form-label" for="patient-search">Search by name, email, or phone</label>
+          <input type="search" id="patient-search" class="form-input" placeholder="e.g., Maria Santos" value="Maria">
+        </div>
+        <div class="search-results" role="listbox" aria-label="Patient search results">
+          <div class="search-result-item btn-select-patient" role="option">
+            <div><div class="font-medium text-sm">Maria Santos</div><div class="text-xs text-muted">DOB: Mar 15, 1988 · (555) 234-5678</div></div>
+            <button class="btn btn-ghost btn-sm">Select</button>
+          </div>
+          <div class="search-result-item btn-select-patient" role="option">
+            <div><div class="font-medium text-sm">Maria Del Carmen López</div><div class="text-xs text-muted">DOB: Jul 22, 1975 · (555) 987-6543</div></div>
+            <button class="btn btn-ghost btn-sm">Select</button>
+          </div>
+        </div>
+        <div class="mt-3"><button class="btn btn-outline btn-sm" id="btn-new-patient">+ Create new patient</button></div>
+      </div>
+
+      <!-- Booking Summary (shown after patient selected) -->
+      <div class="card">
+        <h3 class="card-title mb-4">Booking summary</h3>
+        <div class="flex flex-col gap-3">
+          <div class="flex justify-between"><span class="text-sm text-muted">Patient</span><span class="font-medium text-sm">Maria Santos</span></div>
+          <div style="border-top:1px solid var(--border);padding-top:var(--space-3);" class="flex justify-between"><span class="text-sm text-muted">Type</span><span class="font-medium text-sm">Walk-in</span></div>
+          <div style="border-top:1px solid var(--border);padding-top:var(--space-3);">
+            <label class="form-label" for="walk-in-provider">Assign provider</label>
+            <select id="walk-in-provider" class="form-select">
+              <option value="">Auto-assign (next available)</option>
+              <option>Dr. Sarah Chen — Internal Medicine</option>
+              <option>Dr. Lisa Nakamura — Family Medicine</option>
+              <option>Dr. Michael Okafor — Cardiology</option>
+            </select>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:var(--space-3);">
+            <label class="form-label" for="walk-in-reason">Reason for visit</label>
+            <input type="text" id="walk-in-reason" class="form-input" placeholder="e.g., Acute ear pain">
+          </div>
+        </div>
+        <a href="wireframe-SCR-017-same-day-queue.html" class="btn btn-primary mt-4" id="btn-add-queue">Add to queue</a>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

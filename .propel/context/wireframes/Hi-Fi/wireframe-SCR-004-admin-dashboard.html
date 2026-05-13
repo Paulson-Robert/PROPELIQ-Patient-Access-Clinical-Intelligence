@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-004 · Admin Dashboard</title>
+<link rel="stylesheet" href="shared-tokens.css">
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #nav-users | click | wireframe-SCR-023-user-management.html |
+| #nav-audit | click | wireframe-SCR-024-audit-log.html |
+| #nav-metrics | click | wireframe-SCR-025-platform-metrics.html |
+| UC: UC-018, UC-019, UC-020 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg>
+      HealthAccess
+    </div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-004-admin-dashboard.html" class="sidebar-item active" aria-current="page">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="wireframe-SCR-023-user-management.html" class="sidebar-item" id="nav-users">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        User management
+      </a>
+      <a href="wireframe-SCR-024-audit-log.html" class="sidebar-item" id="nav-audit">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+        Audit log
+      </a>
+      <a href="wireframe-SCR-025-platform-metrics.html" class="sidebar-item" id="nav-metrics">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Platform metrics
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <a href="wireframe-SCR-001-login-registration.html" class="sidebar-item" style="color: var(--destructive);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Log out
+      </a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <header class="header">
+      <h1 class="header-title">Admin dashboard</h1>
+      <div class="header-actions">
+        <div class="avatar">AU</div>
+      </div>
+    </header>
+
+    <main class="page" id="main">
+      <div style="margin-bottom: var(--space-8);">
+        <h2 style="font-size: var(--text-2xl); margin-bottom: var(--space-1);">System overview</h2>
+        <p class="text-muted">Platform health and activity summary.</p>
+      </div>
+
+      <!-- Overview Cards -->
+      <div class="grid grid-3 gap-4" style="margin-bottom: var(--space-8);">
+        <div class="card">
+          <div class="stat-card">
+            <div class="stat-label">Total users</div>
+            <div class="stat-value">892</div>
+            <div class="stat-change stat-change-up">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+              +12 this week
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="stat-card">
+            <div class="stat-label">Today's activity</div>
+            <div class="stat-value">156</div>
+            <div class="text-xs text-muted">Audit log entries</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="stat-card">
+            <div class="stat-label">System health</div>
+            <div class="flex items-center gap-2 mt-2">
+              <span class="badge badge-success">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                All systems operational
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Cards -->
+      <div class="grid grid-3 gap-4">
+        <a href="wireframe-SCR-023-user-management.html" class="card card-clickable" style="text-decoration:none;color:inherit;">
+          <div style="display:flex;flex-direction:column;gap:var(--space-3);">
+            <div style="width:48px;height:48px;border-radius:var(--radius-lg);background:var(--primary-muted);color:var(--primary);display:flex;align-items:center;justify-content:center;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div>
+              <div class="card-title">User management</div>
+              <p class="text-sm text-muted mt-1">Create, edit, and deactivate user accounts. Manage role assignments.</p>
+            </div>
+          </div>
+        </a>
+        <a href="wireframe-SCR-024-audit-log.html" class="card card-clickable" style="text-decoration:none;color:inherit;">
+          <div style="display:flex;flex-direction:column;gap:var(--space-3);">
+            <div style="width:48px;height:48px;border-radius:var(--radius-lg);background:var(--warning-muted);color:var(--warning);display:flex;align-items:center;justify-content:center;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+            </div>
+            <div>
+              <div class="card-title">Audit log</div>
+              <p class="text-sm text-muted mt-1">Review system activity for compliance. Search, filter, and export log entries.</p>
+            </div>
+          </div>
+        </a>
+        <a href="wireframe-SCR-025-platform-metrics.html" class="card card-clickable" style="text-decoration:none;color:inherit;">
+          <div style="display:flex;flex-direction:column;gap:var(--space-3);">
+            <div style="width:48px;height:48px;border-radius:var(--radius-lg);background:var(--success-muted);color:var(--success);display:flex;align-items:center;justify-content:center;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </div>
+            <div>
+              <div class="card-title">Platform metrics</div>
+              <p class="text-sm text-muted mt-1">Monitor adoption rates, appointment trends, and AI agreement metrics.</p>
+            </div>
+          </div>
+        </a>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

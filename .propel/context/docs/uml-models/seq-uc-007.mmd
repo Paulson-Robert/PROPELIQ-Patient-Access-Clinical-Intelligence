@@ -1,0 +1,36 @@
+﻿sequenceDiagram
+    participant Patient
+    participant SPA as React SPA
+    participant API as ASP.NET Core API
+    participant OAuth as Calendar OAuth (Google/Microsoft)
+    participant CalAPI as Calendar API
+    participant DB as PostgreSQL
+
+    Note over Patient,DB: UC-007 â€” Calendar Sync (Google/Outlook)
+
+    Patient->>SPA: Navigate to calendar sync settings
+    Patient->>SPA: Select provider (Google/Microsoft)
+    SPA->>OAuth: Redirect to OAuth consent
+    Patient->>OAuth: Grant calendar read/write
+    OAuth-->>SPA: Authorization code
+    SPA->>API: POST /calendar/connect
+    API->>OAuth: Exchange code for tokens
+    OAuth-->>API: Access + refresh tokens
+    API->>DB: Store encrypted tokens (CalendarSync)
+
+    API->>CalAPI: Create events for upcoming appointments
+    CalAPI-->>API: Events created
+    API-->>SPA: Sync active
+    SPA-->>Patient: "Calendar connected" confirmation
+
+    alt Patient denies consent
+        OAuth-->>SPA: Consent denied
+        SPA-->>Patient: "Sync not enabled" (booking unaffected)
+    end
+
+    opt Token refresh failure
+        API->>OAuth: Refresh token
+        OAuth-->>API: Refresh failed
+        API->>DB: Mark sync inactive
+        API-->>Patient: Re-authorization needed notification
+    end

@@ -1,0 +1,32 @@
+﻿sequenceDiagram
+    participant API as ASP.NET Core API
+    participant Scorer as Risk Scoring Engine
+    participant DB as PostgreSQL
+    participant Staff
+    participant SPA as React SPA
+
+    Note over API,SPA: UC-016 â€” No-Show Risk Scoring
+
+    API->>API: Appointment created event
+    API->>DB: Load NoShowRiskFactor for patient
+    DB-->>API: Historical factors (or new patient defaults)
+
+    API->>Scorer: Calculate risk score
+    Note right of Scorer: Inputs: no-show count,<br/>lead time, time-of-day,<br/>new-patient flag
+    Scorer->>Scorer: Apply weighted algorithm
+    Scorer-->>API: Score + tier (Low/Medium/High)
+
+    API->>DB: Store risk tier on appointment
+    API->>DB: Update NoShowRiskFactor
+
+    Staff->>SPA: View schedule dashboard
+    SPA->>API: GET /schedule/today
+    API->>DB: Query appointments with risk tiers
+    DB-->>API: Appointments list
+    API-->>SPA: Appointments with colour-coded risk
+    SPA-->>Staff: Display risk indicators
+
+    alt Missing data (incomplete history)
+        Scorer->>Scorer: Use available factors only
+        Scorer-->>API: Score (flagged as incomplete)
+    end

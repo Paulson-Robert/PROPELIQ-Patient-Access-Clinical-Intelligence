@@ -1,0 +1,19 @@
+@startuml uc-walkin-booking
+!theme plain
+left to right direction
+
+actor "Staff" as staff
+
+rectangle "Walk-in Booking" {
+  usecase "Search Patient" as UC5_SEARCH
+  usecase "Create Patient Account" as UC5_CREATE
+  usecase "Book Walk-in Appointment" as UC5_BOOK
+  usecase "Add to Same-Day Queue" as UC5_QUEUE
+}
+
+staff --> UC5_SEARCH
+staff --> UC5_BOOK
+UC5_BOOK ..> UC5_SEARCH : <<include>>
+UC5_BOOK ..> UC5_CREATE : <<extend>>\n[patient not found]
+UC5_BOOK ..> UC5_QUEUE : <<extend>>\n[no slots available]
+@enduml

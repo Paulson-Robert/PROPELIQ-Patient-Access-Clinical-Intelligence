@@ -1,0 +1,216 @@
+﻿erDiagram
+    User {
+        uuid UserId PK
+        string Email UK
+        string PasswordHash
+        string AuthProvider
+        string Role
+        boolean MfaEnabled
+        string MfaSecret
+        boolean IsActive
+        datetime CreatedAt
+        datetime UpdatedAt
+    }
+
+    PatientProfile {
+        uuid PatientProfileId PK
+        uuid UserId FK
+        string FirstName
+        string LastName
+        date DateOfBirth
+        string Phone
+        string InsuranceName
+        string InsuranceId
+        string InsuranceValidationStatus
+        datetime CreatedAt
+    }
+
+    Appointment {
+        uuid AppointmentId PK
+        uuid PatientId FK
+        string ProviderId
+        uuid SlotId FK
+        string Status
+        string NoShowRiskTier
+        decimal NoShowRiskScore
+        string BookingType
+        uuid PreferredSlotId FK
+        uuid CreatedByUserId FK
+        datetime CreatedAt
+        datetime UpdatedAt
+    }
+
+    AvailabilitySlot {
+        uuid SlotId PK
+        string ProviderId
+        string ProviderName
+        string Specialty
+        datetime StartTime
+        datetime EndTime
+        boolean IsAvailable
+        boolean IsLocked
+        datetime LockExpiry
+        string RecurrencePattern
+    }
+
+    PreferredSlotQueue {
+        uuid QueueId PK
+        uuid AppointmentId FK
+        uuid PreferredSlotId FK
+        datetime RequestedAt
+        string Status
+    }
+
+    ClinicalDocument {
+        uuid DocumentId PK
+        uuid PatientProfileId FK
+        string FileName
+        string FileFormat
+        int FileSizeBytes
+        string StoragePath
+        string MalwareScanStatus
+        string ProcessingStatus
+        datetime UploadedAt
+        datetime ProcessedAt
+    }
+
+    ExtractedDataRecord {
+        uuid RecordId PK
+        uuid DocumentId FK
+        uuid PatientProfileId FK
+        string DataType
+        string FieldName
+        string FieldValue
+        decimal Confidence
+        boolean IsVerified
+        uuid VerifiedByUserId FK
+        datetime VerifiedAt
+        string SourceLocation
+    }
+
+    DataConflict {
+        uuid ConflictId PK
+        uuid PatientProfileId FK
+        string ConflictType
+        string FieldName
+        string Value1
+        uuid SourceDocumentId1 FK
+        string Value2
+        uuid SourceDocumentId2 FK
+        string ResolutionStatus
+        uuid ResolvedByUserId FK
+        datetime ResolvedAt
+        string ResolutionNotes
+    }
+
+    PatientView {
+        uuid PatientViewId PK
+        uuid PatientProfileId FK
+        json AggregatedVitals
+        json AggregatedMedications
+        json AggregatedAllergies
+        json AggregatedDiagnoses
+        json AggregatedProcedures
+        datetime LastAggregatedAt
+        string VerificationStatus
+    }
+
+    MedicalCodeMapping {
+        uuid MappingId PK
+        uuid PatientProfileId FK
+        uuid ExtractedRecordId FK
+        string CodeType
+        string CodeValue
+        string CodeDescription
+        decimal Confidence
+        boolean IsVerified
+        uuid VerifiedByUserId FK
+        datetime VerifiedAt
+        string CodeSetVersion
+    }
+
+    IntakeRecord {
+        uuid IntakeId PK
+        uuid PatientProfileId FK
+        uuid AppointmentId FK
+        string IntakeMode
+        json MedicalHistory
+        json CurrentSymptoms
+        json Medications
+        json Allergies
+        string ReasonForVisit
+        datetime CompletedAt
+        datetime LastModifiedAt
+    }
+
+    Notification {
+        uuid NotificationId PK
+        uuid AppointmentId FK
+        uuid PatientId FK
+        string Channel
+        string NotificationType
+        string Status
+        int RetryCount
+        datetime LastAttemptAt
+        string FailureReason
+        datetime CreatedAt
+    }
+
+    CalendarSync {
+        uuid SyncId PK
+        uuid UserId FK
+        string Provider
+        string AccessToken
+        string RefreshToken
+        datetime TokenExpiry
+        boolean IsActive
+        datetime LastSyncAt
+    }
+
+    AuditLog {
+        bigint AuditLogId PK
+        datetime Timestamp
+        uuid ActorUserId FK
+        string ActorRole
+        string ActionType
+        string ResourceType
+        string ResourceId
+        json Details
+        string IpAddress
+    }
+
+    NoShowRiskFactor {
+        uuid FactorId PK
+        uuid PatientProfileId FK
+        int HistoricalNoShowCount
+        date LastNoShowDate
+        decimal AverageLeadTimeDays
+        string PreferredTimeOfDay
+        boolean IsNewPatient
+        datetime LastCalculatedAt
+    }
+
+    InsuranceRecord {
+        uuid RecordId PK
+        string InsuranceName
+        string InsuranceIdPattern
+        boolean IsActive
+    }
+
+    User ||--o| PatientProfile : "has profile"
+    User ||--o{ Appointment : "books"
+    User ||--o{ AuditLog : "generates"
+    User ||--o{ CalendarSync : "configures"
+    PatientProfile ||--o{ ClinicalDocument : "uploads"
+    PatientProfile ||--o{ ExtractedDataRecord : "has extractions"
+    PatientProfile ||--o{ DataConflict : "has conflicts"
+    PatientProfile ||--|| PatientView : "has view"
+    PatientProfile ||--o{ MedicalCodeMapping : "has codes"
+    PatientProfile ||--o{ IntakeRecord : "completes intake"
+    PatientProfile ||--|| NoShowRiskFactor : "has risk factors"
+    Appointment ||--o{ Notification : "triggers"
+    Appointment }o--|| AvailabilitySlot : "occupies"
+    Appointment ||--o| PreferredSlotQueue : "requests swap"
+    Appointment ||--o| IntakeRecord : "linked to"
+    ClinicalDocument ||--o{ ExtractedDataRecord : "produces"
+    ExtractedDataRecord ||--o{ MedicalCodeMapping : "maps to"

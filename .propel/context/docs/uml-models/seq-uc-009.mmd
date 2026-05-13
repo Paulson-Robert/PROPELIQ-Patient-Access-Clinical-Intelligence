@@ -1,0 +1,40 @@
+﻿sequenceDiagram
+    participant Patient
+    participant SPA as React SPA
+    participant API as ASP.NET Core API
+    participant LLM as Cloud LLM (De-identified)
+    participant DB as PostgreSQL
+
+    Note over Patient,DB: UC-009 â€” AI Conversational Intake
+
+    Patient->>SPA: Select AI Conversational Intake
+    SPA->>API: POST /intake/start?mode=ai
+    API->>DB: Create IntakeRecord
+    API-->>SPA: Session started
+
+    loop Intake conversation
+        Patient->>SPA: Type natural language response
+        SPA->>API: POST /intake/message
+        API->>API: De-identify input (strip PHI markers)
+        API->>LLM: Send de-identified prompt
+        LLM-->>API: Structured extraction
+        API->>DB: Store parsed fields
+        API-->>SPA: Show parsed data for review
+        SPA-->>Patient: Display extracted values
+    end
+
+    Patient->>SPA: Confirm all data correct
+    SPA->>API: POST /intake/complete
+    API->>DB: Mark intake complete
+    API-->>SPA: Success
+
+    alt AI service unavailable
+        API-->>SPA: 503 â€” fallback to manual
+        SPA-->>Patient: Auto-switch to manual form (data preserved)
+    end
+
+    opt Toggle to manual
+        Patient->>SPA: Switch to Manual Form
+        SPA->>API: GET /intake/form?preserve=true
+        API-->>SPA: Pre-filled form
+    end

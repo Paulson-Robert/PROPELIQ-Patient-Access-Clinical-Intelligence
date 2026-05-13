@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-026 · MFA Verification</title>
+<link rel="stylesheet" href="shared-tokens.css">
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #btn-verify | click | wireframe-SCR-002-patient-dashboard.html or wireframe-SCR-003-staff-dashboard.html or wireframe-SCR-004-admin-dashboard.html (role-based) |
+| #link-resend | click | Resends OTP, shows toast |
+| #link-different | click | wireframe-SCR-001-login-registration.html |
+| UC: UC-002 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="auth-layout">
+  <div class="auth-brand">
+    <div class="auth-brand-inner">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg>
+      <h1 style="font-size:var(--text-2xl);font-weight:700;margin-top:var(--space-4);">HealthAccess</h1>
+      <p class="text-muted mt-2">Verify your identity</p>
+    </div>
+  </div>
+  <div class="auth-form">
+    <main class="auth-form-inner" id="main">
+      <h2 style="font-size:var(--text-xl);font-weight:600;margin-bottom:var(--space-2);">Two-factor authentication</h2>
+      <p class="text-sm text-muted mb-6">Enter the 6-digit code sent to your email ending in •••@email.com</p>
+
+      <div class="otp-group" role="group" aria-label="One-time password">
+        <input type="text" maxlength="1" class="otp-input" aria-label="Digit 1" value="4">
+        <input type="text" maxlength="1" class="otp-input" aria-label="Digit 2" value="8">
+        <input type="text" maxlength="1" class="otp-input" aria-label="Digit 3" value="2">
+        <input type="text" maxlength="1" class="otp-input" aria-label="Digit 4">
+        <input type="text" maxlength="1" class="otp-input" aria-label="Digit 5">
+        <input type="text" maxlength="1" class="otp-input" aria-label="Digit 6">
+      </div>
+
+      <a href="wireframe-SCR-002-patient-dashboard.html" class="btn btn-primary mt-6" id="btn-verify" style="width:100%;text-align:center;">Verify</a>
+
+      <div class="flex justify-between mt-4">
+        <a href="#" class="form-link" id="link-resend">Resend code</a>
+        <a href="wireframe-SCR-001-login-registration.html" class="form-link" id="link-different">Use a different method</a>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

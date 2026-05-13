@@ -1,0 +1,112 @@
+{
+  "_meta": {
+    "description": "Sample data for the Unified Patient Access & Clinical Intelligence Platform wireframes. Contains realistic healthcare domain data for hi-fi wireframe rendering.",
+    "entities": {
+      "patient": "A registered patient who books appointments, completes intake, and uploads documents.",
+      "provider": "A healthcare provider (doctor, specialist) who sees patients.",
+      "appointment": "A scheduled or walk-in visit linking a patient to a provider at a specific time.",
+      "document": "A clinical document uploaded by a patient (lab results, imaging, records).",
+      "intake": "Pre-visit clinical data collected via AI conversation or manual form.",
+      "auditEntry": "An immutable record of a system action for compliance tracking.",
+      "insuranceRecord": "Patient insurance details for pre-check validation.",
+      "conflict": "A data discrepancy between two document sources for the same patient field.",
+      "codeMapping": "An AI-suggested ICD-10 or CPT code derived from patient clinical data.",
+      "notification": "A system-generated alert sent to a user via email or SMS.",
+      "queueEntry": "A same-day queue slot for patient arrival tracking."
+    }
+  },
+  "patient": [
+    { "id": "PAT-001", "firstName": "Maria", "lastName": "Santos", "email": "maria.santos@email.com", "phone": "(555) 234-5678", "dob": "1988-03-15", "initials": "MS", "insuranceProvider": "Blue Cross Blue Shield", "insuranceId": "BCBS-882341", "status": "active" },
+    { "id": "PAT-002", "firstName": "James", "lastName": "O'Brien", "email": "j.obrien@email.com", "phone": "(555) 876-5432", "dob": "1975-11-02", "initials": "JO", "insuranceProvider": "Aetna", "insuranceId": "AET-449821", "status": "active" },
+    { "id": "PAT-003", "firstName": "Priya", "lastName": "Krishnamurthy", "email": "priya.k@email.com", "phone": "(555) 321-0987", "dob": "1992-07-28", "initials": "PK", "insuranceProvider": "UnitedHealthcare", "insuranceId": "UHC-773156", "status": "active" },
+    { "id": "PAT-004", "firstName": "Robert", "lastName": "Chen-Williams", "email": "r.chenwilliams@email.com", "phone": "(555) 654-3210", "dob": "1960-01-19", "initials": "RC", "insuranceProvider": null, "insuranceId": null, "status": "active" },
+    { "id": "PAT-005", "firstName": "Aisha", "lastName": "Mohammed", "email": "aisha.m@email.com", "phone": "(555) 111-2233", "dob": "2001-09-05", "initials": "AM", "insuranceProvider": "Cigna", "insuranceId": "CIG-558901", "status": "active" },
+    { "id": "PAT-006", "firstName": "Thomas", "lastName": "Andersen", "email": "t.andersen@email.com", "phone": "(555) 999-8877", "dob": "1955-04-12", "initials": "TA", "insuranceProvider": "Medicare", "insuranceId": "MED-112233", "status": "inactive" },
+    { "id": "PAT-007", "firstName": "Lucia", "lastName": "Fernandez-Reyes", "email": "lucia.fr@email.com", "phone": "", "dob": "1998-12-30", "initials": "LF", "insuranceProvider": "Blue Cross Blue Shield", "insuranceId": "BCBS-667788", "status": "active" }
+  ],
+  "provider": [
+    { "id": "PRV-001", "name": "Dr. Sarah Chen", "specialty": "Internal Medicine", "initials": "SC" },
+    { "id": "PRV-002", "name": "Dr. Michael Okafor", "specialty": "Cardiology", "initials": "MO" },
+    { "id": "PRV-003", "name": "Dr. Emily Johansson", "specialty": "Dermatology", "initials": "EJ" },
+    { "id": "PRV-004", "name": "Dr. Raj Patel", "specialty": "Orthopedics", "initials": "RP" },
+    { "id": "PRV-005", "name": "Dr. Lisa Nakamura", "specialty": "Family Medicine", "initials": "LN" }
+  ],
+  "appointment": [
+    { "id": "APT-001", "patientId": "PAT-001", "patientName": "Maria Santos", "providerId": "PRV-001", "providerName": "Dr. Sarah Chen", "specialty": "Internal Medicine", "date": "2025-01-27", "time": "09:00", "duration": "30 min", "status": "scheduled", "type": "scheduled", "riskTier": "low" },
+    { "id": "APT-002", "patientId": "PAT-002", "patientName": "James O'Brien", "providerId": "PRV-002", "providerName": "Dr. Michael Okafor", "specialty": "Cardiology", "date": "2025-01-27", "time": "09:30", "duration": "45 min", "status": "arrived", "type": "scheduled", "riskTier": "high" },
+    { "id": "APT-003", "patientId": "PAT-003", "patientName": "Priya Krishnamurthy", "providerId": "PRV-001", "providerName": "Dr. Sarah Chen", "specialty": "Internal Medicine", "date": "2025-01-27", "time": "10:00", "duration": "30 min", "status": "scheduled", "type": "walk-in", "riskTier": "medium" },
+    { "id": "APT-004", "patientId": "PAT-005", "patientName": "Aisha Mohammed", "providerId": "PRV-003", "providerName": "Dr. Emily Johansson", "specialty": "Dermatology", "date": "2025-01-27", "time": "10:30", "duration": "20 min", "status": "scheduled", "type": "scheduled", "riskTier": "low" },
+    { "id": "APT-005", "patientId": "PAT-004", "patientName": "Robert Chen-Williams", "providerId": "PRV-004", "providerName": "Dr. Raj Patel", "specialty": "Orthopedics", "date": "2025-01-27", "time": "11:00", "duration": "45 min", "status": "scheduled", "type": "walk-in", "riskTier": "high" },
+    { "id": "APT-006", "patientId": "PAT-001", "patientName": "Maria Santos", "providerId": "PRV-005", "providerName": "Dr. Lisa Nakamura", "specialty": "Family Medicine", "date": "2025-01-20", "time": "14:00", "duration": "30 min", "status": "completed", "type": "scheduled", "riskTier": "low" },
+    { "id": "APT-007", "patientId": "PAT-002", "patientName": "James O'Brien", "providerId": "PRV-002", "providerName": "Dr. Michael Okafor", "specialty": "Cardiology", "date": "2025-01-15", "time": "11:00", "duration": "45 min", "status": "completed", "type": "scheduled", "riskTier": "medium" },
+    { "id": "APT-008", "patientId": "PAT-003", "patientName": "Priya Krishnamurthy", "providerId": "PRV-001", "providerName": "Dr. Sarah Chen", "specialty": "Internal Medicine", "date": "2025-01-10", "time": "09:00", "duration": "30 min", "status": "no-show", "type": "scheduled", "riskTier": "medium" },
+    { "id": "APT-009", "patientId": "PAT-004", "patientName": "Robert Chen-Williams", "providerId": "PRV-004", "providerName": "Dr. Raj Patel", "specialty": "Orthopedics", "date": "2025-01-22", "time": "15:30", "duration": "30 min", "status": "cancelled", "type": "scheduled", "riskTier": "low" }
+  ],
+  "document": [
+    { "id": "DOC-001", "patientId": "PAT-001", "fileName": "CBC-Results-2025-01.pdf", "format": "PDF", "uploadDate": "2025-01-25", "size": "2.4 MB", "status": "completed", "pipelineStep": 4 },
+    { "id": "DOC-002", "patientId": "PAT-001", "fileName": "Chest-Xray-Anterior.dicom", "format": "DICOM", "uploadDate": "2025-01-25", "size": "18.7 MB", "status": "processing", "pipelineStep": 3 },
+    { "id": "DOC-003", "patientId": "PAT-002", "fileName": "Cardiology-Report-Dec2024.pdf", "format": "PDF", "uploadDate": "2025-01-20", "size": "1.1 MB", "status": "completed", "pipelineStep": 4 },
+    { "id": "DOC-004", "patientId": "PAT-002", "fileName": "ECG-Results.pdf", "format": "PDF", "uploadDate": "2025-01-22", "size": "856 KB", "status": "completed", "pipelineStep": 4 },
+    { "id": "DOC-005", "patientId": "PAT-003", "fileName": "Allergy-Panel-Results.docx", "format": "DOCX", "uploadDate": "2025-01-24", "size": "340 KB", "status": "scanning", "pipelineStep": 2 },
+    { "id": "DOC-006", "patientId": "PAT-004", "fileName": "MRI-Knee-Left.dicom", "format": "DICOM", "uploadDate": "2025-01-23", "size": "45.2 MB", "status": "failed", "pipelineStep": 3 },
+    { "id": "DOC-007", "patientId": "PAT-005", "fileName": "Skin-Biopsy-Report.pdf", "format": "PDF", "uploadDate": "2025-01-26", "size": "520 KB", "status": "uploading", "pipelineStep": 1 }
+  ],
+  "auditEntry": [
+    { "id": "AUD-001", "timestamp": "2025-01-27T08:45:12Z", "actor": "Dr. Sarah Chen", "role": "Staff", "actionType": "VIEW", "resourceType": "Patient", "resourceId": "PAT-001", "details": "Viewed 360-degree patient record" },
+    { "id": "AUD-002", "timestamp": "2025-01-27T08:30:05Z", "actor": "System", "role": "System", "actionType": "PROCESS", "resourceType": "Document", "resourceId": "DOC-002", "details": "Started NLP extraction on Chest-Xray-Anterior.dicom" },
+    { "id": "AUD-003", "timestamp": "2025-01-27T08:15:33Z", "actor": "Admin User", "role": "Admin", "actionType": "CREATE", "resourceType": "User", "resourceId": "USR-012", "details": "Created staff account for nurse.johnson@clinic.com" },
+    { "id": "AUD-004", "timestamp": "2025-01-27T07:58:41Z", "actor": "Maria Santos", "role": "Patient", "actionType": "UPLOAD", "resourceType": "Document", "resourceId": "DOC-001", "details": "Uploaded CBC-Results-2025-01.pdf (2.4 MB)" },
+    { "id": "AUD-005", "timestamp": "2025-01-26T17:22:09Z", "actor": "Dr. Michael Okafor", "role": "Staff", "actionType": "RESOLVE", "resourceType": "Conflict", "resourceId": "CNF-003", "details": "Resolved blood pressure conflict — selected Document B value" },
+    { "id": "AUD-006", "timestamp": "2025-01-26T16:45:00Z", "actor": "Admin User", "role": "Admin", "actionType": "DEACTIVATE", "resourceType": "User", "resourceId": "USR-008", "details": "Deactivated account for former staff member" },
+    { "id": "AUD-007", "timestamp": "2025-01-26T14:10:22Z", "actor": "James O'Brien", "role": "Patient", "actionType": "BOOK", "resourceType": "Appointment", "resourceId": "APT-002", "details": "Booked cardiology appointment with Dr. Michael Okafor" },
+    { "id": "AUD-008", "timestamp": "2025-01-26T11:05:17Z", "actor": "System", "role": "System", "actionType": "NOTIFY", "resourceType": "Notification", "resourceId": "NTF-045", "details": "Sent appointment reminder SMS to PAT-003" }
+  ],
+  "conflict": [
+    { "id": "CNF-001", "patientId": "PAT-002", "field": "Blood Pressure", "value1": "140/90 mmHg", "source1": "Cardiology-Report-Dec2024.pdf", "value2": "135/85 mmHg", "source2": "ECG-Results.pdf", "status": "pending" },
+    { "id": "CNF-002", "patientId": "PAT-002", "field": "Medication - Lisinopril Dosage", "value1": "10 mg daily", "source1": "Cardiology-Report-Dec2024.pdf", "value2": "20 mg daily", "source2": "ECG-Results.pdf", "status": "pending" },
+    { "id": "CNF-003", "patientId": "PAT-001", "field": "Allergy - Penicillin", "value1": "Confirmed", "source1": "CBC-Results-2025-01.pdf", "value2": "Not listed", "source2": "Previous intake form", "status": "resolved", "resolution": "Confirmed (selected Document A)" }
+  ],
+  "codeMapping": [
+    { "id": "CDM-001", "patientId": "PAT-002", "code": "I10", "system": "ICD-10", "description": "Essential (primary) hypertension", "confidence": "high", "source": "Cardiology-Report-Dec2024.pdf", "status": "pending" },
+    { "id": "CDM-002", "patientId": "PAT-002", "code": "I25.10", "system": "ICD-10", "description": "Atherosclerotic heart disease of native coronary artery without angina pectoris", "confidence": "medium", "source": "ECG-Results.pdf", "status": "pending" },
+    { "id": "CDM-003", "patientId": "PAT-002", "code": "99213", "system": "CPT", "description": "Office visit, established patient, low complexity", "confidence": "high", "source": "Clinical notes", "status": "accepted" },
+    { "id": "CDM-004", "patientId": "PAT-001", "code": "D64.9", "system": "ICD-10", "description": "Anemia, unspecified", "confidence": "low", "source": "CBC-Results-2025-01.pdf", "status": "pending" },
+    { "id": "CDM-005", "patientId": "PAT-004", "code": "M17.11", "system": "ICD-10", "description": "Primary osteoarthritis, right knee", "confidence": "high", "source": "MRI-Knee-Left.dicom", "status": "pending" },
+    { "id": "CDM-006", "patientId": "PAT-004", "code": "73721", "system": "CPT", "description": "MRI, any joint of lower extremity", "confidence": "high", "source": "MRI-Knee-Left.dicom", "status": "accepted" }
+  ],
+  "user": [
+    { "id": "USR-001", "name": "Admin User", "email": "admin@healthaccess.io", "role": "Admin", "status": "active", "lastLogin": "2025-01-27T08:00:00Z" },
+    { "id": "USR-002", "name": "Dr. Sarah Chen", "email": "s.chen@clinic.com", "role": "Staff", "status": "active", "lastLogin": "2025-01-27T07:45:00Z" },
+    { "id": "USR-003", "name": "Dr. Michael Okafor", "email": "m.okafor@clinic.com", "role": "Staff", "status": "active", "lastLogin": "2025-01-27T08:10:00Z" },
+    { "id": "USR-004", "name": "Nurse Jennifer Johnson", "email": "j.johnson@clinic.com", "role": "Staff", "status": "active", "lastLogin": "2025-01-26T16:30:00Z" },
+    { "id": "USR-005", "name": "Dr. Emily Johansson", "email": "e.johansson@clinic.com", "role": "Staff", "status": "active", "lastLogin": "2025-01-25T09:00:00Z" },
+    { "id": "USR-006", "name": "Maria Santos", "email": "maria.santos@email.com", "role": "Patient", "status": "active", "lastLogin": "2025-01-27T08:30:00Z" },
+    { "id": "USR-007", "name": "James O'Brien", "email": "j.obrien@email.com", "role": "Patient", "status": "active", "lastLogin": "2025-01-26T14:00:00Z" },
+    { "id": "USR-008", "name": "Former Staff Member", "email": "former@clinic.com", "role": "Staff", "status": "inactive", "lastLogin": "2024-12-15T10:00:00Z" }
+  ],
+  "slot": [
+    { "id": "SLT-001", "providerId": "PRV-001", "providerName": "Dr. Sarah Chen", "specialty": "Internal Medicine", "date": "2025-01-28", "time": "09:00", "duration": "30 min", "available": true },
+    { "id": "SLT-002", "providerId": "PRV-001", "providerName": "Dr. Sarah Chen", "specialty": "Internal Medicine", "date": "2025-01-28", "time": "09:30", "duration": "30 min", "available": true },
+    { "id": "SLT-003", "providerId": "PRV-001", "providerName": "Dr. Sarah Chen", "specialty": "Internal Medicine", "date": "2025-01-28", "time": "10:00", "duration": "30 min", "available": false },
+    { "id": "SLT-004", "providerId": "PRV-002", "providerName": "Dr. Michael Okafor", "specialty": "Cardiology", "date": "2025-01-28", "time": "10:00", "duration": "45 min", "available": true },
+    { "id": "SLT-005", "providerId": "PRV-003", "providerName": "Dr. Emily Johansson", "specialty": "Dermatology", "date": "2025-01-28", "time": "11:00", "duration": "20 min", "available": true },
+    { "id": "SLT-006", "providerId": "PRV-005", "providerName": "Dr. Lisa Nakamura", "specialty": "Family Medicine", "date": "2025-01-29", "time": "14:00", "duration": "30 min", "available": true }
+  ],
+  "metrics": {
+    "totalPatients": 1247,
+    "totalAppointments": 8934,
+    "noShowRate": 12.3,
+    "noShowRateTrend": -2.1,
+    "aiAgreementRate": 87.5,
+    "aiAgreementRateTrend": 3.4,
+    "todayAppointments": 42,
+    "todayWalkIns": 8,
+    "todayArrived": 28,
+    "todayPending": 14,
+    "documentsProcessed": 3421,
+    "activeUsers": 892,
+    "appointmentsTrend": [65, 72, 58, 81, 77, 90, 85, 92, 78, 88, 95, 82],
+    "noShowTrend": [15, 14.2, 13.8, 12.5, 14.1, 13.0, 12.8, 11.9, 13.2, 12.0, 12.3, 11.5],
+    "documentVolume": [120, 145, 132, 178, 156, 189, 201, 175, 192, 210, 198, 215]
+  }
+}

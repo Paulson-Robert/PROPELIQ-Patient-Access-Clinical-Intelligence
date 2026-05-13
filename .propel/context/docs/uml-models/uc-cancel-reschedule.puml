@@ -1,0 +1,22 @@
+@startuml uc-cancel-reschedule
+!theme plain
+left to right direction
+
+actor "Patient" as patient
+actor "Email Service" as email
+
+rectangle "Appointment Management" {
+  usecase "Cancel Appointment" as UC8_CANCEL
+  usecase "Reschedule Appointment" as UC8_RESCHEDULE
+  usecase "Release Slot" as UC8_RELEASE
+  usecase "Send Confirmation" as UC8_NOTIFY
+}
+
+patient --> UC8_CANCEL
+patient --> UC8_RESCHEDULE
+UC8_CANCEL ..> UC8_RELEASE : <<include>>
+UC8_CANCEL ..> UC8_NOTIFY : <<include>>
+UC8_RESCHEDULE ..> UC8_RELEASE : <<include>>
+UC8_RESCHEDULE ..> UC8_NOTIFY : <<include>>
+UC8_NOTIFY --> email
+@enduml

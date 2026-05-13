@@ -1,0 +1,19 @@
+@startuml uc-patient-view
+!theme plain
+left to right direction
+
+actor "Staff" as staff
+actor "Clinical Intelligence\nEngine" as ai
+
+rectangle "360-Degree Patient View" {
+  usecase "Aggregate Patient Data" as UC13_AGGREGATE
+  usecase "Detect Conflicts" as UC13_CONFLICTS
+  usecase "View Consolidated Data" as UC13_VIEW
+  usecase "Resolve Conflict" as UC13_RESOLVE
+}
+
+ai --> UC13_AGGREGATE
+UC13_AGGREGATE ..> UC13_CONFLICTS : <<include>>
+staff --> UC13_VIEW
+staff --> UC13_RESOLVE
+@enduml

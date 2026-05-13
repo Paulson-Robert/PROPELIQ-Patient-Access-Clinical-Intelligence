@@ -1,0 +1,16 @@
+@startuml uc-noshow-risk
+!theme plain
+left to right direction
+
+actor "Staff" as staff
+
+rectangle "No-Show Risk Assessment" {
+  usecase "Calculate Risk Score" as UC16_CALC
+  usecase "Classify Risk Tier" as UC16_CLASSIFY
+  usecase "Display Risk on Dashboard" as UC16_DISPLAY
+}
+
+UC16_CALC ..> UC16_CLASSIFY : <<include>>
+UC16_CLASSIFY ..> UC16_DISPLAY : <<include>>
+staff --> UC16_DISPLAY
+@enduml

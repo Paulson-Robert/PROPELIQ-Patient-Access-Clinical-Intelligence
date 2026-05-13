@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-013 · Calendar Sync Settings</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+.provider-card { display: flex; align-items: center; gap: var(--space-4); }
+.provider-logo { width: 48px; height: 48px; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl); background: var(--background-tertiary); }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #back | click | wireframe-SCR-002-patient-dashboard.html |
+| #btn-connect-google | click | External OAuth → returns to this screen |
+| #btn-disconnect-outlook | click | Disconnects, shows toast |
+| UC: UC-007 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-002-patient-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-013-calendar-sync.html" class="sidebar-item active" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg> Calendar sync</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-002-patient-dashboard.html" class="btn btn-ghost btn-sm" id="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <h1 class="header-title">Calendar sync</h1>
+      </div>
+      <div class="header-actions"><div class="avatar">MS</div></div>
+    </header>
+    <main class="page" id="main" style="max-width:640px;">
+      <p class="text-muted mb-6">Connect your calendar to automatically sync appointment times.</p>
+
+      <!-- Google Calendar -->
+      <div class="card mb-4">
+        <div class="provider-card">
+          <div class="provider-logo" aria-hidden="true">G</div>
+          <div style="flex:1;">
+            <div class="font-medium">Google Calendar</div>
+            <div class="text-sm text-muted">Not connected</div>
+          </div>
+          <button class="btn btn-primary btn-sm" id="btn-connect-google">Connect</button>
+        </div>
+      </div>
+
+      <!-- Microsoft Outlook -->
+      <div class="card">
+        <div class="provider-card">
+          <div class="provider-logo" aria-hidden="true" style="background:var(--primary-muted);color:var(--primary);">M</div>
+          <div style="flex:1;">
+            <div class="font-medium">Microsoft Outlook</div>
+            <div class="text-sm" style="color:var(--success);">Connected</div>
+            <div class="text-xs text-muted">Last synced: Jan 26, 2025 at 3:45 PM</div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="switch" aria-label="Sync enabled">
+              <div class="switch-track active"><div class="switch-thumb"></div></div>
+              <span class="text-sm">Sync</span>
+            </div>
+            <button class="btn btn-outline btn-sm" id="btn-disconnect-outlook">Disconnect</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

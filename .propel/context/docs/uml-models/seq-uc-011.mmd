@@ -1,0 +1,38 @@
+﻿sequenceDiagram
+    participant Patient
+    participant SPA as React SPA
+    participant API as ASP.NET Core API
+    participant ClamAV as ClamAV
+    participant Storage as File Storage
+    participant Hangfire as Hangfire Worker
+    participant DB as PostgreSQL
+
+    Note over Patient,DB: UC-011 â€” Patient Uploads Clinical Documents
+
+    Patient->>SPA: Select files for upload
+    SPA->>SPA: Client-side format/size check
+    SPA->>API: POST /documents/upload (multipart)
+    API->>API: Validate format whitelist + 50MB limit
+    API->>Storage: Store file
+    API->>DB: Create ClinicalDocument (status=Uploading)
+    API-->>SPA: Upload accepted, document ID
+    SPA-->>Patient: Show "Uploading" status
+
+    API->>ClamAV: Scan file for malware
+    ClamAV-->>API: Scan result
+
+    alt Clean
+        API->>DB: Update status â†’ Scanning Complete
+        API->>Hangfire: Enqueue extraction job (UC-012)
+        API-->>SPA: Status â†’ Processing
+    else Malware detected
+        API->>Storage: Quarantine file
+        API->>DB: Update status â†’ Rejected
+        API-->>SPA: "File rejected for security reasons"
+        SPA-->>Patient: Error notification
+    end
+
+    opt Format/size invalid
+        API-->>SPA: 422 â€” invalid format or size exceeded
+        SPA-->>Patient: Error with supported formats list
+    end

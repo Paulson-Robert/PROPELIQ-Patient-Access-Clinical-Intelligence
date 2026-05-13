@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-027 · MFA Setup</title>
+<link rel="stylesheet" href="shared-tokens.css">
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #btn-verify-totp | click | wireframe-SCR-026-mfa-verification.html |
+| #btn-verify-sms | click | wireframe-SCR-026-mfa-verification.html |
+| UC: UC-002 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="auth-layout">
+  <div class="auth-brand">
+    <div class="auth-brand-inner">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg>
+      <h1 style="font-size:var(--text-2xl);font-weight:700;margin-top:var(--space-4);">HealthAccess</h1>
+      <p class="text-muted mt-2">Secure your account</p>
+    </div>
+  </div>
+  <div class="auth-form">
+    <main class="auth-form-inner" id="main">
+      <h2 style="font-size:var(--text-xl);font-weight:600;margin-bottom:var(--space-2);">Set up two-factor authentication</h2>
+      <p class="text-sm text-muted mb-6">Choose your preferred verification method.</p>
+
+      <!-- Option 1: Authenticator App -->
+      <div class="card mb-4">
+        <h3 class="card-title mb-3">Authenticator app (recommended)</h3>
+        <p class="text-sm text-muted mb-4">Scan this QR code with Google Authenticator, Authy, or similar app.</p>
+        <div class="qr-placeholder" aria-label="QR code for authenticator app setup" style="margin:0 auto var(--space-4);">QR Code</div>
+        <div class="text-xs text-muted text-center mb-4" style="font-family:var(--font-mono);word-break:break-all;">Manual key: JBSWY3DPEHPK3PXP</div>
+        <div class="form-group">
+          <label class="form-label" for="totp-code">Enter verification code</label>
+          <input type="text" id="totp-code" class="form-input" placeholder="6-digit code" maxlength="6">
+        </div>
+        <a href="wireframe-SCR-026-mfa-verification.html" class="btn btn-primary mt-2" id="btn-verify-totp" style="width:100%;text-align:center;">Verify &amp; enable</a>
+      </div>
+
+      <!-- Option 2: SMS -->
+      <div class="card">
+        <h3 class="card-title mb-3">SMS verification</h3>
+        <p class="text-sm text-muted mb-4">Receive a code via text message.</p>
+        <div class="form-group">
+          <label class="form-label" for="sms-phone">Phone number</label>
+          <input type="tel" id="sms-phone" class="form-input" placeholder="(555) 000-0000">
+        </div>
+        <a href="wireframe-SCR-026-mfa-verification.html" class="btn btn-secondary mt-2" id="btn-verify-sms" style="width:100%;text-align:center;">Send code</a>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

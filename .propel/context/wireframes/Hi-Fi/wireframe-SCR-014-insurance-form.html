@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-014 · Insurance Form</title>
+<link rel="stylesheet" href="shared-tokens.css">
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #btn-validate | click | Shows validation result inline |
+| #link-skip | click | wireframe-SCR-002-patient-dashboard.html |
+| #back | click | wireframe-SCR-002-patient-dashboard.html |
+| UC: UC-017 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-002-patient-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-014-insurance-form.html" class="sidebar-item active" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Insurance</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-002-patient-dashboard.html" class="btn btn-ghost btn-sm" id="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <h1 class="header-title">Insurance pre-check</h1>
+      </div>
+      <div class="header-actions"><div class="avatar">MS</div></div>
+    </header>
+    <main class="page" id="main" style="max-width:520px;">
+      <p class="text-muted mb-6">Verify your insurance details before your appointment. This is a soft check and does not block booking.</p>
+      <form aria-label="Insurance validation form">
+        <div class="flex flex-col gap-4">
+          <div class="form-group">
+            <label class="form-label" for="ins-provider">Insurance provider</label>
+            <input type="text" id="ins-provider" class="form-input" placeholder="e.g., Blue Cross Blue Shield" value="Blue Cross Blue Shield" list="providers" autocomplete="off">
+            <datalist id="providers">
+              <option value="Blue Cross Blue Shield"><option value="Aetna"><option value="UnitedHealthcare"><option value="Cigna"><option value="Humana"><option value="Kaiser Permanente"><option value="Medicare"><option value="Medicaid">
+            </datalist>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="ins-id">Insurance ID</label>
+            <input type="text" id="ins-id" class="form-input" placeholder="e.g., BCBS-882341" value="BCBS-882341">
+          </div>
+          <button type="button" class="btn btn-primary" id="btn-validate">Validate insurance</button>
+        </div>
+      </form>
+
+      <!-- Validation Result -->
+      <div class="alert alert-success mt-6" role="status">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="alert-icon" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <div class="alert-content">
+          <div class="alert-title">Insurance verified</div>
+          Blue Cross Blue Shield — Plan: PPO Individual · ID: BCBS-882341 · Status: Active
+        </div>
+      </div>
+
+      <div class="text-center mt-6">
+        <a href="wireframe-SCR-002-patient-dashboard.html" class="form-link" id="link-skip">Skip — proceed without validation</a>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

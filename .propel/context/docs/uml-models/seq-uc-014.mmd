@@ -1,0 +1,33 @@
+﻿sequenceDiagram
+    participant Staff
+    participant SPA as React SPA
+    participant API as ASP.NET Core API
+    participant Mapper as Code Mapping Engine
+    participant DB as PostgreSQL
+
+    Note over Staff,DB: UC-014 â€” ICD-10/CPT Code Mapping
+
+    Staff->>SPA: Open code mapping for patient
+    SPA->>API: GET /patients/{id}/codes
+    API->>Mapper: Analyse aggregated patient data
+    Mapper->>Mapper: Rule-based exact match
+    Mapper->>Mapper: ML.NET fuzzy match (ambiguous)
+    Mapper-->>API: Suggested codes with confidence
+    API-->>SPA: Code suggestions list
+    SPA-->>Staff: Display codes with confidence indicators
+
+    loop Each suggested code
+        Staff->>SPA: Accept / Modify / Reject
+        SPA->>API: PATCH /codes/{id}
+        API->>DB: Store verified code + audit
+    end
+
+    opt Staff adds manual code
+        Staff->>SPA: Enter code manually
+        SPA->>API: POST /codes/manual
+        API->>DB: Store with "Staff Override" source
+    end
+
+    alt Low confidence codes
+        SPA-->>Staff: Flagged "Manual Review Required"
+    end

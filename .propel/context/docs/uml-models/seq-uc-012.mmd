@@ -1,0 +1,36 @@
+﻿sequenceDiagram
+    participant Hangfire as Hangfire Worker
+    participant Parser as Format Parser
+    participant NER as ML.NET NER
+    participant DB as PostgreSQL
+    participant Patient
+
+    Note over Hangfire,Patient: UC-012 â€” Clinical Data Extraction
+
+    Hangfire->>DB: Dequeue document job
+    DB-->>Hangfire: Document metadata + path
+    Hangfire->>DB: Update status â†’ Processing
+
+    Hangfire->>Parser: Parse by format (PDF/DOCX/OCR/FHIR)
+    Parser-->>Hangfire: Extracted text
+
+    Hangfire->>NER: Run NER extraction
+    NER-->>Hangfire: Entities with confidence scores
+
+    loop Each entity
+        Hangfire->>DB: INSERT ExtractedDataRecord
+    end
+
+    Hangfire->>DB: Update document status â†’ Completed
+    Hangfire->>DB: Trigger aggregation job
+    Hangfire->>Patient: Notify "processing complete"
+
+    alt Document unreadable/corrupt
+        Parser-->>Hangfire: Parse failure
+        Hangfire->>DB: Update status â†’ Failed
+        Hangfire->>Patient: Notify "manual review required"
+    end
+
+    opt Low confidence entities
+        Hangfire->>DB: Flag for staff verification
+    end

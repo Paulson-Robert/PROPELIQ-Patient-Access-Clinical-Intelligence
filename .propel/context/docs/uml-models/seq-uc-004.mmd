@@ -1,0 +1,35 @@
+﻿sequenceDiagram
+    participant Patient
+    participant SPA as React SPA
+    participant API as ASP.NET Core API
+    participant Hangfire as Hangfire Worker
+    participant Redis as Upstash Redis
+    participant DB as PostgreSQL
+    participant Notify as Notification Service
+
+    Note over Patient,Notify: UC-004 â€” Preferred Slot Swap
+
+    Patient->>SPA: Select preferred unavailable slot
+    SPA->>API: POST /appointments/{id}/preferred-slot
+    API->>DB: Insert PreferredSlotQueue entry
+    API-->>SPA: Preference recorded
+
+    Note over Hangfire: Slot becomes available (cancellation/reschedule)
+    Hangfire->>DB: Check PreferredSlotQueue for released slot
+    DB-->>Hangfire: Matching queue entry (FIFO by RequestedAt)
+
+    Hangfire->>Redis: Acquire lock on preferred slot
+    Redis-->>Hangfire: Lock acquired
+    Hangfire->>DB: Move appointment to preferred slot
+    Hangfire->>DB: Release original slot (IsAvailable=true)
+    Hangfire->>DB: Update queue status â†’ Swapped
+    Hangfire->>Redis: Release lock
+
+    Hangfire->>Notify: Notify patient (email + SMS)
+    Hangfire->>Notify: Notify staff (slot swap details)
+    Hangfire->>API: Trigger calendar sync update
+
+    alt Lock on preferred slot fails
+        Hangfire->>DB: Retain original appointment
+        Note over Patient: Patient stays in queue
+    end

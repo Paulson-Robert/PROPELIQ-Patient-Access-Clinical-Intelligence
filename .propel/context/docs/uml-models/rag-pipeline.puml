@@ -1,0 +1,66 @@
+﻿@startuml rag-pipeline
+!theme plain
+skinparam defaultTextAlignment center
+
+title Hybrid AI Architecture - Document Ingestion & Conversational Intake
+
+package "Document Ingestion Pipeline (PHI - Local Only)" as ingestion {
+    [Document Upload] as upload
+    [Format Parser\n(iText7/OpenXml/Tesseract)] as parser
+    [ML.NET NER Model\n(Clinical Entity Extraction)] as ner
+    [Confidence Scorer] as scorer
+    [Data Aggregator\n(De-duplication)] as aggregator
+    [Conflict Detector] as conflict
+}
+
+package "Code Mapping Pipeline (Local)" as coding {
+    [Rule-Based Lookup\n(Exact ICD-10/CPT Match)] as rules
+    [ML.NET Classifier\n(Fuzzy Code Matching)] as fuzzy
+    [Confidence Merger] as merger
+}
+
+package "Conversational Intake (Cloud - De-identified)" as intake {
+    [Patient Chat Interface] as chat
+    [De-identification Filter\n(Strip PHI markers)] as deident
+    [Cloud LLM API\n(OpenAI/Gemini)] as llm
+    [Response Parser\n(Structured Extraction)] as respparser
+    [Local Storage\n(Patient Intake Record)] as intakestore
+}
+
+package "Guardrails & Validation" as guardrails {
+    [Input Schema Validator\n(FluentValidation)] as inputval
+    [Output Schema Validator] as outputval
+    [Confidence Threshold\nEnforcement] as threshold
+    [PHI Boundary Check\n(No PHI to Cloud)] as phibound
+}
+
+package "Human-in-the-Loop" as hitl {
+    [Staff Verification UI] as staffui
+    [Accept/Modify/Reject] as decision
+    [Audit Logger] as auditlog
+}
+
+upload --> parser
+parser --> ner
+ner --> scorer
+scorer --> threshold
+threshold --> aggregator
+aggregator --> conflict
+conflict --> staffui
+
+aggregator --> rules
+rules --> merger
+fuzzy --> merger
+merger --> threshold
+threshold --> staffui
+
+chat --> deident
+deident --> phibound
+phibound --> llm
+llm --> respparser
+respparser --> outputval
+outputval --> intakestore
+
+staffui --> decision
+decision --> auditlog
+@enduml

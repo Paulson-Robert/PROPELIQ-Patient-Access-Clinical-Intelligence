@@ -1,0 +1,46 @@
+﻿sequenceDiagram
+    participant Patient
+    participant SPA as React SPA
+    participant API as ASP.NET Core API
+    participant OAuth as OAuth Provider (Google/Microsoft)
+    participant DB as PostgreSQL
+
+    Note over Patient,DB: UC-001 â€” Patient Registration and Login
+
+    Patient->>SPA: Navigate to login page
+    Patient->>SPA: Select auth method
+
+    alt Social Login (Google/Microsoft)
+        SPA->>OAuth: Redirect to OAuth consent
+        Patient->>OAuth: Grant consent
+        OAuth-->>SPA: Authorization code
+        SPA->>API: POST /auth/social-callback
+        API->>OAuth: Exchange code for tokens
+        OAuth-->>API: Access token + ID token
+        API->>DB: Find or create user account
+        DB-->>API: User record
+    else Email/Password Registration
+        Patient->>SPA: Enter email + password
+        SPA->>API: POST /auth/register
+        API->>API: Validate password complexity
+        API->>DB: Create user (bcrypt hash)
+        API->>API: Send verification email
+    else Email/Password Login
+        Patient->>SPA: Enter credentials
+        SPA->>API: POST /auth/login
+        API->>DB: Validate credentials
+    end
+
+    API->>API: Issue JWT (15-min sliding expiry)
+    API-->>SPA: JWT token + user profile
+    SPA-->>Patient: Redirect to dashboard
+
+    alt Invalid credentials
+        API-->>SPA: 401 Unauthorized
+        SPA-->>Patient: "Invalid credentials" error
+    end
+
+    opt Account locked (5 failed attempts)
+        API-->>SPA: 423 Locked
+        SPA-->>Patient: Lockout message + reset link
+    end

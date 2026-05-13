@@ -1,0 +1,59 @@
+﻿@startuml data-flow
+!theme plain
+skinparam defaultTextAlignment center
+
+title Clinical Document Processing & Patient View Data Flow
+
+|Patient|
+start
+:Upload Clinical Document\n(PDF/DOCX/JPG/PNG/DICOM/FHIR);
+
+|System - Validation|
+:Validate Format & Size\n(max 50MB, whitelist check);
+if (Valid?) then (yes)
+    :Store Document\n(File Storage);
+else (no)
+    :Reject with Error Message;
+    stop
+endif
+
+|System - Security|
+:ClamAV Malware Scan;
+if (Clean?) then (yes)
+    :Queue for Processing\n(Hangfire Job);
+else (no)
+    :Quarantine & Reject\nNotify Patient;
+    stop
+endif
+
+|AI Pipeline - Local NLP|
+:Identify Document Type;
+:Apply Format Parser\n(iText7/OpenXml/Tesseract/FHIR);
+:Extract Raw Text;
+:ML.NET NER Extraction\n(Vitals, Meds, Allergies,\nDiagnoses, Procedures);
+:Assign Confidence Scores\n(0.0-1.0 per field);
+:Store ExtractedDataRecords\n(PostgreSQL);
+
+|System - Aggregation|
+:Aggregate Across Documents\n(Per Patient);
+:De-duplicate Entries;
+:Detect Conflicts\n(Conflicting values across docs);
+:Update PatientView\n(JSONB aggregation);
+:Flag Conflicts for Staff;
+
+|Staff|
+:Review 360-Degree Patient View;
+:Resolve Conflicts;
+:Verify AI Extractions;
+
+|AI Pipeline - Code Mapping|
+:Map ICD-10/CPT Codes\n(Rule-based + ML.NET);
+:Assign Confidence Scores;
+:Present to Staff for Verification;
+
+|Staff|
+:Accept/Modify/Reject Codes;
+:Store Verified Codes;
+stop
+
+@enduml

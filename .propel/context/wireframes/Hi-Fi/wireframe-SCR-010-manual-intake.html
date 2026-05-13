@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-010 · Manual Form Intake</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+.section-accordion { border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: var(--space-3); }
+.section-header { display: flex; align-items: center; justify-content: space-between; padding: var(--space-4); cursor: pointer; font-weight: 600; font-size: var(--text-sm); }
+.section-header:hover { background: var(--background-secondary); }
+.section-body { padding: 0 var(--space-4) var(--space-4); }
+.ai-badge { display: inline-flex; align-items: center; gap: var(--space-1); padding: 1px var(--space-2); border-radius: var(--radius-full); font-size: 10px; background: var(--primary-muted); color: var(--primary); font-weight: 500; }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #tab-ai | click | wireframe-SCR-009-ai-intake.html |
+| #btn-submit | click | wireframe-SCR-002-patient-dashboard.html |
+| #back | click | wireframe-SCR-002-patient-dashboard.html |
+| UC: UC-010 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-002-patient-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-009-ai-intake.html" class="sidebar-item active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v5z"/></svg> Intake</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-002-patient-dashboard.html" class="btn btn-ghost btn-sm" id="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <h1 class="header-title">Pre-visit intake</h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="tabs" role="tablist" style="border-bottom:none;">
+          <a href="wireframe-SCR-009-ai-intake.html" class="tab" role="tab" id="tab-ai" aria-selected="false" style="text-decoration:none;">AI assistant</a>
+          <button class="tab active" role="tab" aria-selected="true">Manual form</button>
+        </div>
+        <div class="avatar">MS</div>
+      </div>
+    </header>
+    <main class="page" id="main" style="max-width:720px;">
+      <form aria-label="Pre-visit intake form">
+        <!-- Medical History -->
+        <div class="section-accordion">
+          <div class="section-header" aria-expanded="true">
+            Medical history
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="section-body flex flex-col gap-4">
+            <div class="form-group">
+              <label class="form-label" for="conditions">Chronic conditions</label>
+              <input type="text" id="conditions" class="form-input" value="Type 2 Diabetes, Hypertension" placeholder="e.g., Diabetes, Asthma">
+              <span class="ai-badge mt-1">AI-extracted</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="surgeries">Past surgeries</label>
+              <textarea id="surgeries" class="form-input" rows="2" placeholder="e.g., Appendectomy (2018)"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="family-history">Family history</label>
+              <textarea id="family-history" class="form-input" rows="2" placeholder="e.g., Father — heart disease, Mother — diabetes"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Current Symptoms -->
+        <div class="section-accordion">
+          <div class="section-header" aria-expanded="true">
+            Current symptoms
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="section-body flex flex-col gap-4">
+            <div class="form-group">
+              <label class="form-label" for="symptoms">Describe your symptoms</label>
+              <textarea id="symptoms" class="form-input" rows="3" placeholder="e.g., Persistent headaches for the past 2 weeks, mild dizziness"></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="onset">When did symptoms start?</label>
+                <input type="date" id="onset" class="form-input">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="severity">Severity (1–10)</label>
+                <select id="severity" class="form-select">
+                  <option value="">Select</option>
+                  <option>1 — Minimal</option><option>2</option><option>3</option><option>4</option>
+                  <option>5 — Moderate</option><option>6</option><option>7</option><option>8</option>
+                  <option>9</option><option>10 — Severe</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Medications -->
+        <div class="section-accordion">
+          <div class="section-header" aria-expanded="true">
+            Medications
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="section-body flex flex-col gap-4">
+            <div class="form-group">
+              <label class="form-label" for="meds">Current medications</label>
+              <textarea id="meds" class="form-input" rows="3" placeholder="e.g., Metformin 500mg twice daily">Metformin 500mg twice daily
+Lisinopril 10mg once daily</textarea>
+              <span class="ai-badge mt-1">AI-extracted</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Allergies -->
+        <div class="section-accordion">
+          <div class="section-header" aria-expanded="true">
+            Allergies
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="section-body flex flex-col gap-4">
+            <div class="form-group">
+              <label class="form-label" for="allergies">Known allergies</label>
+              <input type="text" id="allergies" class="form-input" placeholder="e.g., Penicillin, Shellfish, Latex">
+            </div>
+          </div>
+        </div>
+
+        <!-- Reason for Visit -->
+        <div class="section-accordion">
+          <div class="section-header" aria-expanded="true">
+            Reason for visit <span style="color:var(--destructive);margin-left:4px;">*</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="section-body flex flex-col gap-4">
+            <div class="form-group">
+              <label class="form-label" for="reason">Primary reason <span style="color:var(--destructive);">*</span></label>
+              <textarea id="reason" class="form-input" rows="3" required placeholder="e.g., Annual physical exam, follow-up on blood work results"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-3 mt-6">
+          <a href="wireframe-SCR-002-patient-dashboard.html" class="btn btn-primary" id="btn-submit">Submit intake</a>
+          <button type="button" class="btn btn-ghost">Save draft</button>
+        </div>
+      </form>
+    </main>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-021 · Code Mapping Interface</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+.code-cell { font-family: var(--font-mono); font-size: var(--text-sm); }
+.confidence-bar { display: inline-flex; align-items: center; gap: 4px; }
+.confidence-bar .dot { width: 8px; height: 8px; border-radius: var(--radius-full); }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #back | click | wireframe-SCR-019-patient-360.html |
+| UC: UC-016 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Staff navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-003-staff-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-017-same-day-queue.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 3h5v5"/><path d="M4 20L21 3"/></svg> Queue</a>
+      <a href="wireframe-SCR-021-code-mapping.html" class="sidebar-item active" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Codes</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-019-patient-360.html" class="btn btn-ghost btn-sm" id="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <h1 class="header-title">Code mapping — Maria Santos</h1>
+      </div>
+      <div class="header-actions"><div class="avatar">JW</div></div>
+    </header>
+    <main class="page" id="main">
+      <h3 class="mb-4">AI-suggested codes</h3>
+      <div class="table-container">
+        <table aria-label="Suggested medical codes">
+          <thead><tr><th>Code</th><th>Description</th><th>Confidence</th><th>Source</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="code-cell">E11.9</td>
+              <td>Type 2 diabetes mellitus without complications</td>
+              <td>
+                <div class="confidence-bar"><div class="dot" style="background:var(--success);"></div><span class="text-sm font-medium">96%</span></div>
+              </td>
+              <td class="text-sm text-muted">Intake + EHR</td>
+              <td class="flex gap-2">
+                <button class="btn btn-primary btn-sm">Accept</button>
+                <button class="btn btn-ghost btn-sm">Modify</button>
+                <button class="btn btn-ghost btn-sm" style="color:var(--destructive);">Reject</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="code-cell">I10</td>
+              <td>Essential (primary) hypertension</td>
+              <td>
+                <div class="confidence-bar"><div class="dot" style="background:var(--success);"></div><span class="text-sm font-medium">94%</span></div>
+              </td>
+              <td class="text-sm text-muted">Intake + EHR</td>
+              <td class="flex gap-2">
+                <button class="btn btn-primary btn-sm">Accept</button>
+                <button class="btn btn-ghost btn-sm">Modify</button>
+                <button class="btn btn-ghost btn-sm" style="color:var(--destructive);">Reject</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="code-cell">99213</td>
+              <td>Office visit, est. patient, low-mod complexity (CPT)</td>
+              <td>
+                <div class="confidence-bar"><div class="dot" style="background:var(--warning);"></div><span class="text-sm font-medium">72%</span></div>
+              </td>
+              <td class="text-sm text-muted">ML model</td>
+              <td class="flex gap-2">
+                <button class="btn btn-outline btn-sm">Accept</button>
+                <button class="btn btn-ghost btn-sm">Modify</button>
+                <button class="btn btn-ghost btn-sm" style="color:var(--destructive);">Reject</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="code-cell">R51.9</td>
+              <td>Headache, unspecified</td>
+              <td>
+                <div class="confidence-bar"><div class="dot" style="background:var(--destructive);"></div><span class="text-sm font-medium">45%</span></div>
+              </td>
+              <td class="text-sm text-muted">NLP extraction</td>
+              <td class="flex gap-2">
+                <button class="btn btn-outline btn-sm">Accept</button>
+                <button class="btn btn-ghost btn-sm">Modify</button>
+                <button class="btn btn-ghost btn-sm" style="color:var(--destructive);">Reject</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Manual Entry -->
+      <div class="card mt-6">
+        <h3 class="card-title mb-4">Add code manually</h3>
+        <div class="flex gap-3">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" for="manual-code">ICD-10 / CPT code</label>
+            <input type="text" id="manual-code" class="form-input" placeholder="e.g., J06.9" style="font-family:var(--font-mono);">
+          </div>
+          <button class="btn btn-secondary" style="align-self:flex-end;">Add</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

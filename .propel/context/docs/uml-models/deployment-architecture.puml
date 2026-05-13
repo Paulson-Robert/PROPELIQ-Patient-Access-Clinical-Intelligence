@@ -1,0 +1,59 @@
+﻿@startuml deployment-architecture
+!theme plain
+skinparam linetype ortho
+
+title Unified Patient Access & Clinical Intelligence Platform - Deployment Architecture
+
+cloud "CDN / Edge" as edge {
+    node "Vercel\n(Free Tier)" as vercel {
+        artifact "React SPA\n(Static Assets)" as spa
+    }
+}
+
+cloud "PaaS" as paas {
+    node "Railway / Render\n(Free Tier)" as railway {
+        artifact "ASP.NET Core 9\nAPI Container" as api
+        artifact "Hangfire Worker\n(Background Jobs)" as hangfire
+        artifact "ClamAV Sidecar\n(Malware Scan)" as clamav
+    }
+}
+
+cloud "Managed Data" as data {
+    database "Supabase\n(PostgreSQL 16)" as pg {
+        storage "Patient Data (PHI)\n[pgcrypto encrypted]" as phi
+        storage "Audit Log\n[Append-only]" as audit
+        storage "Hangfire Storage" as hfstorage
+    }
+    database "Upstash Redis\n(Serverless)" as redis {
+        storage "Session Cache" as sessions
+        storage "Slot Locks" as locks
+        storage "Rate Limit Counters" as ratelimit
+    }
+}
+
+cloud "External APIs" as external {
+    node "Google Calendar API" as gcal
+    node "Microsoft Graph API" as msgraph
+    node "SMS Gateway" as sms
+    node "Email Service" as email
+    node "Cloud LLM API\n(OpenAI/Gemini)" as llm
+}
+
+cloud "Monitoring" as monitoring {
+    node "Sentry\n(Error Tracking)" as sentry
+    node "Uptime Robot\n(Availability)" as uptime
+}
+
+spa --> api : HTTPS/TLS 1.2+\nJWT Bearer
+api --> pg : TCP/SSL\nEF Core
+api --> redis : TLS\nnClam
+api --> clamav : TCP/Local
+hangfire --> pg : Job Storage
+hangfire --> gcal : OAuth 2.0
+hangfire --> msgraph : OAuth 2.0
+hangfire --> sms : Async/Retry
+hangfire --> email : SMTP/API
+hangfire --> llm : HTTPS\n(De-identified)
+api --> sentry : Error Events
+uptime --> api : Health Checks
+@enduml

@@ -1,0 +1,22 @@
+@startuml uc-book-appointment
+!theme plain
+left to right direction
+
+actor "Patient" as patient
+actor "Email Service" as email
+
+rectangle "Appointment Booking" {
+  usecase "Search Available Slots" as UC3_SEARCH
+  usecase "Book Appointment" as UC3_BOOK
+  usecase "Generate Confirmation PDF" as UC3_PDF
+  usecase "Send Email Confirmation" as UC3_EMAIL
+  usecase "View Appointment History" as UC3_HISTORY
+}
+
+patient --> UC3_SEARCH
+patient --> UC3_BOOK
+patient --> UC3_HISTORY
+UC3_BOOK ..> UC3_PDF : <<include>>
+UC3_BOOK ..> UC3_EMAIL : <<include>>
+UC3_EMAIL --> email
+@enduml

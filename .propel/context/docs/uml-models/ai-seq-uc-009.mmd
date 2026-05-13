@@ -1,0 +1,43 @@
+﻿sequenceDiagram
+    participant Patient
+    participant ReactSPA as React SPA
+    participant API as ASP.NET Core API
+    participant DeIdent as De-identification Filter
+    participant LLM as Cloud LLM (OpenAI/Gemini)
+    participant DB as PostgreSQL
+
+    Note over Patient,DB: UC-009 â€” AI Conversational Intake
+
+    Patient->>ReactSPA: Start AI Intake
+    ReactSPA->>API: POST /intake/ai/start
+    API->>DB: Create IntakeRecord (mode=AI)
+    DB-->>API: IntakeRecord ID
+    API-->>ReactSPA: Session initialized
+
+    loop Conversation turns
+        Patient->>ReactSPA: Natural language response
+        ReactSPA->>API: POST /intake/ai/message
+        API->>DeIdent: Strip PHI markers from prompt
+        DeIdent->>LLM: Send de-identified prompt
+        LLM-->>DeIdent: Structured extraction response
+        DeIdent-->>API: Parsed fields + confidence
+        API->>DB: Store extracted fields
+        API-->>ReactSPA: Display parsed data for confirmation
+        ReactSPA-->>Patient: Show extracted values
+    end
+
+    Patient->>ReactSPA: Confirm all data
+    ReactSPA->>API: POST /intake/ai/complete
+    API->>DB: Mark IntakeRecord complete
+    API-->>ReactSPA: Intake complete
+
+    alt AI service unavailable
+        API-->>ReactSPA: Fallback to manual form
+        ReactSPA-->>Patient: Switch to manual intake (data preserved)
+    end
+
+    opt Patient toggles to manual
+        Patient->>ReactSPA: Switch to Manual Form
+        ReactSPA->>API: GET /intake/manual (preserve data)
+        API-->>ReactSPA: Pre-filled form with AI data
+    end

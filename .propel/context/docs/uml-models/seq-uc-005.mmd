@@ -1,0 +1,35 @@
+﻿sequenceDiagram
+    participant Staff
+    participant SPA as React SPA
+    participant API as ASP.NET Core API
+    participant DB as PostgreSQL
+
+    Note over Staff,DB: UC-005 â€” Staff Walk-in Booking
+
+    Staff->>SPA: Navigate to walk-in booking
+    Staff->>SPA: Search patient (name/phone/email)
+    SPA->>API: GET /patients?search=X
+    API->>DB: Query patients
+    DB-->>API: Patient results
+
+    alt Patient found
+        Staff->>SPA: Select existing patient
+    else Patient not found
+        Staff->>SPA: Create new patient account
+        SPA->>API: POST /patients
+        API->>DB: Create patient record
+        DB-->>API: New patient ID
+    end
+
+    Staff->>SPA: Select slot or add to queue
+    SPA->>API: POST /appointments/walkin
+    API->>DB: Create appointment (BookingType=WalkIn)
+    DB-->>API: Appointment created
+    API-->>SPA: Walk-in confirmed
+    SPA-->>Staff: Show in queue with walk-in indicator
+
+    alt No slots available
+        SPA->>API: POST /queue/same-day
+        API->>DB: Add to same-day queue
+        API-->>SPA: Queued with estimated wait
+    end

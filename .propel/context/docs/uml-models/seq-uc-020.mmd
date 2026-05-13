@@ -1,0 +1,26 @@
+﻿sequenceDiagram
+    participant Admin
+    participant SPA as React SPA
+    participant API as ASP.NET Core API
+    participant DB as PostgreSQL
+
+    Note over Admin,DB: UC-020 â€” Admin Dashboard Metrics
+
+    Admin->>SPA: Navigate to admin dashboard
+    SPA->>API: GET /admin/metrics
+    API->>DB: Aggregate metrics (patient count, appointments, no-show rate)
+    DB-->>API: Current metrics + trends
+    API-->>SPA: Metrics payload
+    SPA-->>Admin: Display dashboard (cards + charts)
+
+    Admin->>SPA: Select date range filter
+    SPA->>API: GET /admin/metrics?from=X&to=Y
+    API->>DB: Filtered aggregation
+    DB-->>API: Period metrics
+    API-->>SPA: Updated dashboard
+    SPA-->>Admin: Filtered view
+
+    alt No data (new deployment)
+        API-->>SPA: Zero-state response
+        SPA-->>Admin: "No data yet" placeholder
+    end

@@ -1,0 +1,24 @@
+@startuml uc-patient-registration
+!theme plain
+left to right direction
+
+actor "Patient" as patient
+actor "Google OAuth" as google
+actor "Microsoft OAuth" as microsoft
+
+rectangle "User Management & Authentication" {
+  usecase "Register Account" as UC1_REG
+  usecase "Login via Social" as UC1_SOCIAL
+  usecase "Login via Email/Password" as UC1_EMAIL
+  usecase "Reset Password" as UC1_RESET
+  usecase "Verify Email" as UC1_VERIFY
+}
+
+patient --> UC1_REG
+patient --> UC1_SOCIAL
+patient --> UC1_EMAIL
+patient --> UC1_RESET
+UC1_REG ..> UC1_VERIFY : <<include>>
+UC1_SOCIAL --> google
+UC1_SOCIAL --> microsoft
+@enduml

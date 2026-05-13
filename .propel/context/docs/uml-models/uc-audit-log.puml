@@ -1,0 +1,17 @@
+@startuml uc-audit-log
+!theme plain
+left to right direction
+
+actor "Admin" as admin
+
+rectangle "Audit & Compliance" {
+  usecase "View Audit Log" as UC19_VIEW
+  usecase "Filter Log Entries" as UC19_FILTER
+  usecase "Export Audit Data" as UC19_EXPORT
+}
+
+admin --> UC19_VIEW
+admin --> UC19_FILTER
+admin --> UC19_EXPORT
+UC19_VIEW ..> UC19_FILTER : <<extend>>
+@enduml

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-015 · Patient Profile / Settings</title>
+<link rel="stylesheet" href="shared-tokens.css">
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #btn-save | click | Shows toast "Profile updated" |
+| #back | click | wireframe-SCR-002-patient-dashboard.html |
+| UC: UC-001, UC-015 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-002-patient-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-015-patient-profile.html" class="sidebar-item active" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Profile</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-002-patient-dashboard.html" class="btn btn-ghost btn-sm" id="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <h1 class="header-title">Profile &amp; settings</h1>
+      </div>
+      <div class="header-actions"><div class="avatar avatar-lg">MS</div></div>
+    </header>
+    <main class="page" id="main" style="max-width:640px;">
+      <!-- Profile Info -->
+      <div class="card mb-6">
+        <h3 class="card-title mb-4">Personal information</h3>
+        <form class="flex flex-col gap-4">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label" for="name">Full name</label><input type="text" id="name" class="form-input" value="Maria Santos"></div>
+            <div class="form-group"><label class="form-label" for="email">Email</label><input type="email" id="email" class="form-input" value="maria.santos@email.com"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label" for="phone">Phone</label><input type="tel" id="phone" class="form-input" value="(555) 234-5678"></div>
+            <div class="form-group"><label class="form-label" for="dob">Date of birth</label><input type="date" id="dob" class="form-input" value="1988-03-15"></div>
+          </div>
+          <button type="button" class="btn btn-primary" id="btn-save" style="align-self:flex-start;">Save changes</button>
+        </form>
+      </div>
+
+      <!-- Password -->
+      <div class="card mb-6">
+        <h3 class="card-title mb-4">Change password</h3>
+        <div class="flex flex-col gap-4">
+          <div class="form-group"><label class="form-label" for="current-pw">Current password</label><input type="password" id="current-pw" class="form-input" placeholder="Enter current password"></div>
+          <div class="form-group"><label class="form-label" for="new-pw">New password</label><input type="password" id="new-pw" class="form-input" placeholder="Enter new password"></div>
+          <div class="form-group"><label class="form-label" for="confirm-pw">Confirm new password</label><input type="password" id="confirm-pw" class="form-input" placeholder="Re-enter new password"></div>
+          <button class="btn btn-secondary" style="align-self:flex-start;">Update password</button>
+        </div>
+      </div>
+
+      <!-- Notification Preferences -->
+      <div class="card mb-6">
+        <h3 class="card-title mb-4">Notification preferences</h3>
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center justify-between">
+            <div><div class="font-medium text-sm">Email notifications</div><div class="text-xs text-muted">Appointment reminders, document updates</div></div>
+            <div class="switch"><div class="switch-track active"><div class="switch-thumb"></div></div></div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:var(--space-4);">
+            <div class="flex items-center justify-between">
+              <div><div class="font-medium text-sm">SMS notifications</div><div class="text-xs text-muted">Appointment reminders only</div></div>
+              <div class="switch"><div class="switch-track"><div class="switch-thumb"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Management -->
+      <div class="card">
+        <h3 class="card-title mb-4">Data management</h3>
+        <p class="text-sm text-muted mb-4">You can request deletion of your account and all associated data. This action is irreversible.</p>
+        <button class="btn btn-destructive btn-sm">Request data deletion</button>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

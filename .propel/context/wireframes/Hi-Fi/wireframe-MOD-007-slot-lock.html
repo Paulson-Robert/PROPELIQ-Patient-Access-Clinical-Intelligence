@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>MOD-007 · Slot Lock Timer</title>
+<link rel="stylesheet" href="shared-tokens.css">
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #btn-confirm | click | wireframe-MOD-002-booking-confirm.html |
+| #btn-release | click | Releases slot, returns to SCR-005 grid |
+| Note: Also rendered inline in SCR-005 as an overlay on selected slot |
+| UC: UC-003 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="modal-backdrop">
+  <div class="modal" role="dialog" aria-labelledby="mod007-title" id="main" style="max-width:400px;">
+    <div class="modal-header">
+      <h2 class="modal-title" id="mod007-title">Slot reserved</h2>
+    </div>
+    <div class="modal-body text-center">
+      <div class="countdown-ring mb-4" aria-label="4 minutes 32 seconds remaining">
+        <svg width="96" height="96" viewBox="0 0 96 96">
+          <circle cx="48" cy="48" r="42" fill="none" stroke="var(--border)" stroke-width="4"/>
+          <circle cx="48" cy="48" r="42" fill="none" stroke="var(--primary)" stroke-width="4" stroke-dasharray="264" stroke-dashoffset="66" stroke-linecap="round" transform="rotate(-90 48 48)"/>
+        </svg>
+        <span class="countdown-text" style="font-size:var(--text-xl);">4:32</span>
+      </div>
+      <p class="text-sm text-muted mb-2">This slot is held for you.</p>
+      <div style="background:var(--background-secondary);padding:var(--space-3);border-radius:var(--radius-md);" class="text-sm">
+        <div class="font-medium">Dr. Sarah Chen</div>
+        <div class="text-muted">Mon, Jan 27 · 09:00 AM · 30 min</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a href="wireframe-MOD-002-booking-confirm.html" class="btn btn-primary" id="btn-confirm">Proceed to confirm</a>
+      <button class="btn btn-ghost" id="btn-release">Release slot</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

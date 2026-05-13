@@ -1,0 +1,22 @@
+@startuml uc-calendar-sync
+!theme plain
+left to right direction
+
+actor "Patient" as patient
+actor "Google Calendar API" as gcal
+actor "Microsoft Graph API" as outlook
+
+rectangle "Calendar Sync" {
+  usecase "Configure Calendar Sync" as UC7_CONFIG
+  usecase "Grant OAuth Consent" as UC7_CONSENT
+  usecase "Sync Appointments" as UC7_SYNC
+  usecase "Revoke Calendar Access" as UC7_REVOKE
+}
+
+patient --> UC7_CONFIG
+patient --> UC7_REVOKE
+UC7_CONFIG ..> UC7_CONSENT : <<include>>
+UC7_CONSENT --> gcal
+UC7_CONSENT --> outlook
+UC7_CONFIG ..> UC7_SYNC : <<include>>
+@enduml

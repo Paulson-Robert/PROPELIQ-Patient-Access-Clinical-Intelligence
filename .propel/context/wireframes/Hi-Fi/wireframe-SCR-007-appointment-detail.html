@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-007 Â· Appointment Detail</title>
+<link rel="stylesheet" href="shared-tokens.css">
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #btn-cancel | click | wireframe-MOD-003-cancel-confirm.html |
+| #btn-reschedule | click | wireframe-SCR-008-reschedule-slot-picker.html |
+| #link-intake | click | wireframe-SCR-009-ai-intake.html |
+| #back | click | wireframe-SCR-002-patient-dashboard.html |
+| UC: UC-008 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-002-patient-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-005-appointment-search.html" class="sidebar-item active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Appointments</a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-002-patient-dashboard.html" class="btn btn-ghost btn-sm" id="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <h1 class="header-title">Appointment detail</h1>
+      </div>
+      <div class="header-actions"><div class="avatar">MS</div></div>
+    </header>
+
+    <main class="page" id="main">
+      <nav class="breadcrumb mb-4" aria-label="Breadcrumb">
+        <a href="wireframe-SCR-002-patient-dashboard.html">Dashboard</a>
+        <span class="breadcrumb-separator" aria-hidden="true">/</span>
+        <span class="breadcrumb-current">Appointment detail</span>
+      </nav>
+
+      <div class="card" style="max-width: 640px;">
+        <div class="card-header">
+          <div class="flex items-center gap-3">
+            <div class="avatar avatar-lg">SC</div>
+            <div>
+              <div class="card-title">Dr. Sarah Chen</div>
+              <div class="text-sm text-muted">Internal Medicine</div>
+            </div>
+          </div>
+          <span class="badge badge-primary">Scheduled</span>
+        </div>
+        <div class="card-content">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);font-size:var(--text-sm);">
+            <div><span class="text-muted">Date</span><div class="font-medium mt-1">January 27, 2025</div></div>
+            <div><span class="text-muted">Time</span><div class="font-medium mt-1">09:00 AM</div></div>
+            <div><span class="text-muted">Duration</span><div class="font-medium mt-1">30 minutes</div></div>
+            <div><span class="text-muted">Booking type</span><div class="font-medium mt-1">Scheduled</div></div>
+          </div>
+
+          <!-- Intake Status -->
+          <div style="margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--border);">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-medium text-sm">Pre-visit intake</div>
+                <div class="text-xs text-muted">Complete your intake before the appointment.</div>
+              </div>
+              <a href="wireframe-SCR-009-ai-intake.html" class="btn btn-outline btn-sm" id="link-intake">Start intake</a>
+            </div>
+          </div>
+
+          <!-- Calendar Sync -->
+          <div style="margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border);">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-medium text-sm">Calendar sync</div>
+                <div class="text-xs text-muted">Added to Google Calendar</div>
+              </div>
+              <span class="badge badge-success">Synced</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer" style="border-top: 1px solid var(--border); padding-top: var(--space-4);">
+          <a href="wireframe-SCR-008-reschedule-slot-picker.html" class="btn btn-secondary" id="btn-reschedule">Reschedule</a>
+          <a href="wireframe-MOD-003-cancel-confirm.html" class="btn btn-destructive" id="btn-cancel">Cancel appointment</a>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

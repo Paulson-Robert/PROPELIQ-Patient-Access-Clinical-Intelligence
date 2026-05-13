@@ -1,0 +1,38 @@
+﻿sequenceDiagram
+    participant Admin
+    participant SPA as React SPA
+    participant API as ASP.NET Core API
+    participant DB as PostgreSQL
+    participant Email as Email Service
+
+    Note over Admin,Email: UC-018 â€” Admin User Management
+
+    Admin->>SPA: Navigate to user management
+    SPA->>API: GET /admin/users
+    API->>DB: Query all users
+    DB-->>API: User list (roles, status, last login)
+    API-->>SPA: Display user table
+
+    alt Create new user
+        Admin->>SPA: Enter email, assign role
+        SPA->>API: POST /admin/users
+        API->>DB: Create user account
+        API->>Email: Send activation email
+        API-->>SPA: User created
+    else Update user
+        Admin->>SPA: Change role or details
+        SPA->>API: PATCH /admin/users/{id}
+        API->>DB: Update user record
+        API-->>SPA: Updated (immediate effect)
+    else Deactivate user
+        Admin->>SPA: Deactivate account
+        SPA->>API: DELETE /admin/users/{id}
+        API->>DB: Set IsActive=false
+        API->>API: Invalidate active sessions
+        API-->>SPA: Account deactivated
+    end
+
+    opt Last admin protection
+        API-->>SPA: 403 â€” cannot deactivate last admin
+        SPA-->>Admin: Error message
+    end

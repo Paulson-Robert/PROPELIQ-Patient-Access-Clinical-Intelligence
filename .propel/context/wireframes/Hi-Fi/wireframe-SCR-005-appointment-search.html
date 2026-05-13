@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-005 · Appointment Search &amp; Booking</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+.filter-bar { display: flex; gap: var(--space-3); align-items: flex-end; padding: var(--space-4); background: var(--background-secondary); border-radius: var(--radius-lg); margin-bottom: var(--space-6); flex-wrap: wrap; }
+.slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-3); }
+.slot-card { padding: var(--space-4); border: 2px solid var(--border); border-radius: var(--radius-lg); cursor: pointer; transition: all var(--duration-fast) var(--ease-default); background: var(--background); }
+.slot-card:hover { border-color: var(--primary); box-shadow: var(--shadow); }
+.slot-card:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.slot-card.selected { border-color: var(--primary); background: var(--primary-muted); }
+.slot-card.unavailable { opacity: 0.5; cursor: not-allowed; background: var(--background-tertiary); }
+.date-group { margin-bottom: var(--space-6); }
+.date-group-header { font-family: var(--font-display); font-weight: 600; font-size: var(--text-base); margin-bottom: var(--space-3); color: var(--foreground); }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| .slot-card.selected | click | Shows MOD-007 lock timer overlay, then MOD-002 confirmation |
+| #btn-confirm | click | wireframe-SCR-006-booking-confirmation.html |
+| #back-dashboard | click | wireframe-SCR-002-patient-dashboard.html |
+| sidebar nav | click | respective screens |
+| UC: UC-003, UC-004 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-002-patient-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-005-appointment-search.html" class="sidebar-item active" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Appointments</a>
+      <a href="wireframe-SCR-009-ai-intake.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v5z"/></svg> Intake</a>
+      <a href="wireframe-SCR-011-document-upload.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> Documents</a>
+      <a href="wireframe-SCR-016-appointment-history.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> History</a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-002-patient-dashboard.html" class="btn btn-ghost btn-sm" id="back-dashboard" aria-label="Back to dashboard">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+        <h1 class="header-title">Book an appointment</h1>
+      </div>
+      <div class="header-actions"><div class="avatar">MS</div></div>
+    </header>
+
+    <main class="page" id="main">
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb mb-4" aria-label="Breadcrumb">
+        <a href="wireframe-SCR-002-patient-dashboard.html">Dashboard</a>
+        <span class="breadcrumb-separator" aria-hidden="true">/</span>
+        <span class="breadcrumb-current" aria-current="page">Book appointment</span>
+      </nav>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar" role="search" aria-label="Search available appointments">
+        <div class="form-group" style="flex:1;min-width:180px;">
+          <label class="form-label" for="search-provider">Provider</label>
+          <input type="text" id="search-provider" class="form-input" placeholder="e.g., Dr. Sarah Chen" value="">
+        </div>
+        <div class="form-group" style="flex:1;min-width:160px;">
+          <label class="form-label" for="search-specialty">Specialty</label>
+          <select id="search-specialty" class="form-select">
+            <option value="">All specialties</option>
+            <option>Internal Medicine</option>
+            <option>Cardiology</option>
+            <option>Dermatology</option>
+            <option>Orthopedics</option>
+            <option>Family Medicine</option>
+          </select>
+        </div>
+        <div class="form-group" style="min-width:140px;">
+          <label class="form-label" for="search-from">From</label>
+          <input type="date" id="search-from" class="form-input" value="2025-01-28">
+        </div>
+        <div class="form-group" style="min-width:140px;">
+          <label class="form-label" for="search-to">To</label>
+          <input type="date" id="search-to" class="form-input" value="2025-02-07">
+        </div>
+        <button class="btn btn-primary" style="min-height:44px;" aria-label="Search for available slots">Search</button>
+      </div>
+
+      <!-- Results -->
+      <div aria-live="polite">
+        <!-- Date Group 1 -->
+        <div class="date-group">
+          <div class="date-group-header">Tuesday, January 28, 2025</div>
+          <div class="slot-grid">
+            <div class="slot-card selected" tabindex="0" role="button" aria-label="Dr. Sarah Chen, Internal Medicine, 9:00 AM, 30 minutes — selected">
+              <div class="flex items-center gap-2 mb-2">
+                <div class="avatar avatar-sm">SC</div>
+                <div>
+                  <div class="font-medium text-sm">Dr. Sarah Chen</div>
+                  <div class="text-xs text-muted">Internal Medicine</div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between mt-2">
+                <div class="font-semibold" style="color: var(--primary);">09:00 AM</div>
+                <div class="text-xs text-muted">30 min</div>
+              </div>
+              <!-- Lock Countdown Overlay (MOD-007) -->
+              <div style="margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--border); display: flex; align-items: center; gap: var(--space-2);">
+                <svg class="countdown-ring" viewBox="0 0 64 64" style="width:32px;height:32px;" aria-label="Slot locked for 24 seconds">
+                  <circle class="bg" cx="32" cy="32" r="28"/>
+                  <circle class="progress" cx="32" cy="32" r="28" style="stroke-dasharray:175.9;"/>
+                </svg>
+                <span class="text-xs font-medium" style="color: var(--primary);">Locked · 24s remaining</span>
+              </div>
+            </div>
+
+            <div class="slot-card" tabindex="0" role="button" aria-label="Dr. Sarah Chen, Internal Medicine, 9:30 AM, 30 minutes">
+              <div class="flex items-center gap-2 mb-2">
+                <div class="avatar avatar-sm">SC</div>
+                <div>
+                  <div class="font-medium text-sm">Dr. Sarah Chen</div>
+                  <div class="text-xs text-muted">Internal Medicine</div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between mt-2">
+                <div class="font-semibold">09:30 AM</div>
+                <div class="text-xs text-muted">30 min</div>
+              </div>
+            </div>
+
+            <div class="slot-card" tabindex="0" role="button" aria-label="Dr. Michael Okafor, Cardiology, 10:00 AM, 45 minutes">
+              <div class="flex items-center gap-2 mb-2">
+                <div class="avatar avatar-sm">MO</div>
+                <div>
+                  <div class="font-medium text-sm">Dr. Michael Okafor</div>
+                  <div class="text-xs text-muted">Cardiology</div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between mt-2">
+                <div class="font-semibold">10:00 AM</div>
+                <div class="text-xs text-muted">45 min</div>
+              </div>
+            </div>
+
+            <div class="slot-card" tabindex="0" role="button" aria-label="Dr. Emily Johansson, Dermatology, 11:00 AM, 20 minutes">
+              <div class="flex items-center gap-2 mb-2">
+                <div class="avatar avatar-sm">EJ</div>
+                <div>
+                  <div class="font-medium text-sm">Dr. Emily Johansson</div>
+                  <div class="text-xs text-muted">Dermatology</div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between mt-2">
+                <div class="font-semibold">11:00 AM</div>
+                <div class="text-xs text-muted">20 min</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Date Group 2 -->
+        <div class="date-group">
+          <div class="date-group-header">Wednesday, January 29, 2025</div>
+          <div class="slot-grid">
+            <div class="slot-card" tabindex="0" role="button" aria-label="Dr. Lisa Nakamura, Family Medicine, 2:00 PM, 30 minutes">
+              <div class="flex items-center gap-2 mb-2">
+                <div class="avatar avatar-sm">LN</div>
+                <div>
+                  <div class="font-medium text-sm">Dr. Lisa Nakamura</div>
+                  <div class="text-xs text-muted">Family Medicine</div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between mt-2">
+                <div class="font-semibold">02:00 PM</div>
+                <div class="text-xs text-muted">30 min</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirm Bar -->
+      <div style="position: sticky; bottom: 0; background: var(--background); border-top: 1px solid var(--border); padding: var(--space-4); display: flex; align-items: center; justify-content: space-between; margin: var(--space-6) calc(-1 * var(--page-px)) 0; padding-left: var(--page-px); padding-right: var(--page-px);">
+        <div>
+          <div class="font-medium">Selected: Dr. Sarah Chen — Jan 28, 09:00 AM</div>
+          <div class="text-sm text-muted">Internal Medicine · 30 min</div>
+        </div>
+        <a href="wireframe-SCR-006-booking-confirmation.html" class="btn btn-primary" id="btn-confirm">Confirm booking</a>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

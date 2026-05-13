@@ -1,0 +1,36 @@
+﻿sequenceDiagram
+    participant Staff
+    participant SPA as React SPA
+    participant API as ASP.NET Core API
+    participant MFA as MFA Service (TOTP/SMS)
+    participant DB as PostgreSQL
+
+    Note over Staff,DB: UC-002 â€” Staff/Admin Authentication with MFA
+
+    Staff->>SPA: Enter email + password
+    SPA->>API: POST /auth/staff-login
+    API->>DB: Validate credentials
+    DB-->>API: User record (role=Staff/Admin)
+    API-->>SPA: MFA challenge required
+
+    API->>MFA: Generate/send code
+    MFA-->>Staff: TOTP code or SMS
+    Staff->>SPA: Enter MFA code
+    SPA->>API: POST /auth/mfa-verify
+    API->>MFA: Validate code
+    MFA-->>API: Valid
+
+    API->>API: Issue JWT (15-min sliding, role permissions)
+    API-->>SPA: JWT + role-based dashboard redirect
+    SPA-->>Staff: Staff/Admin dashboard
+
+    alt Invalid MFA code (3 attempts)
+        API-->>SPA: Session terminated
+        SPA-->>Staff: "Restart login" message
+    end
+
+    opt MFA not configured
+        API-->>SPA: Redirect to MFA setup
+        Staff->>SPA: Configure TOTP/SMS
+        SPA->>API: POST /auth/mfa-setup
+    end

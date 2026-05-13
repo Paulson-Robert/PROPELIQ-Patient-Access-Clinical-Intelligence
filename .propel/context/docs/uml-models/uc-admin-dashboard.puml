@@ -1,0 +1,17 @@
+@startuml uc-admin-dashboard
+!theme plain
+left to right direction
+
+actor "Admin" as admin
+
+rectangle "Admin Dashboard" {
+  usecase "View Platform Metrics" as UC20_VIEW
+  usecase "Filter by Date Range" as UC20_FILTER
+  usecase "View Trend Data" as UC20_TRENDS
+}
+
+admin --> UC20_VIEW
+admin --> UC20_FILTER
+UC20_VIEW ..> UC20_TRENDS : <<include>>
+UC20_VIEW ..> UC20_FILTER : <<extend>>
+@enduml

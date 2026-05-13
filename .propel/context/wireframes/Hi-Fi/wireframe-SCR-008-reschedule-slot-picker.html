@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-008 · Reschedule Slot Picker</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+.slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-3); }
+.slot-card { padding: var(--space-4); border: 2px solid var(--border); border-radius: var(--radius-lg); cursor: pointer; transition: all var(--duration-fast); background: var(--background); }
+.slot-card:hover { border-color: var(--primary); }
+.slot-card:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.slot-card.current { border-color: var(--warning); background: var(--warning-muted); cursor: default; }
+.current-appt { background: var(--background-secondary); border-radius: var(--radius-lg); padding: var(--space-4); margin-bottom: var(--space-6); }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| .slot-card (non-current) | click | wireframe-SCR-006-booking-confirmation.html (via MOD-002) |
+| #back | click | wireframe-SCR-007-appointment-detail.html |
+| UC: UC-008 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-002-patient-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-005-appointment-search.html" class="sidebar-item active"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Appointments</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-007-appointment-detail.html" class="btn btn-ghost btn-sm" id="back" aria-label="Back to appointment detail"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <h1 class="header-title">Reschedule appointment</h1>
+      </div>
+      <div class="header-actions"><div class="avatar">MS</div></div>
+    </header>
+    <main class="page" id="main">
+      <div class="current-appt">
+        <div class="text-xs text-muted mb-2" style="text-transform:uppercase;letter-spacing:0.05em;">Current appointment</div>
+        <div class="flex items-center gap-3">
+          <div class="avatar avatar-sm">SC</div>
+          <div><div class="font-medium text-sm">Dr. Sarah Chen · Internal Medicine</div><div class="text-xs text-muted">Jan 27, 2025 · 09:00 AM · 30 min</div></div>
+          <span class="badge badge-warning">Current</span>
+        </div>
+      </div>
+      <h3 class="mb-4">Select a new time</h3>
+      <div class="slot-grid">
+        <div class="slot-card current" aria-label="Current slot — Jan 27, 09:00 AM" aria-disabled="true">
+          <div class="font-medium text-sm">Dr. Sarah Chen</div>
+          <div class="text-xs text-muted">Internal Medicine</div>
+          <div class="font-semibold mt-2" style="color:var(--warning);">Jan 27 · 09:00 AM</div>
+          <span class="badge badge-warning mt-2">Current</span>
+        </div>
+        <a href="wireframe-SCR-006-booking-confirmation.html" class="slot-card" tabindex="0" style="text-decoration:none;color:inherit;">
+          <div class="font-medium text-sm">Dr. Sarah Chen</div>
+          <div class="text-xs text-muted">Internal Medicine</div>
+          <div class="font-semibold mt-2">Jan 28 · 09:00 AM</div>
+          <div class="text-xs text-muted">30 min</div>
+        </a>
+        <a href="wireframe-SCR-006-booking-confirmation.html" class="slot-card" tabindex="0" style="text-decoration:none;color:inherit;">
+          <div class="font-medium text-sm">Dr. Sarah Chen</div>
+          <div class="text-xs text-muted">Internal Medicine</div>
+          <div class="font-semibold mt-2">Jan 28 · 09:30 AM</div>
+          <div class="text-xs text-muted">30 min</div>
+        </a>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

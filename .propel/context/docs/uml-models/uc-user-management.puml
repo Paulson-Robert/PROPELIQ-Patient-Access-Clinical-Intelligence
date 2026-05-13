@@ -1,0 +1,18 @@
+@startuml uc-user-management
+!theme plain
+left to right direction
+
+actor "Admin" as admin
+
+rectangle "User Management" {
+  usecase "View All Users" as UC18_VIEW
+  usecase "Create User Account" as UC18_CREATE
+  usecase "Update User/Role" as UC18_UPDATE
+  usecase "Deactivate Account" as UC18_DEACTIVATE
+}
+
+admin --> UC18_VIEW
+admin --> UC18_CREATE
+admin --> UC18_UPDATE
+admin --> UC18_DEACTIVATE
+@enduml

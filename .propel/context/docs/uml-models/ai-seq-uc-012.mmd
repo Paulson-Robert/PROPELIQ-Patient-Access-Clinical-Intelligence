@@ -1,0 +1,39 @@
+﻿sequenceDiagram
+    participant Hangfire as Hangfire Worker
+    participant Parser as Format Parser
+    participant NER as ML.NET NER Engine
+    participant Scorer as Confidence Scorer
+    participant DB as PostgreSQL
+    participant Staff
+
+    Note over Hangfire,Staff: UC-012 â€” Clinical Data Extraction (Local NLP)
+
+    Hangfire->>DB: Dequeue document (status=Scanning Complete)
+    DB-->>Hangfire: Document record + storage path
+    Hangfire->>Hangfire: Update status â†’ Processing
+
+    Hangfire->>Parser: Parse document (format-specific)
+    Parser-->>Hangfire: Raw text content
+
+    Hangfire->>NER: Extract entities (vitals, meds, allergies, diagnoses)
+    NER-->>Hangfire: Entity list with spans
+
+    Hangfire->>Scorer: Assign confidence scores (0.0-1.0)
+    Scorer-->>Hangfire: Scored entity records
+
+    loop Each extracted entity
+        Hangfire->>DB: INSERT ExtractedDataRecord
+    end
+
+    Hangfire->>DB: Update document status â†’ Completed
+    Hangfire->>DB: Trigger PatientView aggregation job
+
+    alt Extraction fails (corrupt/unreadable)
+        Hangfire->>DB: Update status â†’ Failed
+        Hangfire->>DB: Create notification (flag for manual review)
+    end
+
+    opt Low confidence entities detected
+        Hangfire->>DB: Flag records (IsVerified=false)
+        Note over Staff: Staff reviews low-confidence extractions
+    end

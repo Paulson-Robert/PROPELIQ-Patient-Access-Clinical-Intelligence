@@ -1,0 +1,42 @@
+﻿sequenceDiagram
+    participant Patient
+    participant SPA as React SPA
+    participant API as ASP.NET Core API
+    participant Redis as Upstash Redis
+    participant DB as PostgreSQL
+    participant Email as Email Service
+
+    Note over Patient,Email: UC-003 â€” Patient Books Appointment
+
+    Patient->>SPA: Search slots (provider/specialty)
+    SPA->>API: GET /slots?provider=X&specialty=Y
+    API->>DB: Query available slots
+    DB-->>API: Available slot list
+    API-->>SPA: Display slots
+
+    Patient->>SPA: Select slot
+    SPA->>API: POST /appointments/lock
+    API->>Redis: SETNX slot lock (TTL=30s)
+    Redis-->>API: Lock acquired
+
+    Patient->>SPA: Confirm booking
+    SPA->>API: POST /appointments
+    API->>DB: Create appointment record
+    API->>DB: Mark slot unavailable
+    API->>Redis: Release lock
+    API->>API: Enqueue PDF generation job
+    API->>Email: Send confirmation PDF
+    API-->>SPA: Booking confirmed
+    SPA-->>Patient: Show confirmation
+
+    alt Slot already booked (lock failed)
+        Redis-->>API: Lock denied
+        API-->>SPA: 409 Conflict
+        SPA-->>Patient: "Slot taken" â€” refresh slots
+    end
+
+    opt Patient cancels before confirm
+        Patient->>SPA: Cancel
+        SPA->>API: DELETE /appointments/lock
+        API->>Redis: Release lock
+    end

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>SCR-025 · Platform Metrics Dashboard</title>
+<link rel="stylesheet" href="shared-tokens.css">
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #back | click | wireframe-SCR-004-admin-dashboard.html |
+| UC: UC-020 |
+-->
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <nav class="sidebar" aria-label="Admin navigation">
+    <div class="sidebar-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg> HealthAccess</div>
+    <div class="sidebar-nav">
+      <a href="wireframe-SCR-004-admin-dashboard.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+      <a href="wireframe-SCR-023-user-management.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Users</a>
+      <a href="wireframe-SCR-024-audit-log.html" class="sidebar-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> Audit log</a>
+      <a href="wireframe-SCR-025-platform-metrics.html" class="sidebar-item active" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Metrics</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="header">
+      <div class="flex items-center gap-3">
+        <a href="wireframe-SCR-004-admin-dashboard.html" class="btn btn-ghost btn-sm" id="back" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg></a>
+        <h1 class="header-title">Platform metrics</h1>
+      </div>
+      <div class="header-actions">
+        <select class="form-select" style="width:auto;min-width:140px;" aria-label="Date range">
+          <option>Last 7 days</option><option selected>Last 30 days</option><option>Last 90 days</option><option>Year to date</option>
+        </select>
+        <div class="avatar">AD</div>
+      </div>
+    </header>
+    <main class="page" id="main">
+      <!-- Summary Cards -->
+      <div class="grid grid-4 gap-4 mb-6">
+        <div class="stat-card"><div class="stat-label">Total appointments</div><div class="stat-value">1,247</div><div class="text-xs" style="color:var(--success);">↑ 12% vs. prior period</div></div>
+        <div class="stat-card"><div class="stat-label">Avg. wait time</div><div class="stat-value">18 min</div><div class="text-xs" style="color:var(--success);">↓ 3 min improvement</div></div>
+        <div class="stat-card"><div class="stat-label">No-show rate</div><div class="stat-value">4.2%</div><div class="text-xs" style="color:var(--success);">↓ 1.1%</div></div>
+        <div class="stat-card"><div class="stat-label">Active users</div><div class="stat-value">342</div><div class="text-xs" style="color:var(--success);">↑ 8%</div></div>
+      </div>
+
+      <!-- Charts -->
+      <div class="grid grid-2 gap-6">
+        <div class="card">
+          <h3 class="card-title mb-4">Appointments per day</h3>
+          <div class="chart-placeholder" aria-label="Line chart showing daily appointment volume trending upward over 30 days" style="height:200px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <span>Line chart — Daily volume</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="card-title mb-4">Appointments by status</h3>
+          <div class="chart-placeholder" aria-label="Bar chart showing appointment status distribution: Completed 68%, Cancelled 15%, No-show 4%, Scheduled 13%" style="height:200px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            <span>Bar chart — Status breakdown</span>
+          </div>
+        </div>
+        <div class="card" style="grid-column:span 2;">
+          <h3 class="card-title mb-4">AI code mapping confidence</h3>
+          <div class="chart-placeholder" aria-label="Line chart showing average AI confidence score rising from 78% to 89% over 30 days" style="height:180px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <span>Line chart — Avg. confidence trend (78% → 89%)</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>
