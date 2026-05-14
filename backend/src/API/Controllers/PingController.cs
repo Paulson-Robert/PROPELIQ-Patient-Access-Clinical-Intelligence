@@ -34,8 +34,3 @@ public class PingController : ControllerBase
         return Ok(response);
     }
 }
-
-/// <summary>
-/// Response model for ping endpoint.
-/// </summary>
-public record PingResponse(string Message);
