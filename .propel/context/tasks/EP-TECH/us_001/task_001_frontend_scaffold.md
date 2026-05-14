@@ -87,15 +87,15 @@ Create a fully configured React 18+ / Vite frontend project scaffold with Tailwi
 ## Implementation Validation Strategy
 
 - [ ] Unit tests pass — App component renders
-- [ ] Integration tests pass — build produces dist/ with zero warnings
+- [x] Integration tests pass — build produces dist/ with zero warnings
 
 ## Implementation Checklist
 
-- [ ] Initialize Vite + React + TypeScript project with pnpm (AC-01)
-- [ ] Configure TailwindCSS with PostCSS and verify utility classes with HMR (AC-03)
-- [ ] Initialize Shadcn UI with design token configuration (color, radius, font) (AC-04)
-- [ ] Create root App component rendering placeholder page at / route (AC-02)
-- [ ] Configure .nvmrc, engines field, ESLint, Prettier, and TypeScript strict mode (AC-01)
-- [ ] Verify pnpm build produces dist/ with zero warnings (AC-01)
-- [ ] Audit all dependencies for OSI-approved licenses (AC-05)
-- [ ] Configure Vite dev server with port fallback on conflict (Edge Cases)
+- [x] Initialize Vite + React + TypeScript project with pnpm (AC-01)
+- [x] Configure TailwindCSS with PostCSS and verify utility classes with HMR (AC-03)
+- [x] Initialize Shadcn UI with design token configuration (color, radius, font) (AC-04)
+- [x] Create root App component rendering placeholder page at / route (AC-02)
+- [x] Configure .nvmrc, engines field, ESLint, Prettier, and TypeScript strict mode (AC-01)
+- [x] Verify pnpm build produces dist/ with zero warnings (AC-01)
+- [x] Audit all dependencies for OSI-approved licenses (AC-05)
+- [x] Configure Vite dev server with port fallback on conflict (Edge Cases)
