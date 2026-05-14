@@ -84,16 +84,16 @@ Create a fully configured ASP.NET Core 9 backend solution with Clean Architectur
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — PingCommandHandler returns expected response
-- [ ] Integration tests pass — health check returns 200, ping endpoint works
+- [x] Unit tests pass — PingCommandHandler returns expected response
+- [x] Integration tests pass — health check returns 200, ping endpoint works
 
 ## Implementation Checklist
 
-- [ ] Create solution with 4 Clean Architecture projects and correct dependency flow (AC-01)
-- [ ] Configure ASP.NET Core API with Kestrel, middleware pipeline, and global.json (AC-02)
-- [ ] Install and configure MediatR with pipeline behaviors in Application layer (AC-03)
-- [ ] Create PingCommand/Handler and test endpoint POST /api/ping (AC-03)
-- [ ] Configure DI registration extension methods in each layer (AC-04)
-- [ ] Create GET /health endpoint returning JSON status (AC-02)
-- [ ] Verify dotnet build succeeds with zero errors across all layers (AC-01)
-- [ ] Audit all NuGet packages for OSI-approved licenses (AC-05)
+- [x] Create solution with 4 Clean Architecture projects and correct dependency flow (AC-01)
+- [x] Configure ASP.NET Core API with Kestrel, middleware pipeline, and global.json (AC-02)
+- [x] Install and configure MediatR with pipeline behaviors in Application layer (AC-03)
+- [x] Create PingCommand/Handler and test endpoint POST /api/ping (AC-03)
+- [x] Configure DI registration extension methods in each layer (AC-04)
+- [x] Create GET /health endpoint returning JSON status (AC-02)
+- [x] Verify dotnet build succeeds with zero errors across all layers (AC-01)
+- [x] Audit all NuGet packages for OSI-approved licenses (AC-05)
