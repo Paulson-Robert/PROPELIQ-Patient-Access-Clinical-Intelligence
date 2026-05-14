@@ -14,11 +14,11 @@ backend/
 ├── src/
 │   ├── API/                 # Presentation layer (ASP.NET Core Web API)
 │   │   ├── API.csproj
-│   │   ├── Program.cs       # Application entry with DI setup
+│   │   ├── Program.cs       # Application entry with DI setup and health endpoint mapping
 │   │   ├── Properties/
 │   │   │   └── launchSettings.json
 │   │   └── Controllers/
-│   │       └── HealthController.cs  # Health check & ping endpoints
+│   │       └── PingController.cs    # Ping endpoint controller
 │   ├── Application/         # Business logic layer (MediatR handlers)
 │   │   ├── Application.csproj
 │   │   ├── DependencyInjection.cs   # DI registration for MediatR
