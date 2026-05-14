@@ -206,9 +206,9 @@ services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
 ### .NET SDK Version Mismatch
 
-**Error**: `global.json specifies SDK version 9.0.0 which does not exist`
+**Error**: `global.json specifies SDK version 9.0.100 which does not exist`
 
-**Solution**: Install .NET 9 SDK or update `global.json` to an installed version.
+**Solution**: Install the .NET 9 SDK version pinned in `global.json` or update `global.json` to a version installed on your machine.
 
 ### Port Already in Use
 
