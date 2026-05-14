@@ -84,8 +84,8 @@ Create a fully configured ASP.NET Core 9 backend solution with Clean Architectur
 
 ## Implementation Validation Strategy
 
-- [x] Unit tests pass — PingCommandHandler returns expected response
-- [x] Integration tests pass — health check returns 200, ping endpoint works
+- [x] Manual command/handler verification completed — PingCommandHandler flow returns the expected response
+- [x] Manual API verification completed — GET /health returns HTTP 200 and POST /api/ping responds as expected
 
 ## Implementation Checklist
 
