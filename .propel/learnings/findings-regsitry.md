@@ -1,4 +1,4 @@
-# Findings Regsitry
+# Findings Registry
 
 - Date: 2026-05-14
 - Source: User correction
