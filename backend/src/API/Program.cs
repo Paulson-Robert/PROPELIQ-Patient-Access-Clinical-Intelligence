@@ -1,7 +1,7 @@
 using Application;
 using Infrastructure;
 
-var builder = WebApplicationBuilder.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 // Add application layer services (MediatR)
 builder.Services.AddApplication();
