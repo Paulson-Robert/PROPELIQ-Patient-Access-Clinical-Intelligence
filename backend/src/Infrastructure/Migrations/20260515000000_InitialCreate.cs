@@ -17,6 +17,8 @@ namespace Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AlterDatabase()
+                .OldAnnotation("Npgsql:PostgresExtension:pgcrypto", ",,");
         }
     }
 }
