@@ -1,23 +1,32 @@
+using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure;
 
-/// <summary>
-/// Dependency injection extension methods for the Infrastructure layer.
-/// Registers infrastructure services into the DI container.
-/// </summary>
 public static class DependencyInjection
 {
-    /// <summary>
-    /// Adds infrastructure services to the dependency injection container.
-    /// </summary>
-    /// <param name="services">The service collection</param>
-    /// <returns>The service collection for chaining</returns>
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services)
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
-        // Infrastructure services can be registered here
-        // Examples: DbContext, repositories, external service clients, etc.
-        
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException(
+                "Connection string 'DefaultConnection' not found. " +
+                "Set ConnectionStrings__DefaultConnection in appsettings or environment variables.");
+
+        services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseNpgsql(connectionString, npgsql =>
+            {
+                npgsql.SetPostgresVersion(16, 0);
+                npgsql.EnableRetryOnFailure(
+                    maxRetryCount: 3,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorCodesToAdd: null);
+                npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
+            }));
+
         return services;
     }
 }

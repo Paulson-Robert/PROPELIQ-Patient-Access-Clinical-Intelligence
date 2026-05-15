@@ -1,13 +1,15 @@
 using Application;
 using Infrastructure;
+using Infrastructure.Data;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add application layer services (MediatR)
 builder.Services.AddApplication();
 
-// Add infrastructure layer services
-builder.Services.AddInfrastructure();
+// Add infrastructure layer services (EF Core + Npgsql)
+builder.Services.AddInfrastructure(builder.Configuration);
 
 // Add ASP.NET Core services
 builder.Services.AddControllers();
@@ -19,6 +21,32 @@ builder.Services.AddHealthChecks();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Validate database connectivity on startup (fail fast with descriptive error)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var startupLogger = scope.ServiceProvider.GetRequiredService<ILogger<ApplicationDbContext>>();
+    try
+    {
+        if (!await db.Database.CanConnectAsync())
+        {
+            startupLogger.LogCritical(
+                "Cannot connect to PostgreSQL. " +
+                "Verify ConnectionStrings__DefaultConnection in appsettings and that the host is reachable.");
+            throw new InvalidOperationException("Database connectivity check failed at startup.");
+        }
+        startupLogger.LogInformation("Database connection verified successfully.");
+    }
+    catch (Exception ex) when (ex is not InvalidOperationException)
+    {
+        startupLogger.LogCritical(ex,
+            "Startup database check failed: {Message}. " +
+            "Ensure pgcrypto is available and the Supabase connection string is correct.",
+            ex.Message);
+        throw;
+    }
+}
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
