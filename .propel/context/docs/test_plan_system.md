@@ -183,6 +183,112 @@
 
 ---
 
+#### TC-FR-008-01: Staff Walk-In Booking Access Control and Creation
+| Field | Value |
+|-------|-------|
+| Requirement | FR-008 |
+| Source | [SOURCE:INPUT] |
+| Basis | Requirement mandates staff-only walk-in booking with optional patient account creation. |
+| Use Case | UC-005 |
+| Type | happy_path |
+
+**Preconditions:**
+- Staff user is authenticated with required role and permissions.
+- Queue management module is available.
+
+**Test Steps:**
+| Step | Given | When | Then |
+|------|-------|------|------|
+| 1 | Staff is on queue page | Staff submits walk-in booking form | Walk-in appointment is created |
+| 2 | Walk-in booking is created | Staff selects "create patient account" | Patient account is created and linked |
+| 3 | Patient role user attempts same action | Patient submits walk-in booking request | Access is denied with authorization error |
+
+**Test Data:**
+| Field | Valid Value | Invalid Value | Boundary Value |
+|-------|-------------|---------------|----------------|
+| actor_role | staff | patient | admin |
+| create_account | true | null | false |
+
+**Expected Results:**
+- [ ] Staff can create walk-in bookings successfully.
+- [ ] Patient users cannot create walk-in bookings.
+- [ ] Optional account creation links booking and patient identity correctly.
+
+**Postconditions:**
+- Walk-in booking and role-based access events are audit-traceable.
+
+---
+
+#### TC-FR-009-01: Same-Day Queue Arrival Management and Access Rules
+| Field | Value |
+|-------|-------|
+| Requirement | FR-009 |
+| Source | [SOURCE:INPUT] |
+| Basis | Requirement mandates staff-managed same-day queue and prohibits patient self-check-in. |
+| Use Case | UC-006 |
+| Type | edge_case |
+
+**Preconditions:**
+- Same-day queue has at least one scheduled patient.
+- Staff user is authenticated.
+
+**Test Steps:**
+| Step | Given | When | Then |
+|------|-------|------|------|
+| 1 | Staff opens same-day queue | Staff marks patient as Arrived | Queue status changes to Arrived |
+| 2 | Queue updates are persisted | Staff refreshes queue | Updated arrival state remains consistent |
+| 3 | Patient user attempts self-check-in endpoint | Request is submitted | Request is blocked with authorization/feature-denied response |
+
+**Test Data:**
+| Field | Valid Value | Invalid Value | Boundary Value |
+|-------|-------------|---------------|----------------|
+| queue_status | pending -> arrived | pending -> unknown | pending -> arrived -> arrived |
+| actor_role | staff | patient | admin |
+
+**Expected Results:**
+- [ ] Staff can mark arrivals in same-day queue.
+- [ ] Patients cannot self-check-in via app/API/QR workflows.
+
+**Postconditions:**
+- Queue status changes and denied self-check-in attempts are logged.
+
+---
+
+#### TC-FR-035-01: Insurance Soft Validation Non-Blocking Behavior
+| Field | Value |
+|-------|-------|
+| Requirement | FR-035 |
+| Source | [SOURCE:INPUT] |
+| Basis | Requirement mandates internal dummy insurance match/no-match without blocking booking flow. |
+| Use Case | UC-016 |
+| Type | happy_path |
+
+**Preconditions:**
+- Internal insurance reference dataset is loaded.
+- Patient booking flow is active.
+
+**Test Steps:**
+| Step | Given | When | Then |
+|------|-------|------|------|
+| 1 | Patient enters known insurance name and ID | Validation executes | Match result is returned |
+| 2 | Patient enters unknown insurance values | Validation executes | No-match result is returned |
+| 3 | Validation returns no-match | Patient confirms booking | Booking proceeds without hard block |
+
+**Test Data:**
+| Field | Valid Value | Invalid Value | Boundary Value |
+|-------|-------------|---------------|----------------|
+| insurance_name | Kanini Health Basic | Unknown Insurance | K |
+| insurance_id | KH-123456 | BAD-ID | KH-000000 |
+
+**Expected Results:**
+- [ ] Match/no-match is returned deterministically from internal reference data.
+- [ ] No-match status does not block appointment booking.
+
+**Postconditions:**
+- Validation decision is stored with booking audit metadata.
+
+---
+
 #### TC-FR-017-01: Intake Toggle Data Preservation
 | Field | Value |
 |-------|-------|
@@ -706,10 +812,10 @@
 | Adversarial | "Malformed OCR text" | Safe failure with review flag | Safety = Pass |
 
 **Acceptance Criteria:**
-- [ ] Response relevance score >= 0.90
-- [ ] Faithfulness score >= 0.95
+- [ ] Entity-level precision >= 0.90
+- [ ] Entity-level recall >= 0.95
 - [ ] Latency P95 < 3000ms
-- [ ] No hallucinated content
+- [ ] False-positive extraction rate <= 3%
 - [ ] PII properly redacted where required
 - [ ] Guardrails triggered appropriately
 
@@ -744,10 +850,10 @@
 | Adversarial | "Bypass verification request" | Request denied | Safety = Pass |
 
 **Acceptance Criteria:**
-- [ ] Response relevance score >= 0.90
-- [ ] Faithfulness score >= 0.95
+- [ ] Unverified output block rate = 100%
+- [ ] Verified output unlock success rate = 100%
 - [ ] Latency P95 < 1000ms
-- [ ] No hallucinated content
+- [ ] Guardrail bypass success rate = 0%
 - [ ] PII properly redacted
 - [ ] Guardrails triggered appropriately
 
@@ -782,10 +888,10 @@
 | Adversarial | "Invalid factor payload" | Validation rejection | Safety = Pass |
 
 **Acceptance Criteria:**
-- [ ] Response relevance score >= 0.85
-- [ ] Faithfulness score >= 0.90
+- [ ] Tier assignment agreement with baseline model >= 95%
+- [ ] Invalid payload rejection rate = 100%
 - [ ] Latency P95 < 500ms
-- [ ] No hallucinated content
+- [ ] Event loss rate during restart/recovery = 0%
 - [ ] PII properly redacted
 - [ ] Guardrails triggered appropriately
 
@@ -951,16 +1057,16 @@
 | FR-001, FR-002, FR-003, FR-004, FR-005 | Functional | P0 | TC-FR-001-01, TC-FR-002-01 | E2E-001, E2E-002 | Planned |
 | FR-006, FR-010, FR-013, FR-014, FR-042 | Functional | P0 | TC-FR-010-01 | E2E-001 | Planned |
 | FR-007, FR-031 | Functional | P0 | TC-FR-007-01 | E2E-001 | Planned |
-| FR-008, FR-009 | Functional | P1 | TC-FR-010-01, TC-FR-037-01 | E2E-002 | Planned |
+| FR-008, FR-009 | Functional | P1 | TC-FR-008-01, TC-FR-009-01 | E2E-002 | Planned |
 | FR-011, FR-012 | Functional | P1 | TC-TR-010 | E2E-001 | Planned |
 | FR-015, FR-016, FR-017, FR-018 | Functional | P0 | TC-FR-017-01, TC-FR-018-01 | E2E-001 | Planned |
 | FR-019, FR-020, FR-021, FR-026, FR-027 | Functional | P0 | TC-FR-020-01, TC-FR-021-01 | E2E-001 | Planned |
 | FR-022, FR-023, FR-024, FR-025 | Functional | P0 | TC-FR-024-01, TC-AIR-002-RQ, TC-AIR-004-GR | E2E-001 | Planned |
 | FR-028, FR-029, FR-030, FR-032 | Functional | P1 | TC-FR-029-01 | E2E-001 | Planned |
 | FR-033, FR-034 | Functional | P1 | TC-FR-033-01, TC-AIR-007-LT | E2E-002 | Planned |
-| FR-035 | Functional | P2 | TC-FR-010-01 | E2E-002 | Planned |
+| FR-035 | Functional | P2 | TC-FR-035-01 | E2E-002 | Planned |
 | FR-036, FR-037, FR-038, FR-039, FR-040, FR-041 | Functional | P0 | TC-FR-037-01, TC-NFR-004-SEC | E2E-002 | Planned |
-| UC-001 to UC-020 | Use Case | P0/P1 | TC-FR-001-01, TC-FR-010-01, TC-FR-017-01, TC-FR-024-01, TC-FR-037-01 | E2E-001, E2E-002 | Planned |
+| UC-001, UC-002, UC-003, UC-004, UC-005, UC-006, UC-009, UC-011, UC-012, UC-013, UC-015, UC-016, UC-019, UC-020 | Use Case | P0/P1 | TC-FR-001-01, TC-FR-002-01, TC-FR-007-01, TC-FR-008-01, TC-FR-009-01, TC-FR-010-01, TC-FR-017-01, TC-FR-024-01, TC-FR-033-01, TC-FR-035-01, TC-FR-037-01 | E2E-001, E2E-002 | Planned |
 | NFR-001 to NFR-014 | Non-Functional | P0/P1 | TC-NFR-001-PERF, TC-NFR-004-SEC, TC-NFR-010-SCALE | - | Planned |
 | TR-001 to TR-014 | Technical | P1 | TC-TR-003, TC-TR-005, TC-TR-010 | E2E-001 | Planned |
 | DR-001 to DR-010 | Data | P1 | TC-DR-001, TC-DR-004, TC-DR-007 | - | Planned |
