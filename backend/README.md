@@ -172,9 +172,11 @@ All packages use OSI-approved open-source licenses:
 | Package | Version | License | Purpose |
 |---------|---------|---------|---------|
 | MediatR | 12.1.1 | Apache 2.0 | CQRS-Light pattern |
-| Microsoft.Extensions.Hosting | 9.0.0 | MIT | Hosting infrastructure || Npgsql.EntityFrameworkCore.PostgreSQL | 9.0.4 | PostgreSQL | PostgreSQL EF Core provider |
+| Microsoft.Extensions.Hosting | 9.0.0 | MIT | Hosting infrastructure |
+| Npgsql.EntityFrameworkCore.PostgreSQL | 9.0.4 | PostgreSQL | PostgreSQL EF Core provider |
 | Microsoft.EntityFrameworkCore | 9.0.5 | MIT | ORM core |
 | Microsoft.EntityFrameworkCore.Design | 9.0.5 | MIT | Migration tooling |
+
 Run `dotnet list package --format json` to audit licenses.
 
 ## Extending the Solution
