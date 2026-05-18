@@ -116,7 +116,13 @@ if (app.Environment.IsDevelopment())
 app.UseSerilogRequestLogging();
 
 // Redis sliding-window rate limiting — returns HTTP 429 + Retry-After when limits exceeded (AC-04).
-app.UseRedisRateLimiting();
+// Exempt infrastructure endpoints so health probes and operational tooling remain available under load.
+app.UseWhen(
+    context =>
+        !context.Request.Path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase) &&
+        !context.Request.Path.StartsWithSegments("/hangfire", StringComparison.OrdinalIgnoreCase) &&
+        !context.Request.Path.StartsWithSegments("/openapi", StringComparison.OrdinalIgnoreCase),
+    branch => branch.UseRedisRateLimiting());
 
 // Health check endpoint — detailed JSON response (AC-03)
 app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
