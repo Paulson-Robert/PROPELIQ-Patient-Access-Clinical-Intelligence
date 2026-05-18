@@ -7,12 +7,14 @@ public class ClinicalDocument
     public Guid DocumentId { get; set; }
     public Guid PatientProfileId { get; set; }
     public string FileName { get; set; } = string.Empty;
-    public string FileFormat { get; set; } = string.Empty;
+    public DocumentFormat FileFormat { get; set; }
     public long FileSizeBytes { get; set; }
     public string StoragePath { get; set; } = string.Empty;
     public MalwareScanStatus MalwareScanStatus { get; set; }
     public DocumentProcessingStatus ProcessingStatus { get; set; }
     public DateTime UploadedAt { get; set; }
+    public DateTime? ScanningStartedAt { get; set; }
+    public DateTime? ProcessingStartedAt { get; set; }
     public DateTime? ProcessedAt { get; set; }
 
     // Navigation properties

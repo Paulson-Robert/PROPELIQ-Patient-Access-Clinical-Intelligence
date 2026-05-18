@@ -38,6 +38,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<NoShowRiskFactor> NoShowRiskFactors => Set<NoShowRiskFactor>();
     public DbSet<InsuranceRecord> InsuranceRecords => Set<InsuranceRecord>();
+    public DbSet<Icd10Code> Icd10Codes => Set<Icd10Code>();
+    public DbSet<CptCode> CptCodes => Set<CptCode>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

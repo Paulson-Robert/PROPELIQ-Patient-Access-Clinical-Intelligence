@@ -14,9 +14,9 @@ public class ClinicalDocumentConfiguration : IEntityTypeConfiguration<ClinicalDo
             .IsRequired()
             .HasMaxLength(512);
 
+        // Stored as integer — follows existing enum storage pattern (AC-01)
         builder.Property(d => d.FileFormat)
-            .IsRequired()
-            .HasMaxLength(32);
+            .IsRequired();
 
         builder.Property(d => d.StoragePath)
             .IsRequired()
@@ -30,6 +30,10 @@ public class ClinicalDocumentConfiguration : IEntityTypeConfiguration<ClinicalDo
 
         builder.Property(d => d.UploadedAt)
             .IsRequired();
+
+        // Stage transition timestamps — nullable until stage is reached (AC-02)
+        builder.Property(d => d.ScanningStartedAt);
+        builder.Property(d => d.ProcessingStartedAt);
 
         // One-to-many: ClinicalDocument → ExtractedDataRecords
         builder.HasMany(d => d.ExtractedDataRecords)
