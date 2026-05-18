@@ -100,11 +100,11 @@ Define the complete EF Core entity configurations for all 16 domain entities (Us
 
 ## Implementation Checklist
 
-- [ ] Create all 16 domain entity classes with correct properties and data types (AC-01)
-- [ ] Configure pgcrypto AES-256 encryption on PatientProfile PHI columns via EF Core value converters (AC-02)
-- [ ] Configure JSONB column mappings for PatientView aggregated data fields (AC-03)
-- [ ] Define all foreign key relationships with cascade behaviors and concurrency tokens (AC-04)
-- [ ] Configure DataConflict entity with dual source document ID references and resolution status (AC-05)
-- [ ] Create migration with pgcrypto extension enablement and validate successful application (AC-01)
-- [ ] Add appropriate indexes on frequently queried columns (PatientId, Status, CreatedAt) (AC-04)
-- [ ] Handle JSONB null values and pgcrypto extension-not-installed error scenarios (Edge Cases)
+- [x] Create all 16 domain entity classes with correct properties and data types (AC-01)
+- [x] Configure pgcrypto AES-256 encryption on PatientProfile PHI columns via EF Core value converters (AC-02)
+- [x] Configure JSONB column mappings for PatientView aggregated data fields (AC-03)
+- [x] Define all foreign key relationships with cascade behaviors and concurrency tokens (AC-04)
+- [x] Configure DataConflict entity with dual source document ID references and resolution status (AC-05)
+- [x] Create migration with pgcrypto extension enablement and validate successful application (AC-01)
+- [x] Add appropriate indexes on frequently queried columns (PatientId, Status, CreatedAt) (AC-04)
+- [x] Handle JSONB null values and pgcrypto extension-not-installed error scenarios (Edge Cases)
