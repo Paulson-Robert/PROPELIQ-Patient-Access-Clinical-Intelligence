@@ -1,9 +1,14 @@
+using Application.Interfaces;
+using Infrastructure.Caching;
 using Infrastructure.Data;
 using Infrastructure.Data.Options;
-using Infrastructure.HealthChecks;
+using Infrastructure.Locking;
+using Infrastructure.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
@@ -38,11 +43,38 @@ public static class DependencyInjection
                 npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
             }));
 
+        // In-memory cache — required by RedisCacheService as fallback (AC-05).
+        services.AddMemoryCache();
+
         var redisConnectionString = configuration.GetConnectionString("Redis");
         if (!string.IsNullOrWhiteSpace(redisConnectionString))
         {
-            services.AddSingleton<IConnectionMultiplexer>(
-                ConnectionMultiplexer.Connect(redisConnectionString));
+            // Use RedisConnectionFactory for Upstash TLS + retry configuration (AC-01).
+            services.AddSingleton<IConnectionMultiplexer>(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<RedisConnectionFactory>>();
+                return RedisConnectionFactory.Create(redisConnectionString, logger);
+            });
+
+            // Primary cache: Redis with 15-minute sliding expiry + in-memory fallback (AC-02, AC-05).
+            services.AddSingleton<ICacheService>(sp =>
+                new RedisCacheService(
+                    sp.GetRequiredService<IConnectionMultiplexer>(),
+                    sp.GetRequiredService<IMemoryCache>(),
+                    sp.GetRequiredService<ILogger<RedisCacheService>>()));
+
+            // Distributed slot lock: SETNX with 30-second TTL (AC-03).
+            services.AddSingleton<IDistributedLockService, RedisDistributedLockService>();
+
+            // Rate-limiting counter: sliding window per client + endpoint (AC-04).
+            services.AddOptions<RateLimitOptions>()
+                .BindConfiguration(RateLimitOptions.SectionName);
+            services.AddSingleton<RedisSlidingWindowCounter>();
+        }
+        else
+        {
+            // Degraded mode: no Redis configured — serve entirely from in-memory cache (AC-05).
+            services.AddSingleton<ICacheService, InMemoryCacheService>();
         }
 
         return services;
