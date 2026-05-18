@@ -33,5 +33,10 @@ public class AvailabilitySlotConfiguration : IEntityTypeConfiguration<Availabili
         builder.HasIndex(s => s.ProviderId);
         builder.HasIndex(s => new { s.ProviderId, s.StartTime });
         builder.HasIndex(s => s.IsAvailable);
+
+        // Overlap prevention: a provider cannot have two slots with identical start and end boundaries (AC-01)
+        builder.HasIndex(s => new { s.ProviderId, s.StartTime, s.EndTime })
+            .IsUnique()
+            .HasDatabaseName("IX_AvailabilitySlots_ProviderId_StartTime_EndTime");
     }
 }
