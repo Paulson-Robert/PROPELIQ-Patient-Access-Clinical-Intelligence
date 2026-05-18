@@ -73,7 +73,10 @@ public sealed class RedisCacheService : ICacheService
             _logger.LogCritical(ex,
                 "Redis SET failed for key {Key}; persisting to in-memory fallback.", key);
 
-            _fallback.Set(key, value, ttl);
+            _fallback.Set(key, value, new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = ttl
+            });
         }
     }
 
