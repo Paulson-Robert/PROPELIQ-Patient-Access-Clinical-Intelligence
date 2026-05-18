@@ -74,14 +74,14 @@ Configure Vitest with React Testing Library for frontend component testing and P
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — pnpm test reports Passed: 1
-- [ ] Integration tests pass — Playwright generates HTML report
+- [x] Unit tests pass — pnpm test reports Passed: 1
+- [x] Integration tests pass — Playwright generates HTML report
 
 ## Implementation Checklist
 
-- [ ] Install and configure Vitest with React Testing Library and jsdom (AC-02)
-- [ ] Create sample component test that renders App and asserts (AC-02)
-- [ ] Install Playwright and download browser binaries (AC-03)
-- [ ] Create sample E2E test with HTML report generation (AC-03)
-- [ ] Verify standard directory conventions (src/**tests**/, e2e/) (AC-04)
-- [ ] Add pnpm test and pnpm test:e2e scripts to package.json (AC-02, AC-03)
+- [x] Install and configure Vitest with React Testing Library and jsdom (AC-02)
+- [x] Create sample component test that renders App and asserts (AC-02)
+- [x] Install Playwright and download browser binaries (AC-03)
+- [x] Create sample E2E test with HTML report generation (AC-03)
+- [x] Verify standard directory conventions (src/**tests**/, e2e/) (AC-04)
+- [x] Add pnpm test and pnpm test:e2e scripts to package.json (AC-02, AC-03)
