@@ -1,4 +1,5 @@
 using Infrastructure.Data;
+using Infrastructure.Data.Options;
 using Infrastructure.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -13,12 +14,15 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.Configure<PhiEncryptionOptions>(
+            configuration.GetSection(PhiEncryptionOptions.SectionName));
+
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException(
                 "Connection string 'DefaultConnection' not found. " +
                 "Set ConnectionStrings__DefaultConnection in appsettings or environment variables.");
 
-        services.AddDbContext<ApplicationDbContext>(options =>
+        services.AddDbContext<ApplicationDbContext>((sp, options) =>
             options.UseNpgsql(connectionString, npgsql =>
             {
                 npgsql.SetPostgresVersion(16, 0);
