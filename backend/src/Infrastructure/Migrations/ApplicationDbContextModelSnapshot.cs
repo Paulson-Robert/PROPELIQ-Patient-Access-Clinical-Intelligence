@@ -39,6 +39,7 @@ namespace Infrastructure.Migrations
                 b.HasIndex("IsAvailable");
                 b.HasIndex("ProviderId");
                 b.HasIndex("ProviderId", "StartTime");
+                b.HasIndex("ProviderId", "StartTime", "EndTime").IsUnique().HasDatabaseName("IX_AvailabilitySlots_ProviderId_StartTime_EndTime");
                 b.ToTable("AvailabilitySlots");
             });
 
@@ -315,7 +316,7 @@ namespace Infrastructure.Migrations
                 b.Property<DateTime?>("LastAttemptAt").HasColumnType("timestamp with time zone");
                 b.Property<int>("NotificationType").HasColumnType("integer");
                 b.Property<Guid>("PatientId").HasColumnType("uuid");
-                b.Property<int>("RetryCount").HasColumnType("integer");
+                b.Property<int>("RetryCount").HasDefaultValue(0).HasColumnType("integer");
                 b.Property<int>("Status").HasColumnType("integer");
                 b.HasKey("NotificationId");
                 b.HasIndex("AppointmentId");
@@ -353,6 +354,7 @@ namespace Infrastructure.Migrations
                 b.HasIndex("AppointmentId");
                 b.HasIndex("PreferredSlotId");
                 b.HasIndex("Status");
+                b.HasIndex("PreferredSlotId", "RequestedAt").HasDatabaseName("IX_PreferredSlotQueues_PreferredSlotId_RequestedAt");
                 b.ToTable("PreferredSlotQueues");
             });
 

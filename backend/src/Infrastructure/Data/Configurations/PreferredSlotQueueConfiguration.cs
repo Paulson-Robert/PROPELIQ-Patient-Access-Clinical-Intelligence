@@ -24,5 +24,9 @@ public class PreferredSlotQueueConfiguration : IEntityTypeConfiguration<Preferre
 
         builder.HasIndex(q => q.AppointmentId);
         builder.HasIndex(q => q.Status);
+
+        // FCFS ordering: retrieve waiting entries for a slot in request-arrival order (AC-03)
+        builder.HasIndex(q => new { q.PreferredSlotId, q.RequestedAt })
+            .HasDatabaseName("IX_PreferredSlotQueues_PreferredSlotId_RequestedAt");
     }
 }
