@@ -68,7 +68,10 @@ public static class DependencyInjection
 
             // Rate-limiting counter: sliding window per client + endpoint (AC-04).
             services.AddOptions<RateLimitOptions>()
-                .BindConfiguration(RateLimitOptions.SectionName);
+                .BindConfiguration(RateLimitOptions.SectionName)
+                .Validate(options => options.Limit > 0, "RateLimitOptions.Limit must be greater than 0.")
+                .Validate(options => options.WindowSeconds > 0, "RateLimitOptions.WindowSeconds must be greater than 0.")
+                .ValidateOnStart();
             services.AddSingleton<RedisSlidingWindowCounter>();
         }
         else
