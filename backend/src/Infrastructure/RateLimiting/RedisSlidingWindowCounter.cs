@@ -104,10 +104,24 @@ end";
                 "Count={Count} Limit={Limit}",
                 clientId, endpoint, Math.Abs(result), _options.Limit);
 
+            var retryAfterSeconds = _options.WindowSeconds;
+            var oldestEntries = await db.SortedSetRangeByRankWithScoresAsync(key, 0, 0, Order.Ascending)
+                .ConfigureAwait(false);
+
+            if (oldestEntries.Length > 0)
+            {
+                var oldestTimestampMs = (long)oldestEntries[0].Score;
+                var retryAfterMs = (oldestTimestampMs + windowMs) - nowMs;
+
+                retryAfterSeconds = retryAfterMs > 0
+                    ? Math.Max(1, (int)Math.Ceiling(retryAfterMs / 1000d))
+                    : 1;
+            }
+
             return new RateLimitResult(
                 IsAllowed: false,
                 RemainingRequests: 0,
-                RetryAfterSeconds: _options.WindowSeconds);
+                RetryAfterSeconds: retryAfterSeconds);
         }
         catch (Exception ex) when (ex is RedisException or TimeoutException)
         {
