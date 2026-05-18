@@ -1100,3 +1100,147 @@
 | Low | Minor issue, cosmetic | Backlog | Could fix |
 
 ---
+
+## 10. Coverage Gap Remediation Addendum
+
+This addendum captures missing explicit test coverage identified from requirement-to-test comparison against epics.
+
+### 10.1 Missing Functional Requirement Tests
+
+| Requirement | Epic | Description | Planned Test Case ID | Priority |
+|-------------|------|-------------|----------------------|----------|
+| FR-003 | EP-001 | JWT 15-minute sliding expiry and automatic session termination | TC-FR-003-01 | P0 |
+| FR-004 | EP-001 | Role-based access control for Patient, Staff, and Admin | TC-FR-004-01 | P0 |
+| FR-005 | EP-001 | Password complexity enforcement | TC-FR-005-01 | P0 |
+| FR-006 | EP-002 | Patient slot search by provider/specialty/date | TC-FR-006-01 | P1 |
+| FR-011 | EP-004 | Google Calendar OAuth synchronization and event CRUD | TC-FR-011-01 | P1 |
+| FR-012 | EP-004 | Microsoft Outlook/Graph synchronization and event CRUD | TC-FR-012-01 | P1 |
+| FR-013 | EP-002 | Appointment confirmation PDF generation and email delivery | TC-FR-013-01 | P1 |
+| FR-014 | EP-002 | Cancellation/rescheduling with slot release | TC-FR-014-01 | P1 |
+| FR-015 | EP-005 | AI conversational intake via NLP chat | TC-FR-015-01 | P1 |
+| FR-016 | EP-005 | Manual structured intake form path | TC-FR-016-01 | P1 |
+| FR-019 | EP-006 | Multi-format document support validation | TC-FR-019-01 | P1 |
+| FR-022 | EP-007 | AI clinical extraction of core entities | TC-FR-022-01 | P1 |
+| FR-023 | EP-008 | 360-degree patient view aggregation and deduplication | TC-FR-023-01 | P1 |
+| FR-025 | EP-008 | ICD-10/CPT mapping with confidence indicator display | TC-FR-025-01 | P0 |
+| FR-026 | EP-006 | Real-time processing status pipeline stages | TC-FR-026-01 | P1 |
+| FR-027 | EP-006 | Indefinite retention until valid deletion request | TC-FR-027-01 | P1 |
+| FR-028 | EP-004 | Configurable reminder intervals across channels | TC-FR-028-01 | P1 |
+| FR-030 | EP-004 | Risk-escalated reminder sequencing by tier | TC-FR-030-01 | P1 |
+| FR-031 | EP-004 | Staff notification for slot swap execution | TC-FR-031-01 | P1 |
+| FR-032 | EP-004 | Staff notification on permanent delivery failure | TC-FR-032-01 | P1 |
+| FR-036 | EP-010 | Admin user CRUD and role assignment | TC-FR-036-01 | P1 |
+| FR-038 | EP-010 | Search/filter audit log viewer behavior | TC-FR-038-01 | P1 |
+| FR-039 | EP-010 | Admin metrics dashboard rendering and trend accuracy | TC-FR-039-01 | P1 |
+| FR-042 | EP-002 | Patient appointment history with status indicators | TC-FR-042-01 | P1 |
+
+### 10.2 Missing Technical Requirement Tests
+
+| Requirement | Epic | Description | Planned Test Case ID | Priority |
+|-------------|------|-------------|----------------------|----------|
+| TR-001 | EP-TECH | React 18+ with Vite SPA scaffold/runtime validation | TC-TR-001 | P1 |
+| TR-002 | EP-TECH | ASP.NET Core 9 clean architecture conformance | TC-TR-002 | P1 |
+| TR-004 | EP-TECH | EF Core 9 migration creation/apply/rollback | TC-TR-004 | P1 |
+| TR-006 | EP-006 | ClamAV integration contract and timeout/error handling | TC-TR-006 | P1 |
+| TR-007 | EP-TECH | Serilog structured logging field and sink validation | TC-TR-007 | P1 |
+| TR-008 | EP-007 | ML.NET NER model integration and inference contract | TC-TR-008 | P1 |
+| TR-009 | EP-005 | Cloud LLM API integration with de-identified prompts | TC-TR-009 | P1 |
+| TR-011 | EP-TECH | Sentry error capture and release tagging | TC-TR-011 | P1 |
+| TR-012 | EP-TECH | Uptime Robot synthetic monitor and incident path | TC-TR-012 | P2 |
+| TR-013 | EP-001 | bcrypt hashing work factor >= 12 validation | TC-TR-013 | P0 |
+
+### 10.3 Missing Data Requirement Tests
+
+| Requirement | Epic | Description | Planned Test Case ID | Priority |
+|-------------|------|-------------|----------------------|----------|
+| DR-002 | EP-DATA | Upstash Redis usage for sessions, locks, and rate limiting | TC-DR-002 | P1 |
+| DR-003 | EP-DATA | Storage persistence by required document formats | TC-DR-003 | P1 |
+| DR-005 | EP-DATA | Conflict tracking with source provenance persistence | TC-DR-005 | P1 |
+| DR-006 | EP-DATA | ICD-10-CM and CPT-4 table version tracking | TC-DR-006 | P1 |
+| DR-008 | EP-DATA | Appointment model status, swap queue, concurrency token behavior | TC-DR-008 | P1 |
+| DR-009 | EP-DATA | No-show risk scoring persistence consistency | TC-DR-009 | P1 |
+| DR-010 | EP-DATA | Notification delivery log status/retry/failure auditability | TC-DR-010 | P1 |
+
+### 10.4 Missing AI Requirement Tests
+
+| Requirement | Epic | Description | Planned Test Case ID | Priority |
+|-------------|------|-------------|----------------------|----------|
+| AIR-001 | EP-005 | NLP conversational intake engine operation | TC-AIR-001-CNV | P1 |
+| AIR-003 | EP-007 | PHI boundary enforcement for local-only processing | TC-AIR-003-PHI | P0 |
+| AIR-005 | EP-007 | Confidence scoring range and threshold behavior | TC-AIR-005-CFG | P1 |
+| AIR-006 | EP-008 | ICD-10/CPT mapping engine hybrid rule + AI behavior | TC-AIR-006-MAP | P0 |
+| AIR-008 | EP-007 | Model version tracking and <98% agreement alerting | TC-AIR-008-MON | P1 |
+
+### 10.5 Missing Non-Functional Requirement Tests
+
+| Requirement | Epic | Description | Planned Test Case ID | Priority |
+|-------------|------|-------------|----------------------|----------|
+| NFR-002 | EP-008 | Clinical prep completion <= 2 minutes per patient | TC-NFR-002-PERF | P1 |
+| NFR-003 | EP-007 | AI-human agreement rate > 98% | TC-NFR-003-QUALITY | P1 |
+| NFR-005 | EP-010 | DB-protected immutable audit log behavior | TC-NFR-005-COMP | P0 |
+| NFR-006 | EP-001 | RBAC enforcement across protected resources | TC-NFR-006-SEC | P0 |
+| NFR-007 | EP-001 | OpenIddict 5.x OIDC server compliance | TC-NFR-007-AUTH | P1 |
+| NFR-008 | EP-011 | API rate limiting and HTTP 429 behavior | TC-NFR-008-RL | P0 |
+| NFR-009 | EP-013 | WCAG 2.2 Level AA compliance baseline | TC-NFR-009-A11Y | P0 |
+| NFR-011 | EP-004 | Asynchronous external integration execution | TC-NFR-011-ASYNC | P1 |
+| NFR-013 | EP-006 | Indefinite retention plus permanent deletion workflow | TC-NFR-013-RET | P1 |
+| NFR-014 | EP-TECH | Free/open-source tooling compliance | TC-NFR-014-OSS | P2 |
+
+### 10.6 Missing UXR Requirement Suite
+
+| UXR Category | Requirement IDs | Planned Suite/Case IDs | Priority |
+|--------------|-----------------|------------------------|----------|
+| Design System | UXR-001, UXR-002, UXR-003 | TC-UXR-001-RESP, TC-UXR-002-UI, TC-UXR-003-ICONS | P1 |
+| Usability | UXR-101, UXR-102, UXR-103, UXR-104 | TC-UXR-101-NAV, TC-UXR-102-RESP, TC-UXR-103-CONSIST, TC-UXR-104-STATUS | P1 |
+| Accessibility | UXR-201 to UXR-206 | TC-UXR-201-A11Y through TC-UXR-206-A11Y | P0 |
+| Responsive | UXR-301, UXR-302, UXR-303 | TC-UXR-301-BP, TC-UXR-302-SIDEBAR, TC-UXR-303-TABLECARD | P1 |
+| Interaction | UXR-401, UXR-501, UXR-502, UXR-503 | TC-UXR-401-SPACING, TC-UXR-501-LOADER, TC-UXR-502-TIMER, TC-UXR-503-TOAST | P1 |
+| Data Input | UXR-504, UXR-505 | TC-UXR-504-VALIDATION, TC-UXR-505-TYPING | P1 |
+| Error Handling | UXR-601, UXR-602, UXR-603, UXR-604, UXR-605 | TC-UXR-601-RECOVERY through TC-UXR-605-SESSION | P0 |
+| Feature-specific | UXR-004, UXR-105, UXR-106, UXR-402, UXR-403, UXR-404, UXR-506 | TC-UXR-004-WARN, TC-UXR-105-MODE, TC-UXR-106-WALKIN, TC-UXR-402-RISK, TC-UXR-403-STEP, TC-UXR-404-CONFLICT, TC-UXR-506-QUEUE | P1 |
+
+### 10.7 Coverage Summary Snapshot
+
+| Category | Total in Epics | Covered | Missing | Coverage % |
+|----------|----------------|---------|---------|------------|
+| FR | 42 | 15 | 27 | 36% |
+| TR | 14 | 3 | 11 | 21% |
+| DR | 10 | 3 | 7 | 30% |
+| AIR | 8 | 3 | 5 | 38% |
+| NFR | 14 | 4 | 10 | 29% |
+| UXR | 40+ | 0 | 40+ | 0% |
+
+### 10.8 Prioritized Additions
+
+1. P0: add explicit tests for FR-003, FR-004, FR-005, FR-025, AIR-003, and NFR-008.
+2. P1: add dedicated calendar synchronization tests for FR-011 and FR-012, admin management tests for FR-036, FR-038, FR-039, and notification behavior tests for FR-028, FR-030, FR-031, FR-032.
+3. Add `E2E-003` calendar sync journey covering `UC-003 -> FR-011 -> FR-012 -> FR-028 -> FR-029`.
+4. Add automated accessibility suite using `axe-core` for NFR-009 and UXR-201 through UXR-206.
+5. Add visual regression suite for EP-012 UX foundation requirements.
+
+### 10.9 New Planned E2E Journey
+
+#### E2E-003: Appointment Calendar Synchronization and Reminder Reliability
+| Field | Value |
+|-------|-------|
+| UC Chain | UC-003 -> FR-011 -> FR-012 -> FR-028 -> FR-029 |
+| Session | Auth required |
+
+**Preconditions:**
+- Patient appointment booking is enabled.
+- Google and Microsoft calendar integrations are configured.
+- Reminder scheduler is active.
+
+**Journey Flow:**
+| Phase | Action | Expected State | Checkpoint |
+|-------|--------|----------------|------------|
+| 1 | Patient books appointment | Appointment saved locally | Y |
+| 2 | Google sync create/update runs | Google calendar event converges to source appointment state | Y |
+| 3 | Outlook sync create/update runs | Outlook event converges to source appointment state | Y |
+| 4 | Reminder schedule generated | Configured interval reminders are queued | Y |
+| 5 | Simulated delivery failures | Retry and backoff finalize with delivery success or terminal failure signal | Y |
+
+**Expected Results:**
+- [ ] External calendar records remain consistent with canonical appointment state after create/update/reschedule/cancel.
+- [ ] Reminder jobs honor configured interval and retry policy.
+- [ ] Terminal reminder failure emits mandatory staff notification.
