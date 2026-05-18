@@ -5,6 +5,7 @@ using Infrastructure;
 using Infrastructure.BackgroundJobs;
 using Infrastructure.Data;
 using Infrastructure.HealthChecks;
+using Infrastructure.RateLimiting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 
@@ -113,6 +114,15 @@ if (app.Environment.IsDevelopment())
 
 // Structured HTTP request logging via Serilog
 app.UseSerilogRequestLogging();
+
+// Redis sliding-window rate limiting — returns HTTP 429 + Retry-After when limits exceeded (AC-04).
+// Exempt infrastructure endpoints so health probes and operational tooling remain available under load.
+app.UseWhen(
+    context =>
+        !context.Request.Path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase) &&
+        !context.Request.Path.StartsWithSegments("/hangfire", StringComparison.OrdinalIgnoreCase) &&
+        !context.Request.Path.StartsWithSegments("/openapi", StringComparison.OrdinalIgnoreCase),
+    branch => branch.UseRedisRateLimiting());
 
 // Health check endpoint — detailed JSON response (AC-03)
 app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
