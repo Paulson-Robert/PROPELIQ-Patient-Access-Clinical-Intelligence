@@ -30,11 +30,12 @@ public class PatientProfileConfiguration : IEntityTypeConfiguration<PatientProfi
         builder.Property(p => p.Phone)
             .HasMaxLength(512);
 
+        // PHI — encryption converter applied in ApplicationDbContext (AC-02)
+        builder.Property(p => p.InsuranceId)
+            .HasMaxLength(512); // Max covers base64-encoded ciphertext
+
         builder.Property(p => p.InsuranceName)
             .HasMaxLength(256);
-
-        builder.Property(p => p.InsuranceId)
-            .HasMaxLength(128);
 
         builder.Property(p => p.CreatedAt)
             .IsRequired();

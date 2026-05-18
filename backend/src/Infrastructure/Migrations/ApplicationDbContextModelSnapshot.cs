@@ -61,7 +61,7 @@ namespace Infrastructure.Migrations
                 b.Property<DateTime>("CreatedAt").HasColumnType("timestamp with time zone");
                 b.Property<string>("Email").IsRequired().HasMaxLength(256).HasColumnType("character varying(256)");
                 b.Property<bool>("IsActive").HasColumnType("boolean");
-                b.Property<string>("MfaSecret").HasMaxLength(128).HasColumnType("character varying(128)");
+                b.Property<string>("MfaSecret").HasMaxLength(512).HasColumnType("character varying(512)");
                 b.Property<bool>("MfaEnabled").HasColumnType("boolean");
                 b.Property<string>("PasswordHash").HasMaxLength(512).HasColumnType("character varying(512)");
                 b.Property<int>("Role").HasColumnType("integer");
@@ -78,7 +78,7 @@ namespace Infrastructure.Migrations
                 b.Property<DateTime>("CreatedAt").HasColumnType("timestamp with time zone");
                 b.Property<string>("DateOfBirth").HasMaxLength(512).HasColumnType("character varying(512)");
                 b.Property<string>("FirstName").IsRequired().HasMaxLength(512).HasColumnType("character varying(512)");
-                b.Property<string>("InsuranceId").HasMaxLength(128).HasColumnType("character varying(128)");
+                b.Property<string>("InsuranceId").HasMaxLength(512).HasColumnType("character varying(512)");
                 b.Property<string>("InsuranceName").HasMaxLength(256).HasColumnType("character varying(256)");
                 b.Property<int?>("InsuranceValidationStatus").HasColumnType("integer");
                 b.Property<string>("LastName").IsRequired().HasMaxLength(512).HasColumnType("character varying(512)");
@@ -363,7 +363,7 @@ namespace Infrastructure.Migrations
                 b.HasOne("Domain.Entities.User", "ActorUser")
                     .WithMany("AuditLogs")
                     .HasForeignKey("ActorUserId")
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 b.Navigation("ActorUser");
             });

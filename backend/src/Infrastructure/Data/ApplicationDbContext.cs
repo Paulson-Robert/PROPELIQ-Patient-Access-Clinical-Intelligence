@@ -72,6 +72,15 @@ public class ApplicationDbContext : DbContext
             modelBuilder.Entity<PatientProfile>()
                 .Property(p => p.Phone)
                 .HasConversion(nullableStringConverter);
+
+            modelBuilder.Entity<PatientProfile>()
+                .Property(p => p.InsuranceId)
+                .HasConversion(nullableStringConverter);
+
+            // TOTP seed — credential material encrypted identically to PHI columns
+            modelBuilder.Entity<User>()
+                .Property(u => u.MfaSecret)
+                .HasConversion(nullableStringConverter);
         }
     }
 }

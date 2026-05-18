@@ -20,8 +20,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.PasswordHash)
             .HasMaxLength(512);
 
+        // TOTP seed — encryption converter applied in ApplicationDbContext (AC-02)
         builder.Property(u => u.MfaSecret)
-            .HasMaxLength(128);
+            .HasMaxLength(512); // Max covers base64-encoded ciphertext
 
         builder.Property(u => u.Role)
             .IsRequired();
@@ -54,10 +55,12 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .OnDelete(DeleteBehavior.Restrict);
 
         // One-to-many: User → AuditLogs
+        // Restrict prevents hard-deleting a user who has audit entries, preserving
+        // the immutable audit history (ADD-8, NFR-005). Use soft-delete (IsActive=false) instead.
         builder.HasMany(u => u.AuditLogs)
             .WithOne(l => l.ActorUser)
             .HasForeignKey(l => l.ActorUserId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Restrict);
 
         // One-to-many: User → CalendarSyncs
         builder.HasMany(u => u.CalendarSyncs)

@@ -23,7 +23,6 @@ public class Appointment
     public AvailabilitySlot Slot { get; set; } = null!;
     public AvailabilitySlot? PreferredSlot { get; set; }
     public ICollection<Notification> Notifications { get; set; } = [];
-    public ICollection<CalendarSync> CalendarSyncs { get; set; } = [];
     public ICollection<PreferredSlotQueue> PreferredSlotQueues { get; set; } = [];
     public ICollection<IntakeRecord> IntakeRecords { get; set; } = [];
 }

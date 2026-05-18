@@ -12,9 +12,9 @@ public class PatientProfile
     public string LastName { get; set; } = string.Empty;
     public DateOnly? DateOfBirth { get; set; }
     public string? Phone { get; set; }
+    public string? InsuranceId { get; set; }
 
     public string? InsuranceName { get; set; }
-    public string? InsuranceId { get; set; }
     public InsuranceValidationStatus? InsuranceValidationStatus { get; set; }
     public DateTime CreatedAt { get; set; }
 

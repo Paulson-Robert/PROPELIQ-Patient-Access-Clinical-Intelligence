@@ -27,8 +27,7 @@ namespace Infrastructure.Migrations
                     IsAvailable = table.Column<bool>(type: "boolean", nullable: false),
                     IsLocked = table.Column<bool>(type: "boolean", nullable: false),
                     LockExpiry = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    RecurrencePattern = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
+                    RecurrencePattern = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -59,7 +58,7 @@ namespace Infrastructure.Migrations
                     AuthProvider = table.Column<int>(type: "integer", nullable: false),
                     Role = table.Column<int>(type: "integer", nullable: false),
                     MfaEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    MfaSecret = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
+                    MfaSecret = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -92,7 +91,7 @@ namespace Infrastructure.Migrations
                         column: x => x.ActorUserId,
                         principalTable: "Users",
                         principalColumn: "UserId",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -130,7 +129,7 @@ namespace Infrastructure.Migrations
                     DateOfBirth = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true),
                     Phone = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true),
                     InsuranceName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    InsuranceId = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
+                    InsuranceId = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true),
                     InsuranceValidationStatus = table.Column<int>(type: "integer", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -552,11 +551,31 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.CreateIndex(name: "IX_InsuranceRecords_InsuranceName", table: "InsuranceRecords", column: "InsuranceName");
             migrationBuilder.CreateIndex(name: "IX_InsuranceRecords_IsActive", table: "InsuranceRecords", column: "IsActive");
+
+            // Enforce append-only immutability on AuditLogs at the database level (ADD-8, NFR-005).
+            // Any UPDATE or DELETE attempt — including from direct DB clients — raises an exception.
+            migrationBuilder.Sql("""
+                CREATE OR REPLACE FUNCTION fn_prevent_audit_log_mutation()
+                RETURNS TRIGGER LANGUAGE plpgsql AS $$
+                BEGIN
+                    RAISE EXCEPTION 'AuditLog records are immutable: % on AuditLogs is not permitted', TG_OP;
+                END;
+                $$;
+
+                CREATE TRIGGER trg_audit_logs_immutable
+                BEFORE UPDATE OR DELETE ON "AuditLogs"
+                FOR EACH ROW EXECUTE FUNCTION fn_prevent_audit_log_mutation();
+                """);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql("""
+                DROP TRIGGER IF EXISTS trg_audit_logs_immutable ON "AuditLogs";
+                DROP FUNCTION IF EXISTS fn_prevent_audit_log_mutation();
+                """);
+
             migrationBuilder.DropTable(name: "MedicalCodeMappings");
             migrationBuilder.DropTable(name: "DataConflicts");
             migrationBuilder.DropTable(name: "ExtractedDataRecords");
