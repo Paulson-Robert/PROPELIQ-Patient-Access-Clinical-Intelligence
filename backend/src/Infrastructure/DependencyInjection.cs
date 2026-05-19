@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Infrastructure.Data.Options;
 using Infrastructure.Locking;
 using Infrastructure.RateLimiting;
+using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -42,6 +43,8 @@ public static class DependencyInjection
                     errorCodesToAdd: null);
                 npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
             }));
+
+        services.AddScoped<IPatientDataDeletionService, PatientDataDeletionService>();
 
         // In-memory cache — required by RedisCacheService as fallback (AC-05).
         services.AddMemoryCache();
