@@ -29,7 +29,158 @@ public sealed class PatientDataDeletionService : IPatientDataDeletionService
         CancellationToken cancellationToken = default)
     {
         var normalizedRole = NormalizeActorRole(request.ActorRole);
-        var summary = new Dictionary<string, int>(StringComparer.Ordinal)
+        var result = new PatientDataDeletionResult(false, CreateEmptyDeletionSummary(), 0);
+        Guid? patientUserId = null;
+
+        var executionStrategy = _dbContext.Database.CreateExecutionStrategy();
+        await executionStrategy.ExecuteAsync(async () =>
+        {
+            var summary = CreateEmptyDeletionSummary();
+
+            await using var transaction = await _dbContext.Database
+                .BeginTransactionAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            var identity = await _dbContext.PatientProfiles
+                .AsNoTracking()
+                .Where(p => p.PatientProfileId == request.PatientProfileId)
+                .Select(p => new { p.PatientProfileId, p.UserId })
+                .SingleOrDefaultAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            patientUserId = identity?.UserId;
+
+            if (identity is not null)
+            {
+                await _dbContext.Database
+                    .ExecuteSqlInterpolatedAsync(
+                        $"SELECT 1 FROM \"PatientProfiles\" WHERE \"PatientProfileId\" = {identity.PatientProfileId} FOR UPDATE",
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
+                summary = await BuildDeletionSummaryAsync(identity.PatientProfileId, identity.UserId, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            var auditLog = new AuditLog
+            {
+                Timestamp = DateTime.UtcNow,
+                ActorUserId = request.ActorUserId,
+                ActorRole = normalizedRole,
+                ActionType = "PATIENT_DATA_DELETION",
+                ResourceType = "PatientProfile",
+                ResourceId = request.PatientProfileId.ToString(),
+                Details = JsonSerializer.Serialize(new
+                {
+                    PatientProfileId = request.PatientProfileId,
+                    Status = identity is null ? "NOT_FOUND" : "DELETION_REQUESTED",
+                    DeletedResources = summary
+                }),
+                IpAddress = request.IpAddress
+            };
+
+            await _dbContext.AuditLogs.AddAsync(auditLog, cancellationToken).ConfigureAwait(false);
+            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+            if (identity is null)
+            {
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                result = new PatientDataDeletionResult(false, summary, 0);
+                return;
+            }
+
+            var appointmentIds = await _dbContext.Appointments
+                .AsNoTracking()
+                .Where(a => a.PatientId == identity.UserId)
+                .Select(a => a.AppointmentId)
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            summary["DataConflicts"] = await _dbContext.DataConflicts
+                .Where(c => c.PatientProfileId == identity.PatientProfileId)
+                .ExecuteDeleteAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            summary["MedicalCodeMappings"] = await _dbContext.MedicalCodeMappings
+                .Where(m => m.PatientProfileId == identity.PatientProfileId)
+                .ExecuteDeleteAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            summary["ExtractedDataRecords"] = await _dbContext.ExtractedDataRecords
+                .Where(e => e.PatientProfileId == identity.PatientProfileId)
+                .ExecuteDeleteAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            summary["ClinicalDocuments"] = await _dbContext.ClinicalDocuments
+                .Where(d => d.PatientProfileId == identity.PatientProfileId)
+                .ExecuteDeleteAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            summary["IntakeRecords"] = await _dbContext.IntakeRecords
+                .Where(i => i.PatientProfileId == identity.PatientProfileId)
+                .ExecuteDeleteAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            summary["PatientViews"] = await _dbContext.PatientViews
+                .Where(v => v.PatientProfileId == identity.PatientProfileId)
+                .ExecuteDeleteAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            summary["NoShowRiskFactors"] = await _dbContext.NoShowRiskFactors
+                .Where(r => r.PatientProfileId == identity.PatientProfileId)
+                .ExecuteDeleteAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            if (appointmentIds.Count > 0)
+            {
+                summary["PreferredSlotQueues"] = await _dbContext.PreferredSlotQueues
+                    .Where(q => appointmentIds.Contains(q.AppointmentId))
+                    .ExecuteDeleteAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                summary["Notifications"] = await _dbContext.Notifications
+                    .Where(n => n.PatientId == identity.UserId || appointmentIds.Contains(n.AppointmentId))
+                    .ExecuteDeleteAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                summary["Notifications"] = await _dbContext.Notifications
+                    .Where(n => n.PatientId == identity.UserId)
+                    .ExecuteDeleteAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            summary["Appointments"] = await _dbContext.Appointments
+                .Where(a => a.PatientId == identity.UserId)
+                .ExecuteDeleteAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            summary["CalendarSyncs"] = await _dbContext.CalendarSyncs
+                .Where(c => c.UserId == identity.UserId)
+                .ExecuteDeleteAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            summary["PatientProfiles"] = await _dbContext.PatientProfiles
+                .Where(p => p.PatientProfileId == identity.PatientProfileId)
+                .ExecuteDeleteAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            result = new PatientDataDeletionResult(true, summary, 0);
+        }).ConfigureAwait(false);
+
+        if (!result.PatientFound || patientUserId is null)
+            return result;
+
+        var deletedCacheKeys = await DeleteRedisPatientKeysAsync(request.PatientProfileId, patientUserId.Value)
+            .ConfigureAwait(false);
+
+        return result with { DeletedCacheKeys = deletedCacheKeys };
+    }
+
+    private static Dictionary<string, int> CreateEmptyDeletionSummary() =>
+        new(StringComparer.Ordinal)
         {
             ["ClinicalDocuments"] = 0,
             ["ExtractedDataRecords"] = 0,
@@ -44,140 +195,6 @@ public sealed class PatientDataDeletionService : IPatientDataDeletionService
             ["PreferredSlotQueues"] = 0,
             ["PatientProfiles"] = 0
         };
-
-        await using var transaction = await _dbContext.Database
-            .BeginTransactionAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        var identity = await _dbContext.PatientProfiles
-            .AsNoTracking()
-            .Where(p => p.PatientProfileId == request.PatientProfileId)
-            .Select(p => new { p.PatientProfileId, p.UserId })
-            .SingleOrDefaultAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        if (identity is not null)
-        {
-            await _dbContext.Database
-                .ExecuteSqlInterpolatedAsync(
-                    $"SELECT 1 FROM \"PatientProfiles\" WHERE \"PatientProfileId\" = {identity.PatientProfileId} FOR UPDATE",
-                    cancellationToken)
-                .ConfigureAwait(false);
-
-            summary = await BuildDeletionSummaryAsync(identity.PatientProfileId, identity.UserId, cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        var auditLog = new AuditLog
-        {
-            Timestamp = DateTime.UtcNow,
-            ActorUserId = request.ActorUserId,
-            ActorRole = normalizedRole,
-            ActionType = "PATIENT_DATA_DELETION",
-            ResourceType = "PatientProfile",
-            ResourceId = request.PatientProfileId.ToString(),
-            Details = JsonSerializer.Serialize(new
-            {
-                PatientProfileId = request.PatientProfileId,
-                Status = identity is null ? "NOT_FOUND" : "DELETION_REQUESTED",
-                DeletedResources = summary
-            }),
-            IpAddress = request.IpAddress
-        };
-
-        await _dbContext.AuditLogs.AddAsync(auditLog, cancellationToken).ConfigureAwait(false);
-        await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-
-        if (identity is null)
-        {
-            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return new PatientDataDeletionResult(false, summary, 0);
-        }
-
-        var appointmentIds = await _dbContext.Appointments
-            .AsNoTracking()
-            .Where(a => a.PatientId == identity.UserId)
-            .Select(a => a.AppointmentId)
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        summary["DataConflicts"] = await _dbContext.DataConflicts
-            .Where(c => c.PatientProfileId == identity.PatientProfileId)
-            .ExecuteDeleteAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        summary["MedicalCodeMappings"] = await _dbContext.MedicalCodeMappings
-            .Where(m => m.PatientProfileId == identity.PatientProfileId)
-            .ExecuteDeleteAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        summary["ExtractedDataRecords"] = await _dbContext.ExtractedDataRecords
-            .Where(e => e.PatientProfileId == identity.PatientProfileId)
-            .ExecuteDeleteAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        summary["ClinicalDocuments"] = await _dbContext.ClinicalDocuments
-            .Where(d => d.PatientProfileId == identity.PatientProfileId)
-            .ExecuteDeleteAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        summary["IntakeRecords"] = await _dbContext.IntakeRecords
-            .Where(i => i.PatientProfileId == identity.PatientProfileId)
-            .ExecuteDeleteAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        summary["PatientViews"] = await _dbContext.PatientViews
-            .Where(v => v.PatientProfileId == identity.PatientProfileId)
-            .ExecuteDeleteAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        summary["NoShowRiskFactors"] = await _dbContext.NoShowRiskFactors
-            .Where(r => r.PatientProfileId == identity.PatientProfileId)
-            .ExecuteDeleteAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        if (appointmentIds.Count > 0)
-        {
-            summary["PreferredSlotQueues"] = await _dbContext.PreferredSlotQueues
-                .Where(q => appointmentIds.Contains(q.AppointmentId))
-                .ExecuteDeleteAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            summary["Notifications"] = await _dbContext.Notifications
-                .Where(n => n.PatientId == identity.UserId || appointmentIds.Contains(n.AppointmentId))
-                .ExecuteDeleteAsync(cancellationToken)
-                .ConfigureAwait(false);
-        }
-        else
-        {
-            summary["Notifications"] = await _dbContext.Notifications
-                .Where(n => n.PatientId == identity.UserId)
-                .ExecuteDeleteAsync(cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        summary["Appointments"] = await _dbContext.Appointments
-            .Where(a => a.PatientId == identity.UserId)
-            .ExecuteDeleteAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        summary["CalendarSyncs"] = await _dbContext.CalendarSyncs
-            .Where(c => c.UserId == identity.UserId)
-            .ExecuteDeleteAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        summary["PatientProfiles"] = await _dbContext.PatientProfiles
-            .Where(p => p.PatientProfileId == identity.PatientProfileId)
-            .ExecuteDeleteAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-
-        var deletedCacheKeys = await DeleteRedisPatientKeysAsync(identity.PatientProfileId, identity.UserId)
-            .ConfigureAwait(false);
-
-        return new PatientDataDeletionResult(true, summary, deletedCacheKeys);
-    }
 
     private async Task<Dictionary<string, int>> BuildDeletionSummaryAsync(
         Guid patientProfileId,
