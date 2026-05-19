@@ -4,6 +4,7 @@ using Hangfire;
 using Infrastructure;
 using Infrastructure.BackgroundJobs;
 using Infrastructure.Data;
+using Infrastructure.Data.Seed;
 using Infrastructure.HealthChecks;
 using Infrastructure.RateLimiting;
 using Microsoft.Extensions.Logging;
@@ -95,6 +96,11 @@ using (var scope = app.Services.CreateScope())
             throw new InvalidOperationException("Database connectivity check failed at startup.");
         }
         startupLogger.LogInformation("Database connection verified successfully.");
+
+        if (app.Environment.IsDevelopment())
+        {
+            await DatabaseSeeder.SeedAsync(db, startupLogger);
+        }
     }
     catch (Exception ex) when (ex is not InvalidOperationException)
     {
