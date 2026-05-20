@@ -55,7 +55,7 @@ public static class DependencyInjection
             // Use RedisConnectionFactory for Upstash TLS + retry configuration (AC-01).
             services.AddSingleton<IConnectionMultiplexer>(sp =>
             {
-                var logger = sp.GetRequiredService<ILogger<RedisConnectionFactory>>();
+                var logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger("RedisConnectionFactory");
                 return RedisConnectionFactory.Create(redisConnectionString, logger);
             });
 

@@ -1,21 +1,30 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
 import App from '../App'
 
 describe('App', () => {
-  it('renders the application heading', () => {
-    render(<App />)
-
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-      'PropelIQ'
+  it('renders the authentication entry title', async () => {
+    render(
+      <MemoryRouter initialEntries={['/auth/login']}>
+        <App />
+      </MemoryRouter>,
     )
-  })
-
-  it('renders the platform description', () => {
-    render(<App />)
 
     expect(
-      screen.getByText('Patient Access & Clinical Intelligence Platform')
+      await screen.findByRole('heading', { level: 2, name: 'Welcome back' }),
+    ).toBeInTheDocument()
+  })
+
+  it('renders social sign-in options', async () => {
+    render(
+      <MemoryRouter initialEntries={['/auth/login']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(
+      await screen.findByRole('button', { name: 'Continue with Google' }),
     ).toBeInTheDocument()
   })
 })

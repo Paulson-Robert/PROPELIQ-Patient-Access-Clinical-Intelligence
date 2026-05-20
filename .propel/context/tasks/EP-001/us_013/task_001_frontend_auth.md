@@ -96,16 +96,16 @@ Implement the login/registration page (SCR-001) with Google and Microsoft social
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — form validation, OAuth button rendering
-- [ ] Integration tests pass — login/register flow navigates correctly
+- [x] Unit tests pass — form validation, OAuth button rendering
+- [x] Integration tests pass — login/register flow navigates correctly
 
 ## Implementation Checklist
 
-- [ ] Create LoginPage with login/register mode toggle matching SCR-001 wireframe (AC-01, AC-02, AC-03)
-- [ ] Implement Google and Microsoft social login buttons with OAuth redirect (AC-01, AC-02)
-- [ ] Implement registration form with inline password complexity validation (AC-03)
-- [ ] Create EmailVerificationPage with success/failure/expired states (AC-04)
-- [ ] Handle OAuth consent denial with fallback to email registration (AC-05)
-- [ ] Implement duplicate email detection with login/reset guidance (AC-06)
-- [ ] Implement post-login redirect to role-specific dashboard (AC-01, AC-02)
-- [ ] Handle OAuth provider outage with disabled buttons and tooltip (Edge Cases)
+- [x] Create LoginPage with login/register mode toggle matching SCR-001 wireframe (AC-01, AC-02, AC-03)
+- [x] Implement Google and Microsoft social login buttons with OAuth redirect (AC-01, AC-02)
+- [x] Implement registration form with inline password complexity validation (AC-03)
+- [x] Create EmailVerificationPage with success/failure/expired states (AC-04)
+- [x] Handle OAuth consent denial with fallback to email registration (AC-05)
+- [x] Implement duplicate email detection with login/reset guidance (AC-06)
+- [x] Implement post-login redirect to role-specific dashboard (AC-01, AC-02)
+- [x] Handle OAuth provider outage with disabled buttons and tooltip (Edge Cases)

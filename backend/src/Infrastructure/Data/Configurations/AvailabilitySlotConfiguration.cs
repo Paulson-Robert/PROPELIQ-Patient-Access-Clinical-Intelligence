@@ -28,13 +28,17 @@ public class AvailabilitySlotConfiguration : IEntityTypeConfiguration<Availabili
             .IsRequired();
 
         // EF Core xmin concurrency token for PostgreSQL (ADD-5)
-        builder.UseXminAsConcurrencyToken();
+        // Equivalent to builder.UseXminAsConcurrencyToken() — avoids Npgsql restore issue
+        builder.Property<uint>("xmin")
+            .HasColumnType("xid")
+            .ValueGeneratedOnAddOrUpdate()
+            .IsConcurrencyToken();
 
         builder.HasIndex(s => s.ProviderId);
         builder.HasIndex(s => new { s.ProviderId, s.StartTime });
         builder.HasIndex(s => s.IsAvailable);
 
-        // Overlap prevention: a provider cannot have two slots with identical start and end boundaries (AC-01)
+        // Overlap prevention (AC-01)
         builder.HasIndex(s => new { s.ProviderId, s.StartTime, s.EndTime })
             .IsUnique()
             .HasDatabaseName("IX_AvailabilitySlots_ProviderId_StartTime_EndTime");
