@@ -1,13 +1,40 @@
+import { Navigate, Route, Routes, useParams } from 'react-router-dom'
+import { AuthProvider } from './hooks/useAuth'
+import { EmailVerificationPage } from './pages/auth/EmailVerificationPage'
+import { LoginPage } from './pages/auth/LoginPage'
+
+const DashboardPage = () => {
+  const { role = 'patient' } = useParams<{ role: string }>()
+
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8 text-foreground">
+      <section className="w-full max-w-xl rounded-xl border border-border bg-card p-6 text-center shadow-sm">
+        <h1 className="text-3xl font-semibold tracking-tight">PropelIQ Dashboard</h1>
+        <p className="mt-3 text-muted-foreground">
+          Signed in successfully. Active role: <span className="font-medium text-foreground">{role}</span>
+        </p>
+      </section>
+    </main>
+  )
+}
+
 function App() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background text-foreground">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold tracking-tight">PropelIQ</h1>
-        <p className="mt-2 text-muted-foreground">
-          Patient Access &amp; Clinical Intelligence Platform
-        </p>
-      </div>
-    </main>
+    <AuthProvider>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
+      >
+        Skip to main content
+      </a>
+      <Routes>
+        <Route path="/" element={<Navigate to="/auth/login" replace />} />
+        <Route path="/auth/login" element={<LoginPage />} />
+        <Route path="/auth/verify" element={<EmailVerificationPage />} />
+        <Route path="/dashboard/:role" element={<DashboardPage />} />
+        <Route path="*" element={<Navigate to="/auth/login" replace />} />
+      </Routes>
+    </AuthProvider>
   )
 }
 

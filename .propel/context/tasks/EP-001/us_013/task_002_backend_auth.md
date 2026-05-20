@@ -94,11 +94,11 @@ Implement backend OAuth endpoints for Google and Microsoft social login, email/p
 
 ## Implementation Checklist
 
-- [ ] Configure OpenIddict with JWT issuance, 15-minute expiry, signing keys (AC-01, AC-02)
-- [ ] Implement Google OAuth callback with account creation and linking (AC-01)
-- [ ] Implement Microsoft OAuth callback with account creation and linking (AC-02)
-- [ ] Create registration endpoint with bcrypt hashing and Pending Verification status (AC-03)
-- [ ] Create email verification endpoint with one-time token and account activation (AC-04)
-- [ ] Handle OAuth consent denial with appropriate error response (AC-05)
-- [ ] Implement duplicate email detection returning conflict error (AC-06)
-- [ ] Implement account linking when OAuth email matches existing account (Edge Cases)
+- [x] Configure OpenIddict with JWT issuance, 15-minute expiry, signing keys (AC-01, AC-02)
+- [x] Implement Google OAuth callback with account creation and linking (AC-01)
+- [x] Implement Microsoft OAuth callback with account creation and linking (AC-02)
+- [x] Create registration endpoint with bcrypt hashing and Pending Verification status (AC-03)
+- [x] Create email verification endpoint with one-time token and account activation (AC-04)
+- [x] Handle OAuth consent denial with appropriate error response (AC-05)
+- [x] Implement duplicate email detection returning conflict error (AC-06)
+- [x] Implement account linking when OAuth email matches existing account (Edge Cases)

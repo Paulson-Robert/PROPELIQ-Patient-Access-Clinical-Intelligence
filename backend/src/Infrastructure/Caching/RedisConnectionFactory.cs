@@ -32,7 +32,7 @@ public static class RedisConnectionFactory
         options.ConnectTimeout = 5_000;   // ms
         options.SyncTimeout = 3_000;      // ms
         options.AsyncTimeout = 3_000;     // ms
-        options.ReconnectRetryPolicy = new ExponentialRetry(baseDelayMilliseconds: 500);
+        options.ReconnectRetryPolicy = new ExponentialRetry(500);
 
         logger?.LogInformation("Connecting to Redis endpoint(s): {Endpoints}", options.EndPoints);
 

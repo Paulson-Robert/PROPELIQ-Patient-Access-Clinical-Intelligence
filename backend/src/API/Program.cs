@@ -2,11 +2,13 @@ using API.Filters;
 using Application;
 using Hangfire;
 using Infrastructure;
+using Infrastructure.Auth;
 using Infrastructure.BackgroundJobs;
 using Infrastructure.Data;
 using Infrastructure.Data.Seed;
 using Infrastructure.HealthChecks;
 using Infrastructure.RateLimiting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 
@@ -48,17 +50,33 @@ builder.Services.AddApplication();
 // Add infrastructure layer services (EF Core + Npgsql)
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Add authentication services (JWT + OpenIddict + OAuth handlers)
+builder.Services.AddOpenIddictAuthentication(builder.Configuration);
+
 // Add Hangfire background job processing with PostgreSQL storage
 builder.Services.AddHangfireBackgroundJobs(builder.Configuration);
 
 // Add ASP.NET Core services
 builder.Services.AddControllers();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendDev", policy =>
+    {
+        var origins = builder.Configuration
+            .GetSection("Cors:AllowedOrigins")
+            .Get<string[]>() ?? ["http://localhost:5173"];
+
+        policy.WithOrigins(origins)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 // Add health checks — PostgreSQL (built-in EF probe), Hangfire, Redis (AC-03)
 var healthChecksBuilder = builder.Services.AddHealthChecks()
-    .AddDbContextCheck<ApplicationDbContext>(
-        name: "postgresql",
-        timeout: TimeSpan.FromSeconds(5))
+    .AddDbContextCheck<ApplicationDbContext>(name: "postgresql")
     .AddCheck<HangfireHealthCheck>(
         name: "hangfire",
         timeout: TimeSpan.FromSeconds(5));
@@ -154,6 +172,8 @@ app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks
 });
 
 app.UseHttpsRedirection();
+app.UseCors("FrontendDev");
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Hangfire dashboard — authenticated Admin-only at /hangfire (unauthenticated → 401)

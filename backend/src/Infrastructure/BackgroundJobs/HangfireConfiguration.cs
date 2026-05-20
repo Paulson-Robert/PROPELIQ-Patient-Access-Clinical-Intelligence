@@ -25,7 +25,7 @@ public static class HangfireConfiguration
                 new PostgreSqlStorageOptions
                 {
                     SchemaName = "hangfire",
-                    PrepareSchemaIfNecessary = false,
+                    PrepareSchemaIfNecessary = true,
                     EnableTransactionScopeEnlistment = true,
                 }));
 
