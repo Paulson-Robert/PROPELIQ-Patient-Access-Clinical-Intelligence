@@ -20,6 +20,16 @@ export interface RegisterPayload {
   password: string
 }
 
+export interface RequestPasswordResetCodePayload {
+  email: string
+}
+
+export interface ResetPasswordPayload {
+  email: string
+  newPassword: string
+  verificationCode: string
+}
+
 export interface AuthResponse {
   user: AuthUser
   accessToken: string
@@ -63,13 +73,19 @@ export interface SocialLoginResponse {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 const USE_MOCK_AUTH = (import.meta.env.VITE_USE_MOCK_AUTH ?? 'true') !== 'false'
 
-class ApiError extends Error {
+export class ApiError extends Error {
   status: number
+  code?: string
+  attemptsRemaining?: number
+  cooldownSeconds?: number
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, details?: { code?: string; attemptsRemaining?: number; cooldownSeconds?: number }) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    this.code = details?.code
+    this.attemptsRemaining = details?.attemptsRemaining
+    this.cooldownSeconds = details?.cooldownSeconds
   }
 }
 
@@ -79,9 +95,12 @@ const wait = (ms = 300): Promise<void> =>
   })
 
 const mockMfaAttempts = new Map<string, number>()
+const mockPasswordResetCodes = new Map<string, string>()
 
 const buildMfaAttemptKey = (email: string, method: MfaMethod): string =>
   `${email.trim().toLowerCase()}:${method}`
+
+const normalizeEmail = (email: string): string => email.trim().toLowerCase()
 
 const createQrCodeDataUri = (label: string): string => {
   const svg = `
@@ -134,15 +153,30 @@ const postJson = async <TResponse>(
 
   if (!response.ok) {
     let message = 'Request failed'
+    let code: string | undefined
+    let attemptsRemaining: number | undefined
+    let cooldownSeconds: number | undefined
 
     try {
-      const parsed = (await response.json()) as { message?: string }
+      const parsed = (await response.json()) as {
+        message?: string
+        code?: string
+        attemptsRemaining?: number
+        cooldownSeconds?: number
+      }
       message = parsed.message ?? message
+      code = parsed.code
+      attemptsRemaining = parsed.attemptsRemaining
+      cooldownSeconds = parsed.cooldownSeconds
     } catch {
       // If no JSON payload is available, use the default error message.
     }
 
-    throw new ApiError(message, response.status)
+    throw new ApiError(message, response.status, {
+      code,
+      attemptsRemaining,
+      cooldownSeconds,
+    })
   }
 
   return (await response.json()) as TResponse
@@ -280,6 +314,34 @@ const mockAuthApi = {
     mockMfaAttempts.delete(buildMfaAttemptKey(payload.email, payload.method))
     return { sent: true }
   },
+
+  async requestPasswordResetCode(payload: RequestPasswordResetCodePayload): Promise<{ code: string; message: string; cooldownSeconds: number }> {
+    await wait(300)
+    mockPasswordResetCodes.set(normalizeEmail(payload.email), '123456')
+    return {
+      code: 'accepted',
+      message: 'If an account exists, a verification code has been sent to your email.',
+      cooldownSeconds: 30,
+    }
+  },
+
+  async resetPassword(payload: ResetPasswordPayload): Promise<{ code: string; message: string }> {
+    await wait(300)
+
+    const normalizedEmail = normalizeEmail(payload.email)
+    const expectedCode = mockPasswordResetCodes.get(normalizedEmail)
+
+    if (!expectedCode || payload.verificationCode.trim() !== expectedCode) {
+      throw new ApiError('Verification code is invalid or expired.', 400)
+    }
+
+    mockPasswordResetCodes.delete(normalizedEmail)
+
+    return {
+      code: 'accepted',
+      message: 'If an account exists and code is valid, the password has been reset.',
+    }
+  },
 }
 
 export const authApi = {
@@ -381,5 +443,21 @@ export const authApi = {
 
     await postJson<{ sent: true }>('/api/auth/mfa/request-code', payload)
     return { sent: true }
+  },
+
+  async requestPasswordResetCode(payload: RequestPasswordResetCodePayload): Promise<{ code: string; message: string; cooldownSeconds: number }> {
+    if (USE_MOCK_AUTH || !API_BASE_URL) {
+      return mockAuthApi.requestPasswordResetCode(payload)
+    }
+
+    return postJson<{ code: string; message: string; cooldownSeconds: number }>('/api/auth/password/reset/request', payload)
+  },
+
+  async resetPassword(payload: ResetPasswordPayload): Promise<{ code: string; message: string }> {
+    if (USE_MOCK_AUTH || !API_BASE_URL) {
+      return mockAuthApi.resetPassword(payload)
+    }
+
+    return postJson<{ code: string; message: string }>('/api/auth/password/reset', payload)
   },
 }

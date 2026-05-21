@@ -1,12 +1,16 @@
 using Application.Commands;
+using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
+using FluentValidation;
 using Infrastructure.Auth;
 using Infrastructure.Data;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
 
 namespace API.Controllers;
 
@@ -14,10 +18,16 @@ namespace API.Controllers;
 [Route("api/[controller]")]
 public sealed class AuthController : ControllerBase
 {
-    private const int BcryptWorkFactor = 12;
+    private static readonly TimeSpan MinimumAuthResponse = TimeSpan.FromMilliseconds(250);
 
     private readonly ApplicationDbContext _dbContext;
     private readonly IJwtTokenService _tokenService;
+    private readonly IMediator _mediator;
+    private readonly IPasswordHashService _passwordHashService;
+    private readonly IAccountLockoutService _accountLockoutService;
+    private readonly IValidator<RegisterPatientCommand> _registerValidator;
+    private readonly IValidator<RequestPasswordResetCodeCommand> _requestPasswordResetCodeValidator;
+    private readonly IValidator<ResetPasswordCommand> _resetPasswordValidator;
     private readonly GoogleOAuthService _googleOAuthService;
     private readonly MicrosoftOAuthService _microsoftOAuthService;
     private readonly AuthSettings _authSettings;
@@ -25,15 +35,56 @@ public sealed class AuthController : ControllerBase
     public AuthController(
         ApplicationDbContext dbContext,
         IJwtTokenService tokenService,
+        IMediator mediator,
+        IPasswordHashService passwordHashService,
+        IAccountLockoutService accountLockoutService,
+        IValidator<RegisterPatientCommand> registerValidator,
+        IValidator<RequestPasswordResetCodeCommand> requestPasswordResetCodeValidator,
+        IValidator<ResetPasswordCommand> resetPasswordValidator,
         GoogleOAuthService googleOAuthService,
         MicrosoftOAuthService microsoftOAuthService,
         IOptions<AuthSettings> authSettings)
     {
         _dbContext = dbContext;
         _tokenService = tokenService;
+        _mediator = mediator;
+        _passwordHashService = passwordHashService;
+        _accountLockoutService = accountLockoutService;
+        _registerValidator = registerValidator;
+        _requestPasswordResetCodeValidator = requestPasswordResetCodeValidator;
+        _resetPasswordValidator = resetPasswordValidator;
         _googleOAuthService = googleOAuthService;
         _microsoftOAuthService = microsoftOAuthService;
         _authSettings = authSettings.Value;
+    }
+
+    [HttpPost("password/reset/request")]
+    [AllowAnonymous]
+    public async Task<IActionResult> RequestPasswordResetCode(
+        [FromBody] RequestPasswordResetCodeCommand command,
+        CancellationToken cancellationToken)
+    {
+        var validation = await _requestPasswordResetCodeValidator
+            .ValidateAsync(command, cancellationToken)
+            .ConfigureAwait(false);
+        if (!validation.IsValid)
+        {
+            return BadRequest(new
+            {
+                code = "validation_error",
+                message = "Email address is invalid.",
+                errors = validation.Errors.Select(error => error.ErrorMessage),
+            });
+        }
+
+        var result = await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
+
+        return Ok(new
+        {
+            code = result.Status,
+            message = result.Message,
+            cooldownSeconds = result.CooldownSeconds,
+        });
     }
 
     [HttpPost("register")]
@@ -42,6 +93,19 @@ public sealed class AuthController : ControllerBase
         [FromBody] RegisterPatientCommand command,
         CancellationToken cancellationToken)
     {
+        var validation = await _registerValidator
+            .ValidateAsync(command, cancellationToken)
+            .ConfigureAwait(false);
+        if (!validation.IsValid)
+        {
+            return BadRequest(new
+            {
+                code = "validation_error",
+                message = "Password does not meet complexity requirements.",
+                errors = validation.Errors.Select(error => error.ErrorMessage),
+            });
+        }
+
         var normalizedEmail = command.Email.Trim().ToLowerInvariant();
         var duplicateEmail = await _dbContext.Users
             .AnyAsync(u => u.Email == normalizedEmail, cancellationToken)
@@ -60,10 +124,11 @@ public sealed class AuthController : ControllerBase
         {
             UserId = Guid.NewGuid(),
             Email = normalizedEmail,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(command.Password, BcryptWorkFactor),
+            PasswordHash = _passwordHashService.HashPassword(command.Password),
             AuthProvider = AuthProvider.Local,
             Role = UserRole.Patient,
             IsActive = true,
+            PasswordUpdatedAtUtc = now,
             CreatedAt = now,
             UpdatedAt = now,
             MfaEnabled = false,
@@ -97,14 +162,18 @@ public sealed class AuthController : ControllerBase
         [FromBody] LoginRequest request,
         CancellationToken cancellationToken)
     {
+        var stopwatch = Stopwatch.StartNew();
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var user = await _dbContext.Users
             .SingleOrDefaultAsync(
                 u => u.Email == normalizedEmail && u.AuthProvider == AuthProvider.Local,
                 cancellationToken)
             .ConfigureAwait(false);
+
         if (user is null || string.IsNullOrWhiteSpace(user.PasswordHash))
         {
+            _passwordHashService.VerifyAgainstTimingSafeHash(request.Password);
+            await EnsureMinimumResponseTimeAsync(stopwatch, cancellationToken).ConfigureAwait(false);
             return Unauthorized(new
             {
                 code = "invalid_credentials",
@@ -112,15 +181,55 @@ public sealed class AuthController : ControllerBase
             });
         }
 
-        var passwordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+        if (!user.IsActive)
+        {
+            await EnsureMinimumResponseTimeAsync(stopwatch, cancellationToken).ConfigureAwait(false);
+            return StatusCode(StatusCodes.Status423Locked, new
+            {
+                code = "account_disabled",
+                message = "Your account has been disabled. Contact your administrator.",
+            });
+        }
+
+        if (_accountLockoutService.IsLocked(user, DateTime.UtcNow))
+        {
+            await EnsureMinimumResponseTimeAsync(stopwatch, cancellationToken).ConfigureAwait(false);
+            return StatusCode(StatusCodes.Status423Locked, new
+            {
+                code = "account_locked",
+                message = "Account locked after 5 failed attempts. Use password reset to unlock.",
+            });
+        }
+
+        var passwordValid = _passwordHashService.VerifyPassword(request.Password, user.PasswordHash);
         if (!passwordValid)
         {
+            await _accountLockoutService
+                .RegisterFailedAttemptAsync(user, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (_accountLockoutService.IsLocked(user, DateTime.UtcNow))
+            {
+                await EnsureMinimumResponseTimeAsync(stopwatch, cancellationToken).ConfigureAwait(false);
+                return StatusCode(StatusCodes.Status423Locked, new
+                {
+                    code = "account_locked",
+                    message = "Account locked after 5 failed attempts. Use password reset to unlock.",
+                });
+            }
+
+            await EnsureMinimumResponseTimeAsync(stopwatch, cancellationToken).ConfigureAwait(false);
             return Unauthorized(new
             {
                 code = "invalid_credentials",
                 message = "Email or password is incorrect.",
+                attemptsRemaining = _accountLockoutService.GetRemainingAttempts(user),
             });
         }
+
+        await _accountLockoutService
+            .ResetFailedAttemptsAsync(user, cancellationToken)
+            .ConfigureAwait(false);
 
         var tokenPayload = new AuthTokenPayload(
             user.UserId,
@@ -138,6 +247,46 @@ public sealed class AuthController : ControllerBase
                 email = user.Email,
                 role = user.Role.ToString().ToLowerInvariant(),
             },
+        });
+    }
+
+    [HttpPost("password/reset")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResetPassword(
+        [FromBody] ResetPasswordCommand command,
+        CancellationToken cancellationToken)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var validation = await _resetPasswordValidator
+            .ValidateAsync(command, cancellationToken)
+            .ConfigureAwait(false);
+        if (!validation.IsValid)
+        {
+            return BadRequest(new
+            {
+                code = "validation_error",
+                message = "Password does not meet complexity requirements.",
+                errors = validation.Errors.Select(error => error.ErrorMessage),
+            });
+        }
+
+        var result = await _mediator.Send(command, cancellationToken).ConfigureAwait(false);
+        await EnsureMinimumResponseTimeAsync(stopwatch, cancellationToken).ConfigureAwait(false);
+
+        if (!result.Success)
+        {
+            return BadRequest(new
+            {
+                code = result.Status,
+                message = result.Message,
+                attemptsRemaining = result.AttemptsRemaining,
+            });
+        }
+
+        return Ok(new
+        {
+            code = result.Status,
+            message = result.Message,
         });
     }
 
@@ -401,6 +550,15 @@ public sealed class AuthController : ControllerBase
 
     private string BuildLoginRedirect(string query) =>
         $"{_authSettings.LoginRedirectPath}?{query}";
+
+    private static async Task EnsureMinimumResponseTimeAsync(
+        Stopwatch stopwatch,
+        CancellationToken cancellationToken)
+    {
+        var remaining = MinimumAuthResponse - stopwatch.Elapsed;
+        if (remaining > TimeSpan.Zero)
+            await Task.Delay(remaining, cancellationToken).ConfigureAwait(false);
+    }
 
     public sealed record LoginRequest(string Email, string Password);
     public sealed record SocialStartRequest(string Provider, string? Email = null, string? EmailHint = null);

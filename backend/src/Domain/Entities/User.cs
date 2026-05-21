@@ -14,6 +14,10 @@ public class User
     // Credential material (TOTP seed) — encrypted at rest via AES-256 value converter
     public string? MfaSecret { get; set; }
     public string? MfaPhoneNumber { get; set; }
+    public int FailedLoginAttempts { get; set; }
+    public DateTime? LastFailedLoginAtUtc { get; set; }
+    public DateTime? LockedUntilUtc { get; set; }
+    public DateTime? PasswordUpdatedAtUtc { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

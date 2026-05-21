@@ -36,6 +36,16 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.AuthProvider)
             .IsRequired();
 
+        builder.Property(u => u.FailedLoginAttempts)
+            .HasDefaultValue(0)
+            .IsRequired();
+
+        builder.Property(u => u.LastFailedLoginAtUtc);
+
+        builder.Property(u => u.LockedUntilUtc);
+
+        builder.Property(u => u.PasswordUpdatedAtUtc);
+
         builder.Property(u => u.CreatedAt)
             .IsRequired();
 
@@ -75,5 +85,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(u => u.CreatedAt);
+        builder.HasIndex(u => u.LockedUntilUtc);
     }
 }

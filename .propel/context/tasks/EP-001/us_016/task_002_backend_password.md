@@ -70,13 +70,13 @@ Implement server-side password complexity validation, bcrypt hashing with work f
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — complexity validation, lockout logic, hash verification
+- [x] Unit tests pass — complexity validation, lockout logic, hash verification
 
 ## Implementation Checklist
 
-- [ ] Create password complexity validator (min 8, upper, lower, digit, special) (AC-01)
-- [ ] Implement bcrypt hashing with work factor 12, no plaintext storage (AC-02)
-- [ ] Implement 5-attempt lockout with descriptive lockout message (AC-03)
-- [ ] Create password reset flow that unlocks account and resets counter (AC-04)
-- [ ] Reset failed attempt counter on successful login (AC-05)
-- [ ] Ensure consistent response times regardless of email existence (Edge Cases)
+- [x] Create password complexity validator (min 8, upper, lower, digit, special) (AC-01)
+- [x] Implement bcrypt hashing with work factor 12, no plaintext storage (AC-02)
+- [x] Implement 5-attempt lockout with descriptive lockout message (AC-03)
+- [x] Create password reset flow that unlocks account and resets counter (AC-04)
+- [x] Reset failed attempt counter on successful login (AC-05)
+- [x] Ensure consistent response times regardless of email existence (Edge Cases)

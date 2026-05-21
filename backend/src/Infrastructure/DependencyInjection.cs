@@ -46,6 +46,10 @@ public static class DependencyInjection
             }));
 
         services.AddScoped<IPatientDataDeletionService, PatientDataDeletionService>();
+        services.AddScoped<IPasswordHashService, PasswordHashService>();
+        services.AddScoped<IAccountLockoutService, AccountLockoutService>();
+        services.AddOptions<EmailDeliverySettings>()
+            .BindConfiguration(EmailDeliverySettings.SectionName);
 
         // In-memory cache — required by RedisCacheService as fallback (AC-05).
         services.AddMemoryCache();

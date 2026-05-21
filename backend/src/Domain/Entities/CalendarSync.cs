@@ -16,6 +16,11 @@ public class CalendarSync
     public bool IsActive { get; set; }
     public DateTime? LastSyncAt { get; set; }
 
+    // Failed login attempts
+    public int FailedLoginAttempts { get; set; }
+    public DateTime? LastFailedLoginAtUtc { get; set; }
+    public DateTime? LockedUntilUtc { get; set; }
+
     // Navigation properties
     public User User { get; set; } = null!;
 }

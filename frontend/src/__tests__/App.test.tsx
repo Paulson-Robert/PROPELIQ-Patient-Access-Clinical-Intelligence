@@ -71,4 +71,31 @@ describe('App', () => {
       await screen.findByText('Too many failed attempts — please log in again.'),
     ).toBeInTheDocument()
   })
+
+  it('navigates to password reset from forgot password action', async () => {
+    render(
+      <MemoryRouter initialEntries={['/auth/login']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Forgot password?' }))
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Reset your password' }),
+    ).toBeInTheDocument()
+  })
+
+  it('renders the password reset route directly', async () => {
+    render(
+      <MemoryRouter initialEntries={['/auth/password-reset']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(
+      await screen.findByRole('button', { name: 'Send verification code' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Reset password' })).toBeDisabled()
+  })
 })
