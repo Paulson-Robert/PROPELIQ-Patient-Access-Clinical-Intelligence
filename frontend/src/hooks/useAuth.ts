@@ -11,6 +11,11 @@ import {
   authApi,
   type AuthResponse,
   type AuthUser,
+  type MfaCodeRequest,
+  type MfaMethod,
+  type MfaSetupResponse,
+  type MfaVerificationRequest,
+  type MfaVerificationResponse,
   type RegisterPayload,
   type RegisterResponse,
   type SocialProvider,
@@ -30,6 +35,9 @@ interface AuthContextValue extends AuthState {
   startSocialLogin: (provider: SocialProvider) => Promise<string>
   verifyEmailToken: (token?: string) => Promise<VerificationStatus>
   resendVerificationEmail: (email: string) => Promise<void>
+  getMfaSetup: (email: string, method?: MfaMethod) => Promise<MfaSetupResponse>
+  verifyMfaCode: (payload: MfaVerificationRequest) => Promise<MfaVerificationResponse>
+  requestMfaCode: (payload: MfaCodeRequest) => Promise<{ sent: true }>
   logout: () => void
   redirectPathForRole: (role: UserRole) => string
 }
@@ -178,6 +186,48 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     }
   }, [])
 
+  const getMfaSetup = useCallback(async (email: string, method?: MfaMethod) => {
+    try {
+      const response = await authApi.getMfaSetup(email, method)
+      dispatch({ type: 'clear-error' })
+      return response
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unable to prepare MFA setup'
+
+      dispatch({ type: 'failure', payload: errorMessage })
+      throw error
+    }
+  }, [])
+
+  const verifyMfaCode = useCallback(async (payload: MfaVerificationRequest) => {
+    try {
+      const response = await authApi.verifyMfaCode(payload)
+      dispatch({ type: 'clear-error' })
+      return response
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unable to verify your code'
+
+      dispatch({ type: 'failure', payload: errorMessage })
+      throw error
+    }
+  }, [])
+
+  const requestMfaCode = useCallback(async (payload: MfaCodeRequest) => {
+    try {
+      const response = await authApi.requestMfaCode(payload)
+      dispatch({ type: 'clear-error' })
+      return response
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unable to request a new code'
+
+      dispatch({ type: 'failure', payload: errorMessage })
+      throw error
+    }
+  }, [])
+
   const logout = useCallback(() => {
     dispatch({ type: 'logout' })
   }, [])
@@ -195,6 +245,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       startSocialLogin,
       verifyEmailToken,
       resendVerificationEmail,
+      getMfaSetup,
+      verifyMfaCode,
+      requestMfaCode,
       logout,
       redirectPathForRole,
     }),
@@ -205,6 +258,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       startSocialLogin,
       verifyEmailToken,
       resendVerificationEmail,
+      getMfaSetup,
+      verifyMfaCode,
+      requestMfaCode,
       logout,
       redirectPathForRole,
     ],

@@ -86,11 +86,11 @@ Implement backend MFA logic: TOTP secret generation, QR code URI generation, cod
 
 ## Implementation Checklist
 
-- [ ] Implement TotpService with TOTP generation, QR URI, and ±1 step validation (AC-01, AC-03)
-- [ ] Create MFA setup endpoint with secret generation and encrypted storage (AC-03)
-- [ ] Create MFA verification endpoint with TOTP and SMS code support (AC-01, AC-02)
-- [ ] Implement 3-attempt lockout with session termination (AC-04)
-- [ ] Implement SMS code generation with expiry and resend capability (AC-05)
-- [ ] Reject deactivated accounts before reaching MFA step (AC-06)
-- [ ] Enforce mandatory MFA for Staff/Admin roles in auth flow (AC-01, AC-02)
-- [ ] Handle MFA device loss via admin reset only — no self-service bypass (Edge Cases)
+- [x] Implement TotpService with TOTP generation, QR URI, and ±1 step validation (AC-01, AC-03)
+- [x] Create MFA setup endpoint with secret generation and encrypted storage (AC-03)
+- [x] Create MFA verification endpoint with TOTP and SMS code support (AC-01, AC-02)
+- [x] Implement 3-attempt lockout with session termination (AC-04)
+- [x] Implement SMS code generation with expiry and resend capability (AC-05)
+- [x] Reject deactivated accounts before reaching MFA step (AC-06)
+- [x] Enforce mandatory MFA for Staff/Admin roles in auth flow (AC-01, AC-02)
+- [x] Handle MFA device loss via admin reset only — no self-service bypass (Edge Cases)

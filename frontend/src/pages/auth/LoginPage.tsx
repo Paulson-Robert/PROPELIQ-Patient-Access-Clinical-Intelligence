@@ -46,10 +46,33 @@ export const LoginPage = () => {
     return null
   }, [oauthError])
 
+  const sessionMessage = useMemo(() => {
+    if (searchParams.get('session') === 'terminated') {
+      return 'Too many failed attempts — please log in again.'
+    }
+
+    return null
+  }, [searchParams])
+
   const onLoginSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     const authResponse = await loginWithPassword(loginEmail, loginPassword)
+
+    if (authResponse.mfaChallenge?.state === 'setup') {
+      navigate(
+        `/auth/mfa/setup?email=${encodeURIComponent(authResponse.user.email)}&role=${authResponse.user.role}&method=${authResponse.mfaChallenge.method}`,
+      )
+      return
+    }
+
+    if (authResponse.mfaChallenge?.state === 'verify') {
+      navigate(
+        `/auth/mfa/verify?email=${encodeURIComponent(authResponse.user.email)}&role=${authResponse.user.role}&method=${authResponse.mfaChallenge.method}`,
+      )
+      return
+    }
+
     navigate(redirectPathForRole(authResponse.user.role))
   }
 
@@ -119,6 +142,12 @@ export const LoginPage = () => {
           {registrationHint ? (
             <p className="mb-4 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700">
               {registrationHint}
+            </p>
+          ) : null}
+
+          {sessionMessage ? (
+            <p className="mb-4 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700">
+              {sessionMessage}
             </p>
           ) : null}
 

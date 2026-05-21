@@ -140,10 +140,36 @@ public sealed class AuthController : ControllerBase
 
         if (!user.IsActive)
         {
+            var accountDisabledMessage = user.Role is UserRole.Staff or UserRole.Admin
+                ? "Your account has been disabled. Contact your administrator."
+                : "Please verify your email before logging in.";
+
             return StatusCode(StatusCodes.Status423Locked, new
             {
-                code = "account_not_verified",
-                message = "Please verify your email before logging in.",
+                code = user.Role is UserRole.Staff or UserRole.Admin ? "account_disabled" : "account_not_verified",
+                message = accountDisabledMessage,
+            });
+        }
+
+        if (user.Role is UserRole.Staff or UserRole.Admin)
+        {
+            var challengeState = user.MfaEnabled ? "verify" : "setup";
+            var challengeMethod = user.MfaMethod.ToString().ToLowerInvariant();
+
+            return Ok(new
+            {
+                mfaChallenge = new
+                {
+                    state = challengeState,
+                    method = challengeMethod,
+                    attemptsRemaining = 3,
+                    expiresAtUtc = DateTime.UtcNow.AddSeconds(30),
+                },
+                user = new
+                {
+                    email = user.Email,
+                    role = user.Role.ToString().ToLowerInvariant(),
+                },
             });
         }
 

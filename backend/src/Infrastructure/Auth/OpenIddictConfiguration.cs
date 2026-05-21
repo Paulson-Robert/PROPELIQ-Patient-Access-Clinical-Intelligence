@@ -240,6 +240,8 @@ public static class OpenIddictConfiguration
         services.AddScoped<GoogleOAuthService>();
         services.AddScoped<MicrosoftOAuthService>();
         services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<ISmsService, SmsService>();
+        services.AddScoped<ITotpService, TotpService>();
 
         return services;
     }

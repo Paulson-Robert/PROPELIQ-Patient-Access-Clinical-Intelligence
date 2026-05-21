@@ -20,9 +20,15 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.PasswordHash)
             .HasMaxLength(512);
 
+        builder.Property(u => u.MfaMethod)
+            .IsRequired();
+
         // TOTP seed — encryption converter applied in ApplicationDbContext (AC-02)
         builder.Property(u => u.MfaSecret)
             .HasMaxLength(512); // Max covers base64-encoded ciphertext
+
+        builder.Property(u => u.MfaPhoneNumber)
+            .HasMaxLength(512); // Max covers encrypted contact data
 
         builder.Property(u => u.Role)
             .IsRequired();

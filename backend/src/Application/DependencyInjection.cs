@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using MediatR;
+using System.Reflection;
 
 namespace Application;
 
@@ -17,10 +18,18 @@ public static class DependencyInjection
     /// <returns>The service collection for chaining</returns>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        // Register MediatR with handlers from the Application assembly
+        // Register MediatR with handlers from the Application assembly and any loaded Infrastructure handlers.
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
+
+            var infrastructureAssembly = AppDomain.CurrentDomain.GetAssemblies()
+                .FirstOrDefault(assembly => assembly.GetName().Name == "Infrastructure");
+
+            if (infrastructureAssembly is not null)
+            {
+                cfg.RegisterServicesFromAssembly(infrastructureAssembly);
+            }
         });
 
         return services;

@@ -10,8 +10,10 @@ public class User
     public AuthProvider AuthProvider { get; set; }
     public UserRole Role { get; set; }
     public bool MfaEnabled { get; set; }
+    public MfaMethod MfaMethod { get; set; }
     // Credential material (TOTP seed) — encrypted at rest via AES-256 value converter
     public string? MfaSecret { get; set; }
+    public string? MfaPhoneNumber { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

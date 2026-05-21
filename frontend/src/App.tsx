@@ -2,6 +2,8 @@ import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { AuthProvider } from './hooks/useAuth'
 import { EmailVerificationPage } from './pages/auth/EmailVerificationPage'
 import { LoginPage } from './pages/auth/LoginPage'
+import { MfaSetupPage } from './pages/auth/MfaSetupPage'
+import { MfaVerificationPage } from './pages/auth/MfaVerificationPage'
 
 const DashboardPage = () => {
   const { role = 'patient' } = useParams<{ role: string }>()
@@ -31,6 +33,8 @@ function App() {
         <Route path="/" element={<Navigate to="/auth/login" replace />} />
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/verify" element={<EmailVerificationPage />} />
+        <Route path="/auth/mfa/verify" element={<MfaVerificationPage />} />
+        <Route path="/auth/mfa/setup" element={<MfaSetupPage />} />
         <Route path="/dashboard/:role" element={<DashboardPage />} />
         <Route path="*" element={<Navigate to="/auth/login" replace />} />
       </Routes>

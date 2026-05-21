@@ -847,6 +847,13 @@ namespace Infrastructure.Migrations
                     b.Property<bool>("MfaEnabled")
                         .HasColumnType("boolean");
 
+                    b.Property<int>("MfaMethod")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("MfaPhoneNumber")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
                     b.Property<string>("MfaSecret")
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
