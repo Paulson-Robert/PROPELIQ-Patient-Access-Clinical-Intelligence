@@ -64,9 +64,9 @@ Implement Microsoft Outlook Calendar integration via Graph API OAuth, encrypted 
 
 ## Implementation Checklist
 
-- [ ] Implement Microsoft Graph OAuth 2.0 flow (AC-01)
-- [ ] Store tokens encrypted reusing CalendarTokenStore (AC-02)
-- [ ] Sync appointments to Outlook Calendar (AC-03)
-- [ ] Remove events on cancellation (AC-04)
-- [ ] Create Hangfire recurring sync job (AC-05)
-- [ ] Handle consent revocation gracefully (Edge Cases)
+- [x] Implement Microsoft Graph OAuth 2.0 flow (AC-01)
+- [x] Store tokens encrypted reusing CalendarTokenStore (AC-02)
+- [x] Sync appointments to Outlook Calendar (AC-03)
+- [x] Remove events on cancellation (AC-04)
+- [x] Create Hangfire recurring sync job (AC-05)
+- [x] Handle consent revocation gracefully (Edge Cases)

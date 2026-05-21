@@ -115,6 +115,14 @@ public static class DependencyInjection
         services.AddScoped<ICalendarTokenStore, CalendarTokenStore>();
         services.AddScoped<GoogleCalendarSyncJob>();
 
+        // Outlook Calendar integration (US_026)
+        services.AddOptions<OutlookCalendarSettings>()
+            .BindConfiguration(OutlookCalendarSettings.SectionName);
+        services.AddHttpClient<OutlookCalendarService>();
+        services.AddScoped<IOutlookCalendarService, OutlookCalendarService>();
+        services.AddScoped<IOutlookCalendarTokenStore, OutlookCalendarTokenStore>();
+        services.AddScoped<OutlookCalendarSyncJob>();
+
         return services;
     }
 }
