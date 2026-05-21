@@ -183,6 +183,11 @@ public static class DependencyInjection
         services.AddScoped<IModelMonitoringService, ModelMonitoringService>();
         services.AddScoped<ModelAccuracyCheckJob>();
 
+        // Patient data aggregation, de-duplication, and verification tracking (US_038)
+        services.AddScoped<IDataDeduplicationService, DataDeduplicationService>();
+        services.AddScoped<IVerificationTrackingService, VerificationTrackingService>();
+        services.AddScoped<IPatientAggregationService, PatientAggregationService>();
+
         // Document parsers — format-specific text extractors for NER pipeline (US_035, NFR-011)
         services.AddOptions<TesseractOptions>()
             .BindConfiguration(TesseractOptions.SectionName);

@@ -62,11 +62,11 @@ Implement 360° patient view page (SCR-019) displaying aggregated data grouped b
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — rendering, category grouping
+- [x] Unit tests pass — rendering, category grouping
 
 ## Implementation Checklist
 
-- [ ] Create PatientViewPage with 360° aggregated data display (AC-01)
-- [ ] Create VerificationBadge showing verified/unverified status (AC-02)
-- [ ] Group data by category (demographics, diagnoses, medications) (AC-03)
-- [ ] Handle empty categories with "No records found" (Edge Cases)
+- [x] Create PatientViewPage with 360° aggregated data display (AC-01)
+- [x] Create VerificationBadge showing verified/unverified status (AC-02)
+- [x] Group data by category (demographics, diagnoses, medications) (AC-03)
+- [x] Handle empty categories with "No records found" (Edge Cases)
