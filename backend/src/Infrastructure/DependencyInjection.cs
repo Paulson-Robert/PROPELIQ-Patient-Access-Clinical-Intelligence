@@ -6,6 +6,7 @@ using Infrastructure.Data;
 using Infrastructure.Data.Options;
 using Infrastructure.Jobs;
 using Infrastructure.Locking;
+using Infrastructure.Notifications;
 using Infrastructure.RateLimiting;
 using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -122,6 +123,13 @@ public static class DependencyInjection
         services.AddScoped<IOutlookCalendarService, OutlookCalendarService>();
         services.AddScoped<IOutlookCalendarTokenStore, OutlookCalendarTokenStore>();
         services.AddScoped<OutlookCalendarSyncJob>();
+
+        // Appointment reminder pipeline (US_027)
+        services.AddOptions<NotificationSettings>()
+            .BindConfiguration(NotificationSettings.SectionName);
+        services.AddSingleton<INotificationDeliveryService, NotificationDeliveryService>();
+        services.AddScoped<IReminderPipelineService, ReminderPipelineService>();
+        services.AddScoped<ScheduleRemindersJob>();
 
         // Staff notification persistence (US_028)
         services.AddScoped<IStaffNotificationService, StaffNotificationService>();

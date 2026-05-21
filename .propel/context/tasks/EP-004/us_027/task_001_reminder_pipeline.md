@@ -67,10 +67,10 @@ Implement appointment reminder pipeline with 24h and 2h scheduled notifications,
 
 ## Implementation Checklist
 
-- [ ] Schedule 24h reminder on appointment booking (AC-01)
-- [ ] Schedule 2h reminder on appointment booking (AC-02)
-- [ ] Add SMS escalation for high-risk patients (AC-03)
-- [ ] Implement exponential backoff retry (max 3 attempts) (AC-04)
-- [ ] Track delivery status per notification (AC-05)
-- [ ] Suppress reminders for cancelled appointments (Edge Cases)
-- [ ] Alert staff when all retries exhausted (Edge Cases)
+- [x] Schedule 24h reminder on appointment booking (AC-01)
+- [x] Schedule 2h reminder on appointment booking (AC-02)
+- [x] Add SMS escalation for high-risk patients (AC-03)
+- [x] Implement exponential backoff retry (max 3 attempts) (AC-04)
+- [x] Track delivery status per notification (AC-05)
+- [x] Suppress reminders for cancelled appointments (Edge Cases)
+- [x] Alert staff when all retries exhausted (Edge Cases)
