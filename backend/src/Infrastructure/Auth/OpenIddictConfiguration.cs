@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -66,17 +67,15 @@ public interface IJwtTokenService
 
 public sealed class JwtTokenService : IJwtTokenService
 {
-    private const string SessionCachePrefix = "auth:session:";
-
-    private readonly ICacheService _cacheService;
+    private readonly ISessionService _sessionService;
     private readonly AuthSettings _settings;
     private readonly JwtSecurityTokenHandler _tokenHandler;
     private readonly TokenValidationParameters _validationParameters;
     private readonly SigningCredentials _signingCredentials;
 
-    public JwtTokenService(ICacheService cacheService, IOptions<AuthSettings> settings)
+    public JwtTokenService(ISessionService sessionService, IOptions<AuthSettings> settings)
     {
-        _cacheService = cacheService;
+        _sessionService = sessionService;
         _settings = settings.Value;
         _tokenHandler = new JwtSecurityTokenHandler();
 
@@ -112,12 +111,13 @@ public sealed class JwtTokenService : IJwtTokenService
             signingCredentials: _signingCredentials);
 
         var serializedToken = _tokenHandler.WriteToken(jwtToken);
-        var sessionCacheKey = BuildSessionCacheKey(tokenId);
-        await _cacheService.SetAsync(
-                sessionCacheKey,
-                new SessionPayload(payload.UserId, payload.Email, payload.Role),
-                TimeSpan.FromMinutes(_settings.AccessTokenMinutes),
-                cancellationToken)
+        await _sessionService.CreateSessionAsync(
+            tokenId,
+            payload.UserId,
+            payload.Email,
+            payload.Role,
+            TimeSpan.FromMinutes(_settings.AccessTokenMinutes),
+            cancellationToken)
             .ConfigureAwait(false);
 
         return new AuthTokenResult(serializedToken, expiresAtUtc);
@@ -151,16 +151,15 @@ public sealed class JwtTokenService : IJwtTokenService
             return null;
         }
 
-        var sessionCacheKey = BuildSessionCacheKey(tokenId);
-        var existingSession = await _cacheService
-            .GetAsync<SessionPayload>(sessionCacheKey, cancellationToken)
+        var existingSession = await _sessionService
+            .GetSessionAsync(tokenId, cancellationToken)
             .ConfigureAwait(false);
         if (existingSession is null)
         {
             return null;
         }
 
-        await _cacheService.RemoveAsync(sessionCacheKey, cancellationToken).ConfigureAwait(false);
+        await _sessionService.RemoveSessionAsync(tokenId, cancellationToken).ConfigureAwait(false);
         return await IssueTokenAsync(
                 new AuthTokenPayload(
                     existingSession.UserId,
@@ -169,9 +168,6 @@ public sealed class JwtTokenService : IJwtTokenService
                 cancellationToken)
             .ConfigureAwait(false);
     }
-
-    private static string BuildSessionCacheKey(string tokenId) =>
-        $"{SessionCachePrefix}{tokenId}";
 
     private static TokenValidationParameters BuildValidationParameters(AuthSettings settings)
     {
@@ -189,8 +185,6 @@ public sealed class JwtTokenService : IJwtTokenService
             ClockSkew = TimeSpan.FromSeconds(30),
         };
     }
-
-    private sealed record SessionPayload(Guid UserId, string Email, string Role);
 }
 
 public static class OpenIddictConfiguration
@@ -211,6 +205,49 @@ public static class OpenIddictConfiguration
             .AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = tokenValidationParameters;
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = context =>
+                    {
+                        var roleClaims = context.Principal?.FindAll(ClaimTypes.Role)
+                            .Select(claim => claim.Value)
+                            .Where(value => !string.IsNullOrWhiteSpace(value))
+                            .Distinct(StringComparer.OrdinalIgnoreCase)
+                            .ToArray() ?? [];
+
+                        if (roleClaims.Length != 1)
+                        {
+                            context.Fail("Exactly one role claim is required.");
+                        }
+
+                        return Task.CompletedTask;
+                    },
+                    OnChallenge = async context =>
+                    {
+                        context.HandleResponse();
+
+                        if (context.Response.HasStarted)
+                        {
+                            return;
+                        }
+
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        await context.Response.WriteAsJsonAsync(new
+                        {
+                            code = "session_expired",
+                            message = "Session expired. Please sign in again.",
+                        }).ConfigureAwait(false);
+                    },
+                    OnForbidden = async context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        await context.Response.WriteAsJsonAsync(new
+                        {
+                            code = "forbidden",
+                            message = "You do not have permission to access this resource.",
+                        }).ConfigureAwait(false);
+                    },
+                };
             });
 
         services.AddAuthorization();

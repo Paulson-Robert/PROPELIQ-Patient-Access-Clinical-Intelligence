@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Infrastructure.Caching;
+using Infrastructure.Auth;
 using Infrastructure.Data;
 using Infrastructure.Data.Options;
 using Infrastructure.Locking;
@@ -65,6 +66,7 @@ public static class DependencyInjection
                     sp.GetRequiredService<IConnectionMultiplexer>(),
                     sp.GetRequiredService<IMemoryCache>(),
                     sp.GetRequiredService<ILogger<RedisCacheService>>()));
+            services.AddScoped<ISessionService, SessionService>();
 
             // Distributed slot lock: SETNX with 30-second TTL (AC-03).
             services.AddSingleton<IDistributedLockService, RedisDistributedLockService>();
@@ -81,6 +83,7 @@ public static class DependencyInjection
         {
             // Degraded mode: no Redis configured — serve entirely from in-memory cache (AC-05).
             services.AddSingleton<ICacheService, InMemoryCacheService>();
+            services.AddScoped<ISessionService, SessionService>();
         }
 
         return services;
