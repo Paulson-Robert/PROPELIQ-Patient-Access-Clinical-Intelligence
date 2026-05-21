@@ -9,8 +9,7 @@ interface RegistrationFormValues {
 
 interface RegistrationFormProps {
   isSubmitting: boolean
-  onSubmit: (values: RegistrationFormValues) => Promise<{ duplicateEmail: boolean }>
-  onDuplicateEmail: () => void
+  onSubmit: (values: RegistrationFormValues) => Promise<void>
 }
 
 const passwordCriteria = [
@@ -44,7 +43,6 @@ const passwordCriteria = [
 export const RegistrationForm = ({
   isSubmitting,
   onSubmit,
-  onDuplicateEmail,
 }: RegistrationFormProps) => {
   const [values, setValues] = useState<RegistrationFormValues>({
     email: '',
@@ -85,11 +83,7 @@ export const RegistrationForm = ({
     }
 
     try {
-      const response = await onSubmit(values)
-
-      if (response.duplicateEmail) {
-        onDuplicateEmail()
-      }
+      await onSubmit(values)
     } catch (error) {
       setErrorMessage(
         error instanceof Error

@@ -26,7 +26,6 @@ export const LoginPage = () => {
   const [mode, setMode] = useState<AuthMode>('login')
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
-  const [registrationHint, setRegistrationHint] = useState<string | null>(null)
 
   const { loginWithPassword, registerWithEmail, startSocialLogin, isLoading, error, redirectPathForRole } =
     useAuth()
@@ -116,12 +115,6 @@ export const LoginPage = () => {
             </p>
           ) : null}
 
-          {registrationHint ? (
-            <p className="mb-4 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700">
-              {registrationHint}
-            </p>
-          ) : null}
-
           {error ? (
             <p className="mb-4 rounded-md border border-destructive bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {error}
@@ -204,18 +197,7 @@ export const LoginPage = () => {
                   password: values.password,
                 })
 
-                if (response.duplicateEmail) {
-                  return response
-                }
-
-                navigate(`/auth/verify?status=pending&email=${encodeURIComponent(values.email)}`)
-                return response
-              }}
-              onDuplicateEmail={() => {
-                setRegistrationHint(
-                  'This email already has an account. Try logging in or reset your password.',
-                )
-                setMode('login')
+                navigate(redirectPathForRole(response.user.role))
               }}
             />
           )}

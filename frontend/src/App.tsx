@@ -1,6 +1,5 @@
 import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { AuthProvider } from './hooks/useAuth'
-import { EmailVerificationPage } from './pages/auth/EmailVerificationPage'
 import { LoginPage } from './pages/auth/LoginPage'
 
 const DashboardPage = () => {
@@ -30,7 +29,6 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/auth/login" replace />} />
         <Route path="/auth/login" element={<LoginPage />} />
-        <Route path="/auth/verify" element={<EmailVerificationPage />} />
         <Route path="/dashboard/:role" element={<DashboardPage />} />
         <Route path="*" element={<Navigate to="/auth/login" replace />} />
       </Routes>
