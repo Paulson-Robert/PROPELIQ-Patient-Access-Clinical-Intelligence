@@ -178,6 +178,11 @@ public static class DependencyInjection
             .BindConfiguration(ExtractionThresholdConfig.SectionName);
         services.AddSingleton<IConfidenceScoringService, ConfidenceScoringService>();
 
+        // NER model versioning and accuracy monitoring (US_037, AC-01, AC-02, AC-03)
+        services.AddSingleton<IModelVersioningService, ModelVersioningService>();
+        services.AddScoped<IModelMonitoringService, ModelMonitoringService>();
+        services.AddScoped<ModelAccuracyCheckJob>();
+
         // Document parsers — format-specific text extractors for NER pipeline (US_035, NFR-011)
         services.AddOptions<TesseractOptions>()
             .BindConfiguration(TesseractOptions.SectionName);
