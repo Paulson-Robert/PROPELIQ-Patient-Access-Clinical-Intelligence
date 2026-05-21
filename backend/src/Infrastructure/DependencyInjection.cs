@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Infrastructure.AI;
 using Infrastructure.Caching;
 using Infrastructure.Auth;
 using Infrastructure.Calendar;
@@ -133,6 +134,14 @@ public static class DependencyInjection
 
         // Staff notification persistence (US_028)
         services.AddScoped<IStaffNotificationService, StaffNotificationService>();
+
+        // AI intake orchestration (US_029)
+        services.AddOptions<AiIntakeOptions>()
+            .BindConfiguration(AiIntakeOptions.SectionName);
+        services.AddHttpClient<AiIntakeService>();
+        services.AddScoped<IAiIntakeService, AiIntakeService>();
+        services.AddScoped<IDeIdentificationService, DeIdentificationService>();
+        services.AddScoped<IAiIntakePersistenceService, AiIntakePersistenceService>();
 
         return services;
     }

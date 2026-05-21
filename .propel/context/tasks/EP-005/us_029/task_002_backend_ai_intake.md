@@ -65,8 +65,8 @@ Implement AI intake backend orchestrating conversation with GPT-4o/Gemini using 
 
 ## Implementation Checklist
 
-- [ ] Create AI intake orchestration command (AC-01)
-- [ ] Implement de-identification removing all PHI before AI calls (AC-02)
-- [ ] Extract structured data from AI conversation responses (AC-03)
-- [ ] Persist intake data on completion (AC-04)
-- [ ] Handle provider timeout with retry (Edge Cases)
+- [x] Create AI intake orchestration command (AC-01)
+- [x] Implement de-identification removing all PHI before AI calls (AC-02)
+- [x] Extract structured data from AI conversation responses (AC-03)
+- [x] Persist intake data on completion (AC-04)
+- [x] Handle provider timeout with retry (Edge Cases)

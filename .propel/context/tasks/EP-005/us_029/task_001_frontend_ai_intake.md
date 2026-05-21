@@ -77,9 +77,9 @@ Implement AI conversational intake chat UI (SCR-009) with message bubbles, progr
 
 ## Implementation Checklist
 
-- [ ] Create ChatBubble with AI/patient message variants (AC-01)
-- [ ] Create AiIntakePage with streaming message display (AC-01)
-- [ ] Capture and validate patient responses (AC-02)
-- [ ] Create IntakeProgress showing completion percentage (AC-03)
-- [ ] Create IntakeSummary review screen before submission (AC-04)
-- [ ] Handle AI unavailability with graceful fallback (Edge Cases)
+- [x] Create ChatBubble with AI/patient message variants (AC-01)
+- [x] Create AiIntakePage with streaming message display (AC-01)
+- [x] Capture and validate patient responses (AC-02)
+- [x] Create IntakeProgress showing completion percentage (AC-03)
+- [x] Create IntakeSummary review screen before submission (AC-04)
+- [x] Handle AI unavailability with graceful fallback (Edge Cases)
