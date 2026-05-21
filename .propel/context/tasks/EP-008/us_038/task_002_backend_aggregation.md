@@ -52,12 +52,12 @@ Implement patient data aggregation service merging NER extractions, intake data,
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — merging, deduplication, verification tracking
+- [x] Unit tests pass — merging, deduplication, verification tracking
 
 ## Implementation Checklist
 
-- [ ] Merge data from NER, intake, and external sources (AC-01)
-- [ ] Implement de-duplication identifying and merging duplicates (AC-02)
-- [ ] Track human verification status per data point (AC-03)
-- [ ] Trigger re-aggregation on new document or deletion (AC-04)
-- [ ] Flag conflicting data for resolution (Edge Cases)
+- [x] Merge data from NER, intake, and external sources (AC-01)
+- [x] Implement de-duplication identifying and merging duplicates (AC-02)
+- [x] Track human verification status per data point (AC-03)
+- [x] Trigger re-aggregation on new document or deletion (AC-04)
+- [x] Flag conflicting data for resolution (Edge Cases)

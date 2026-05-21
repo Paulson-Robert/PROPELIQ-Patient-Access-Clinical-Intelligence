@@ -1,9 +1,11 @@
 using System.Text.Json;
+using Application.Commands;
 using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
 using Hangfire;
 using Infrastructure.Data;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -237,14 +239,35 @@ public sealed class DocumentDeletionService : IDocumentDeletionService
 }
 
 /// <summary>
-/// Stub job type used to enqueue PatientView re-aggregation via Hangfire (AC-02).
-/// Concrete implementation lives in the US_038 aggregation task.
+/// Hangfire background job that triggers PatientView re-aggregation (AC-04).
+/// Dispatches <see cref="AggregatePatientDataCommand"/> via MediatR so the full
+/// merge, deduplication, conflict-flagging, and verification pipeline runs.
 /// </summary>
 public sealed class PatientViewAggregationJob
 {
-    public Task ExecuteAsync(Guid patientProfileId)
+    private readonly IMediator _mediator;
+    private readonly ILogger<PatientViewAggregationJob> _logger;
+
+    public PatientViewAggregationJob(
+        IMediator mediator,
+        ILogger<PatientViewAggregationJob> logger)
     {
-        // Placeholder: replaced by the US_038 implementation.
-        return Task.CompletedTask;
+        _mediator = mediator;
+        _logger = logger;
+    }
+
+    public async Task ExecuteAsync(Guid patientProfileId)
+    {
+        var result = await _mediator
+            .Send(new AggregatePatientDataCommand(patientProfileId))
+            .ConfigureAwait(false);
+
+        if (!result.Success)
+        {
+            _logger.LogError(
+                "PatientViewAggregationJob: Aggregation failed for PatientProfileId {PatientProfileId}. " +
+                "Code={FailureCode} Reason={FailureReason}.",
+                patientProfileId, result.FailureCode, result.FailureReason);
+        }
     }
 }
