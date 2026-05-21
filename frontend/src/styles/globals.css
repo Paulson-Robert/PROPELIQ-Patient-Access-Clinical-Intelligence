@@ -1,0 +1,311 @@
+/* Design Tokens — Patient Access & Clinical Intelligence Platform */
+/* Source: .propel/context/wireframes/Hi-Fi/shared-tokens.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400&display=swap');
+
+:root {
+  /* --- Color Primitives (reference only — consumers use semantic tokens) --- */
+  --color-blue-50: #eff6ff;
+  --color-blue-100: #dbeafe;
+  --color-blue-200: #bfdbfe;
+  --color-blue-300: #93c5fd;
+  --color-blue-400: #60a5fa;
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb;
+  --color-blue-700: #1d4ed8;
+  --color-blue-800: #1e40af;
+  --color-blue-900: #1e3a8a;
+  --color-blue-950: #172554;
+
+  --color-zinc-50: #fafafa;
+  --color-zinc-100: #f4f4f5;
+  --color-zinc-200: #e4e4e7;
+  --color-zinc-300: #d4d4d8;
+  --color-zinc-400: #a1a1aa;
+  --color-zinc-500: #71717a;
+  --color-zinc-600: #52525b;
+  --color-zinc-700: #3f3f46;
+  --color-zinc-800: #27272a;
+  --color-zinc-900: #18181b;
+  --color-zinc-950: #09090b;
+
+  --color-green-50: #f0fdf4;
+  --color-green-100: #dcfce7;
+  --color-green-500: #22c55e;
+  --color-green-600: #16a34a;
+  --color-green-700: #15803d;
+
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+  --color-red-700: #b91c1c;
+
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* --- Semantic Color Tokens --- */
+  --primary: var(--color-blue-800);
+  --primary-foreground: var(--color-white);
+  --primary-hover: var(--color-blue-700);
+  --primary-active: var(--color-blue-900);
+  --primary-muted: var(--color-blue-50);
+
+  --secondary: var(--color-zinc-100);
+  --secondary-foreground: var(--color-zinc-900);
+  --secondary-hover: var(--color-zinc-200);
+
+  --destructive: var(--color-red-600);
+  --destructive-foreground: var(--color-white);
+  --destructive-hover: var(--color-red-700);
+  --destructive-muted: var(--color-red-50);
+
+  --success: var(--color-green-600);
+  --success-foreground: var(--color-white);
+  --success-muted: var(--color-green-50);
+
+  --warning: var(--color-amber-600);
+  --warning-foreground: var(--color-white);
+  --warning-muted: var(--color-amber-50);
+
+  --background: var(--color-white);
+  --background-secondary: var(--color-zinc-50);
+  --background-tertiary: var(--color-zinc-100);
+
+  --foreground: var(--color-zinc-900);
+  --foreground-secondary: var(--color-zinc-500);
+  --foreground-muted: var(--color-zinc-400);
+
+  /* Shadcn component token aliases */
+  --card: var(--color-white);
+  --card-foreground: var(--color-zinc-900);
+  --popover: var(--color-white);
+  --popover-foreground: var(--color-zinc-900);
+  --muted: var(--color-zinc-100);
+  --muted-foreground: var(--color-zinc-500);
+  --accent: var(--color-zinc-100);
+  --accent-foreground: var(--color-zinc-900);
+
+  --border: var(--color-zinc-200);
+  --border-focus: var(--color-blue-800);
+  --border-error: var(--color-red-600);
+  --border-conflict: var(--color-amber-500);
+
+  --input: var(--color-zinc-200);
+  --input-bg: var(--color-white);
+  --ring: var(--color-blue-800);
+
+  /* Chart colors */
+  --chart-1: var(--color-blue-500);
+  --chart-2: var(--color-blue-600);
+  --chart-3: var(--color-blue-700);
+  --chart-4: var(--color-blue-800);
+  --chart-5: var(--color-blue-900);
+
+  /* Sidebar tokens */
+  --sidebar: var(--color-white);
+  --sidebar-foreground: var(--color-zinc-900);
+  --sidebar-primary: var(--color-blue-800);
+  --sidebar-primary-foreground: var(--color-white);
+  --sidebar-accent: var(--color-zinc-100);
+  --sidebar-accent-foreground: var(--color-zinc-900);
+  --sidebar-border: var(--color-zinc-200);
+  --sidebar-ring: var(--color-blue-800);
+
+  /* --- Risk Tier Tokens --- */
+  --risk-low-bg: var(--color-green-50);
+  --risk-low-border: var(--color-green-600);
+  --risk-low-fg: var(--color-green-700);
+  --risk-medium-bg: var(--color-amber-50);
+  --risk-medium-border: var(--color-amber-600);
+  --risk-medium-fg: var(--color-amber-700);
+  --risk-high-bg: var(--color-red-50);
+  --risk-high-border: var(--color-red-600);
+  --risk-high-fg: var(--color-red-700);
+
+  /* --- Typography --- */
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+
+  /* --- Spacing (4px base unit) --- */
+  --space-0: 0px;
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-2-5: 10px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* --- Component Spacing --- */
+  --card-padding: var(--space-6);
+  --card-gap: var(--space-4);
+  --input-px: var(--space-3);
+  --input-py: var(--space-2);
+  --btn-px: var(--space-4);
+  --btn-py: var(--space-2);
+  --section-gap: var(--space-8);
+  --page-px: var(--space-6);
+  --page-py: var(--space-6);
+  --sidebar-width: 256px;
+  --sidebar-collapsed: 64px;
+  --bottom-nav-height: 64px;
+  --header-height: 64px;
+
+  /* --- Border Radius --- */
+  --radius-sm: 2px;
+  --radius: 6px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-full: 9999px;
+
+  /* --- Shadows --- */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  /* --- Z-Index --- */
+  --z-sticky: 40;
+  --z-dropdown: 50;
+  --z-overlay: 60;
+  --z-modal: 70;
+  --z-popover: 80;
+  --z-toast: 90;
+  --z-tooltip: 100;
+
+  /* --- Animation --- */
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* --- Dark mode token scaffold (structure prepared; not active in Phase 1) --- */
+.dark {
+  --primary: var(--color-blue-400);
+  --primary-foreground: var(--color-zinc-950);
+  --primary-hover: var(--color-blue-300);
+  --primary-active: var(--color-blue-500);
+  --primary-muted: var(--color-blue-950);
+
+  --secondary: var(--color-zinc-800);
+  --secondary-foreground: var(--color-zinc-50);
+  --secondary-hover: var(--color-zinc-700);
+
+  --destructive: var(--color-red-500);
+  --destructive-foreground: var(--color-white);
+  --destructive-hover: var(--color-red-400);
+  --destructive-muted: #450a0a;
+
+  --success: var(--color-green-500);
+  --success-foreground: var(--color-zinc-950);
+  --success-muted: #052e16;
+
+  --warning: var(--color-amber-500);
+  --warning-foreground: var(--color-zinc-950);
+  --warning-muted: #451a03;
+
+  --background: var(--color-zinc-950);
+  --background-secondary: var(--color-zinc-900);
+  --background-tertiary: var(--color-zinc-800);
+
+  --foreground: var(--color-zinc-50);
+  --foreground-secondary: var(--color-zinc-400);
+  --foreground-muted: var(--color-zinc-500);
+
+  --card: var(--color-zinc-900);
+  --card-foreground: var(--color-zinc-50);
+  --popover: var(--color-zinc-900);
+  --popover-foreground: var(--color-zinc-50);
+  --muted: var(--color-zinc-800);
+  --muted-foreground: var(--color-zinc-400);
+  --accent: var(--color-zinc-800);
+  --accent-foreground: var(--color-zinc-50);
+
+  --border: var(--color-zinc-800);
+  --border-focus: var(--color-blue-400);
+  --border-error: var(--color-red-500);
+  --border-conflict: var(--color-amber-400);
+
+  --input: var(--color-zinc-800);
+  --input-bg: var(--color-zinc-900);
+  --ring: var(--color-blue-400);
+
+  --chart-1: var(--color-blue-400);
+  --chart-2: var(--color-blue-300);
+  --chart-3: var(--color-blue-200);
+  --chart-4: var(--color-blue-100);
+  --chart-5: var(--color-blue-50);
+
+  --sidebar: var(--color-zinc-900);
+  --sidebar-foreground: var(--color-zinc-50);
+  --sidebar-primary: var(--color-blue-400);
+  --sidebar-primary-foreground: var(--color-zinc-950);
+  --sidebar-accent: var(--color-zinc-800);
+  --sidebar-accent-foreground: var(--color-zinc-50);
+  --sidebar-border: var(--color-zinc-800);
+  --sidebar-ring: var(--color-blue-400);
+
+  --risk-low-bg: #052e16;
+  --risk-low-border: var(--color-green-500);
+  --risk-low-fg: #4ade80;
+  --risk-medium-bg: #451a03;
+  --risk-medium-border: var(--color-amber-500);
+  --risk-medium-fg: #fbbf24;
+  --risk-high-bg: #450a0a;
+  --risk-high-border: var(--color-red-500);
+  --risk-high-fg: #f87171;
+}
+
+/* --- Keyframe Animations --- */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes spinner {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes typing-dots {
+  0%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-4px); }
+}
+
+@keyframes toast-enter {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes countdown-ring {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: 188.5; }
+}
