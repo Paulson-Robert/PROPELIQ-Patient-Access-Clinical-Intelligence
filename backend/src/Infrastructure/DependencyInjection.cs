@@ -159,6 +159,11 @@ public static class DependencyInjection
         services.AddScoped<IMalwareScanService, MalwareScanService>();
         services.AddScoped<MalwareScanJob>();
 
+        // Document deletion and retention policy enforcement (US_034)
+        services.AddScoped<IDocumentDeletionService, DocumentDeletionService>();
+        services.AddScoped<PatientViewAggregationJob>();
+        services.AddScoped<RetentionCleanupJob>();
+
         return services;
     }
 }

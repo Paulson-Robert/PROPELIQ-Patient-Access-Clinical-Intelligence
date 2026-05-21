@@ -52,6 +52,6 @@ Implement document list showing retention info and patient-initiated deletion wi
 
 ## Implementation Checklist
 
-- [ ] Create document list with retention period display (AC-01)
-- [ ] Implement patient deletion request action (AC-02)
-- [ ] Create deletion confirmation dialog with consequences warning (AC-03)
+- [x] Create document list with retention period display (AC-01)
+- [x] Implement patient deletion request action (AC-02)
+- [x] Create deletion confirmation dialog with consequences warning (AC-03)

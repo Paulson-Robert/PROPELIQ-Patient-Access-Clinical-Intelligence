@@ -17,6 +17,7 @@ import { AiIntakePage } from './pages/intake/AiIntakePage'
 import { ManualIntakePage } from './pages/intake/ManualIntakePage'
 import { IntakePage } from './pages/intake/IntakePage'
 import { DocumentUploadPage } from './pages/documents/DocumentUploadPage'
+import { DocumentListPage } from './pages/documents/DocumentListPage'
 
 const DashboardPage = () => {
   const { role = 'patient' } = useParams<{ role: string }>()
@@ -64,6 +65,7 @@ function App() {
           <Route path="/intake/ai" element={<AiIntakePage />} />
           <Route path="/intake/manual" element={<ManualIntakePage />} />
           <Route path="/documents/upload" element={<DocumentUploadPage />} />
+          <Route path="/documents" element={<DocumentListPage />} />
           <Route path="*" element={<Navigate to="/auth/login" replace />} />
         </Routes>
       </AuthProvider>
