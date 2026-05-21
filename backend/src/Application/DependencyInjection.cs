@@ -1,7 +1,8 @@
-using Microsoft.Extensions.DependencyInjection;
-using MediatR;
-using System.Reflection;
+using Application.Behaviors;
 using FluentValidation;
+using MediatR;
+using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace Application;
 
@@ -34,6 +35,9 @@ public static class DependencyInjection
         });
 
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+
+        // Audit logging pipeline behavior — intercepts all commands (AC-03).
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuditLoggingBehavior<,>));
 
         return services;
     }

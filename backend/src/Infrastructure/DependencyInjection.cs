@@ -1,6 +1,7 @@
 using Application.Configuration;
 using Application.Interfaces;
 using Infrastructure.AI;
+using Infrastructure.Persistence;
 using Infrastructure.Caching;
 using Infrastructure.Auth;
 using Infrastructure.Calendar;
@@ -53,6 +54,25 @@ public static class DependencyInjection
                     errorCodesToAdd: null);
                 npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
             }));
+
+        // Factory used by AuditLogRepository for isolated DbContext instances (AC-02).
+        services.AddDbContextFactory<ApplicationDbContext>((sp, options) =>
+            options.UseNpgsql(connectionString, npgsql =>
+            {
+                npgsql.SetPostgresVersion(16, 0);
+                npgsql.EnableRetryOnFailure(
+                    maxRetryCount: 3,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorCodesToAdd: null);
+                npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
+            }), ServiceLifetime.Scoped);
+
+        // Immutable audit log repository — INSERT-only (AC-01, AC-02, AC-03).
+        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+
+        // Current user context — reads ClaimsPrincipal from HttpContext (AC-03, AC-04).
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserContext, HttpContextCurrentUserContext>();
 
         services.AddScoped<IPatientDataDeletionService, PatientDataDeletionService>();
         services.AddScoped<IPasswordHashService, PasswordHashService>();
