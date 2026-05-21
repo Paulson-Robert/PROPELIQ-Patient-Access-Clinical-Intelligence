@@ -81,7 +81,7 @@ const getJson = async <TResponse>(path: string): Promise<TResponse> => {
   return (await response.json()) as TResponse
 }
 
-let mockQueue: QueueEntry[] = [
+const mockQueue: QueueEntry[] = [
   {
     id: 'qe-001',
     position: 1,

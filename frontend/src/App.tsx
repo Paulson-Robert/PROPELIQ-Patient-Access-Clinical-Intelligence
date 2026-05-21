@@ -1,5 +1,8 @@
 import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { AuthProvider } from './hooks/useAuth'
+import { NotificationProvider } from './hooks/useNotifications'
+import { ToastContainer } from './components/notifications/ToastContainer'
+import { NotificationHistory } from './components/notifications/NotificationHistory'
 import { AppointmentSearchPage } from './pages/booking/AppointmentSearchPage'
 import { AppointmentDetailPage } from './pages/booking/AppointmentDetailPage'
 import { BookingConfirmationPage } from './pages/booking/BookingConfirmationPage'
@@ -28,29 +31,35 @@ const DashboardPage = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
-      >
-        Skip to main content
-      </a>
-      <Routes>
-        <Route path="/" element={<Navigate to="/auth/login" replace />} />
-        <Route path="/auth/login" element={<LoginPage />} />
-        <Route path="/auth/password-reset" element={<PasswordResetPage />} />
-        <Route path="/auth/mfa/verify" element={<MfaVerificationPage />} />
-        <Route path="/auth/mfa/setup" element={<MfaSetupPage />} />
-        <Route path="/dashboard/:role" element={<DashboardPage />} />
-        <Route path="/booking/history" element={<AppointmentHistoryPage />} />
-        <Route path="/booking/search" element={<AppointmentSearchPage />} />
-        <Route path="/booking/walk-in" element={<WalkInBookingPage />} />
-        <Route path="/queue/same-day" element={<SameDayQueuePage />} />
-        <Route path="/booking/appointments/:appointmentId" element={<AppointmentDetailPage />} />
-        <Route path="/booking/confirm" element={<BookingConfirmationPage />} />
-        <Route path="*" element={<Navigate to="/auth/login" replace />} />
-      </Routes>
-    </AuthProvider>
+    <NotificationProvider>
+      <AuthProvider>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
+        >
+          Skip to main content
+        </a>
+        <header className="fixed right-0 top-0 z-40 flex items-center p-2">
+          <NotificationHistory />
+        </header>
+        <ToastContainer />
+        <Routes>
+          <Route path="/" element={<Navigate to="/auth/login" replace />} />
+          <Route path="/auth/login" element={<LoginPage />} />
+          <Route path="/auth/password-reset" element={<PasswordResetPage />} />
+          <Route path="/auth/mfa/verify" element={<MfaVerificationPage />} />
+          <Route path="/auth/mfa/setup" element={<MfaSetupPage />} />
+          <Route path="/dashboard/:role" element={<DashboardPage />} />
+          <Route path="/booking/history" element={<AppointmentHistoryPage />} />
+          <Route path="/booking/search" element={<AppointmentSearchPage />} />
+          <Route path="/booking/walk-in" element={<WalkInBookingPage />} />
+          <Route path="/queue/same-day" element={<SameDayQueuePage />} />
+          <Route path="/booking/appointments/:appointmentId" element={<AppointmentDetailPage />} />
+          <Route path="/booking/confirm" element={<BookingConfirmationPage />} />
+          <Route path="*" element={<Navigate to="/auth/login" replace />} />
+        </Routes>
+      </AuthProvider>
+    </NotificationProvider>
   )
 }
 

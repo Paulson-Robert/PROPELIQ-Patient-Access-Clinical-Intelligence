@@ -62,8 +62,8 @@ Implement staff toast notification system with auto-dismiss, stacking, and notif
 
 ## Implementation Checklist
 
-- [ ] Create ToastContainer appearing top-right (AC-01)
-- [ ] Implement 5-second auto-dismiss with manual dismiss button (AC-02)
-- [ ] Implement vertical stacking for multiple toasts (AC-03)
-- [ ] Create NotificationHistory panel with bell icon trigger (AC-04)
-- [ ] Handle 10+ simultaneous notifications with count badge (Edge Cases)
+- [x] Create ToastContainer appearing top-right (AC-01)
+- [x] Implement 5-second auto-dismiss with manual dismiss button (AC-02)
+- [x] Implement vertical stacking for multiple toasts (AC-03)
+- [x] Create NotificationHistory panel with bell icon trigger (AC-04)
+- [x] Handle 10+ simultaneous notifications with count badge (Edge Cases)

@@ -131,6 +131,9 @@ public static class DependencyInjection
         services.AddScoped<IReminderPipelineService, ReminderPipelineService>();
         services.AddScoped<ScheduleRemindersJob>();
 
+        // Staff notification persistence (US_028)
+        services.AddScoped<IStaffNotificationService, StaffNotificationService>();
+
         return services;
     }
 }

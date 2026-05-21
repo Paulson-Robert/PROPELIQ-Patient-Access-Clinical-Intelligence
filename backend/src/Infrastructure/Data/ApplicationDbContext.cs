@@ -34,6 +34,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<MedicalCodeMapping> MedicalCodeMappings => Set<MedicalCodeMapping>();
     public DbSet<IntakeRecord> IntakeRecords => Set<IntakeRecord>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<StaffNotification> StaffNotifications => Set<StaffNotification>();
     public DbSet<CalendarSync> CalendarSyncs => Set<CalendarSync>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<NoShowRiskFactor> NoShowRiskFactors => Set<NoShowRiskFactor>();
