@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { AuthProvider } from './hooks/useAuth'
 import { AppointmentSearchPage } from './pages/booking/AppointmentSearchPage'
+import { AppointmentDetailPage } from './pages/booking/AppointmentDetailPage'
 import { BookingConfirmationPage } from './pages/booking/BookingConfirmationPage'
 import { LoginPage } from './pages/auth/LoginPage'
 import { MfaSetupPage } from './pages/auth/MfaSetupPage'
@@ -39,6 +40,7 @@ function App() {
         <Route path="/auth/mfa/setup" element={<MfaSetupPage />} />
         <Route path="/dashboard/:role" element={<DashboardPage />} />
         <Route path="/booking/search" element={<AppointmentSearchPage />} />
+        <Route path="/booking/appointments/:appointmentId" element={<AppointmentDetailPage />} />
         <Route path="/booking/confirm" element={<BookingConfirmationPage />} />
         <Route path="*" element={<Navigate to="/auth/login" replace />} />
       </Routes>

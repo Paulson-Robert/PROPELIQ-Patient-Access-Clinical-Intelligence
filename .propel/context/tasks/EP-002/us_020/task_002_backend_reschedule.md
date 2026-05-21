@@ -56,12 +56,12 @@ Implement cancellation endpoint releasing the slot and triggering the swap engin
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — cancel releases slot, reschedule atomicity
+- [x] Unit tests pass — cancel releases slot, reschedule atomicity
 
 ## Implementation Checklist
 
-- [ ] Create CancelAppointmentCommand releasing slot and publishing event (AC-01)
-- [ ] Trigger swap engine on cancellation via domain event (AC-01)
-- [ ] Create RescheduleAppointmentCommand as atomic cancel+book (AC-02)
-- [ ] Publish calendar sync event on state change (AC-03)
-- [ ] Rollback reschedule preserving old appointment on failure (Edge Cases)
+- [x] Create CancelAppointmentCommand releasing slot and publishing event (AC-01)
+- [x] Trigger swap engine on cancellation via domain event (AC-01)
+- [x] Create RescheduleAppointmentCommand as atomic cancel+book (AC-02)
+- [x] Publish calendar sync event on state change (AC-03)
+- [x] Rollback reschedule preserving old appointment on failure (Edge Cases)

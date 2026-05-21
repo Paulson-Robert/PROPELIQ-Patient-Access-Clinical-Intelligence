@@ -99,6 +99,7 @@ public static class DependencyInjection
 
         services.AddScoped<ISlotSearchService, SlotSearchService>();
         services.AddScoped<IBookingConfirmationService, BookingConfirmationService>();
+        services.AddScoped<IAppointmentManagementService, AppointmentManagementService>();
 
         return services;
     }

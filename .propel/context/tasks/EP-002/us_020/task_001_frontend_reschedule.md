@@ -67,11 +67,11 @@ Implement appointment detail page (SCR-007) with cancel/reschedule actions, canc
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — dialog interaction, navigation
+- [x] Unit tests pass — dialog interaction, navigation
 
 ## Implementation Checklist
 
-- [ ] Create AppointmentDetailPage with cancel and reschedule actions (AC-01, AC-02)
-- [ ] Create CancelConfirmDialog matching MOD-003 wireframe (AC-01)
-- [ ] Implement reschedule navigating to search with pre-filled context (AC-02)
-- [ ] Update calendar status display after cancellation (AC-03)
+- [x] Create AppointmentDetailPage with cancel and reschedule actions (AC-01, AC-02)
+- [x] Create CancelConfirmDialog matching MOD-003 wireframe (AC-01)
+- [x] Implement reschedule navigating to search with pre-filled context (AC-02)
+- [x] Update calendar status display after cancellation (AC-03)
