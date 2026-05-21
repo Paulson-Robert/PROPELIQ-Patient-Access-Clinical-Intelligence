@@ -53,7 +53,7 @@ Implement document deletion removing files and metadata, triggering patient data
 
 ## Implementation Checklist
 
-- [ ] Delete file and metadata on patient request (AC-01)
-- [ ] Trigger re-aggregation after document deletion (AC-02)
-- [ ] Create Hangfire retention cleanup job (AC-03)
-- [ ] Cancel active NER processing before deletion (Edge Cases)
+- [x] Delete file and metadata on patient request (AC-01)
+- [x] Trigger re-aggregation after document deletion (AC-02)
+- [x] Create Hangfire retention cleanup job (AC-03)
+- [x] Cancel active NER processing before deletion (Edge Cases)
