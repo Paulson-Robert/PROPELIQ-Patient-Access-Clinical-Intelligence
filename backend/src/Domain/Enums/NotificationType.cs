@@ -6,5 +6,7 @@ public enum NotificationType
     Confirmation = 1,
     SlotSwap = 2,
     Cancellation = 3,
-    FailureAlert = 4
+    FailureAlert = 4,
+    Reminder24Hour = 5,
+    Reminder2Hour = 6
 }

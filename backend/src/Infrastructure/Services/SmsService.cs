@@ -19,6 +19,13 @@ public sealed class SmsService : ISmsService
         return Task.CompletedTask;
     }
 
+    public Task SendReminderAsync(string phoneNumber, string message, CancellationToken cancellationToken = default)
+    {
+        var maskedPhone = MaskPhoneNumber(phoneNumber);
+        _logger.LogInformation("Queued reminder SMS for {PhoneNumber}.", maskedPhone);
+        return Task.CompletedTask;
+    }
+
     private static string MaskPhoneNumber(string phoneNumber)
     {
         if (string.IsNullOrWhiteSpace(phoneNumber) || phoneNumber.Length <= 4)

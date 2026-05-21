@@ -212,6 +212,12 @@ recurringJobManager.AddOrUpdate<OutlookCalendarSyncJob>(
     job => job.ExecuteAsync(),
     "*/5 * * * *");
 
+// Register appointment reminder scheduling job — every 15 minutes (US_027)
+recurringJobManager.AddOrUpdate<ScheduleRemindersJob>(
+    "schedule-appointment-reminders",
+    job => job.ExecuteAsync(),
+    "*/15 * * * *");
+
 app.Run();
 
 }
