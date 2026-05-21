@@ -62,8 +62,8 @@ Implement ML.NET custom NER model for clinical entity extraction (names, dates, 
 
 ## Implementation Checklist
 
-- [ ] Create ClinicalEntity model with entity types (AC-01)
-- [ ] Implement NER prediction service with ML.NET (AC-01)
+- [x] Create ClinicalEntity model with entity types (AC-01)
+- [x] Implement NER prediction service with ML.NET (AC-01)
 - [ ] Achieve ≥ 95% accuracy on test dataset (AC-02)
-- [ ] Create retraining pipeline accepting new labeled data (AC-03)
-- [ ] Flag low-confidence extractions for review (Edge Cases)
+- [x] Create retraining pipeline accepting new labeled data (AC-03)
+- [x] Flag low-confidence extractions for review (Edge Cases)
