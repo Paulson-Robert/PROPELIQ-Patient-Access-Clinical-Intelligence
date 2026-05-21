@@ -59,6 +59,6 @@ Implement confidence scoring for NER extractions with configurable thresholds fo
 
 ## Implementation Checklist
 
-- [ ] Assign confidence score 0.0-1.0 to each extraction (AC-01)
-- [ ] Implement configurable thresholds with auto-accept/review/reject (AC-02)
-- [ ] Enforce PHI boundary — no cross-patient extraction (AC-03)
+- [x] Assign confidence score 0.0-1.0 to each extraction (AC-01)
+- [x] Implement configurable thresholds with auto-accept/review/reject (AC-02)
+- [x] Enforce PHI boundary — no cross-patient extraction (AC-03)

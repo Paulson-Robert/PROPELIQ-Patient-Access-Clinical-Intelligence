@@ -1,3 +1,4 @@
+using Application.Configuration;
 using Application.Interfaces;
 using Infrastructure.AI;
 using Infrastructure.Caching;
@@ -171,6 +172,11 @@ public static class DependencyInjection
             .BindConfiguration(NerModelOptions.SectionName);
         services.AddSingleton<INerModelService, NerModelService>();
         services.AddScoped<INerTrainingPipeline, NerTrainingPipeline>();
+
+        // Confidence scoring — threshold-based extraction decisions (US_036, AC-01, AC-02, AC-03)
+        services.AddOptions<ExtractionThresholdConfig>()
+            .BindConfiguration(ExtractionThresholdConfig.SectionName);
+        services.AddSingleton<IConfidenceScoringService, ConfidenceScoringService>();
 
         // Document parsers — format-specific text extractors for NER pipeline (US_035, NFR-011)
         services.AddOptions<TesseractOptions>()
