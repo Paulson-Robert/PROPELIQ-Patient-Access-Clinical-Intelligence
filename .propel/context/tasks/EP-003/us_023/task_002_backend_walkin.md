@@ -57,11 +57,11 @@ Implement walk-in booking endpoint creating walk-in type appointments, patient s
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — walk-in creation, patient search
+- [x] Unit tests pass — walk-in creation, patient search
 
 ## Implementation Checklist
 
-- [ ] Create patient search by name and DOB (AC-02)
-- [ ] Create walk-in appointment with "walk-in" type (AC-01)
-- [ ] Create temporary patient record for guests (AC-03)
-- [ ] Auto-add walk-in to same-day queue (AC-04)
+- [x] Create patient search by name and DOB (AC-02)
+- [x] Create walk-in appointment with "walk-in" type (AC-01)
+- [x] Create temporary patient record for guests (AC-03)
+- [x] Auto-add walk-in to same-day queue (AC-04)

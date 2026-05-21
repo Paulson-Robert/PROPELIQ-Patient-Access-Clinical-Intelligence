@@ -19,6 +19,15 @@ export interface SlotSearchParams {
   to?: string
 }
 
+export interface PatientSearchResult {
+  id: string
+  name: string
+  email?: string
+  phone?: string
+  dateOfBirth?: string
+  lastVisitDate?: string
+}
+
 export interface LockSlotResponse {
   slotId: string
   lockToken: string
@@ -35,6 +44,24 @@ export interface ConfirmBookingPayload {
 
 export interface CancelAppointmentPayload {
   appointmentId: string
+}
+
+export interface WalkInBookingPayload {
+  patientId?: string
+  guestName?: string
+  guestEmail?: string
+  guestPhone?: string
+  providerId?: string
+  reasonForVisit?: string
+}
+
+export interface WalkInBookingResponse {
+  appointmentId: string
+  queueId: string
+  bookingType: 'WalkIn'
+  status: 'Scheduled'
+  patientDisplayName: string
+  estimatedWaitMinutes: number
 }
 
 export interface AppointmentRecord {
@@ -223,7 +250,36 @@ const MOCK_APPOINTMENTS: AppointmentRecord[] = [
   },
 ]
 
+const MOCK_PATIENTS: PatientSearchResult[] = [
+  {
+    id: 'pat-001',
+    name: 'Maria Santos',
+    email: 'maria.santos@example.com',
+    phone: '(555) 234-5678',
+    dateOfBirth: '1988-03-15',
+    lastVisitDate: '2026-04-10',
+  },
+  {
+    id: 'pat-002',
+    name: 'Maria Del Carmen Lopez',
+    email: 'maria.lopez@example.com',
+    phone: '(555) 987-6543',
+    dateOfBirth: '1975-07-22',
+    lastVisitDate: '2026-01-08',
+  },
+  {
+    id: 'pat-003',
+    name: 'Marcus Reid',
+    email: 'marcus.reid@example.com',
+    phone: '(555) 111-2233',
+    dateOfBirth: '1992-11-03',
+    lastVisitDate: '2025-12-21',
+  },
+]
+
 const mockLockedSlotIds = new Set<string>()
+
+let mockWalkInCounter = 1
 
 const mockBookingApi = {
   async getAppointment(appointmentId: string): Promise<AppointmentRecord> {
@@ -258,6 +314,21 @@ const mockBookingApi = {
       ...slot,
       isLocked: mockLockedSlotIds.has(slot.id),
     }))
+  },
+
+  async searchPatients(query: string): Promise<PatientSearchResult[]> {
+    await wait(180)
+
+    const trimmed = query.trim().toLowerCase()
+    if (trimmed.length < 2) {
+      return []
+    }
+
+    return MOCK_PATIENTS.filter((patient) =>
+      [patient.name, patient.email, patient.phone]
+        .filter(Boolean)
+        .some((value) => value!.toLowerCase().includes(trimmed)),
+    )
   },
 
   async lockSlot(slotId: string): Promise<LockSlotResponse> {
@@ -354,6 +425,33 @@ const mockBookingApi = {
     record.status = 'Cancelled'
     return { ...record }
   },
+
+  async submitWalkIn(payload: WalkInBookingPayload): Promise<WalkInBookingResponse> {
+    await wait(320)
+
+    const selectedPatient = payload.patientId
+      ? MOCK_PATIENTS.find((patient) => patient.id === payload.patientId)
+      : null
+
+    const patientDisplayName =
+      selectedPatient?.name ?? payload.guestName?.trim() ?? ''
+
+    if (!patientDisplayName) {
+      throw new BookingError('Patient selection or guest name is required.', 'NOT_FOUND', 400)
+    }
+
+    const walkInId = `walkin-${mockWalkInCounter.toString().padStart(3, '0')}`
+    mockWalkInCounter += 1
+
+    return {
+      appointmentId: `appt-${walkInId}`,
+      queueId: `queue-${walkInId}`,
+      bookingType: 'WalkIn',
+      status: 'Scheduled',
+      patientDisplayName,
+      estimatedWaitMinutes: 20,
+    }
+  },
 }
 
 export const bookingApi = {
@@ -379,6 +477,14 @@ export const bookingApi = {
     return getJson<AvailabilitySlot[]>(`/api/appointments/slots?${query.toString()}`)
   },
 
+  async searchPatients(query: string): Promise<PatientSearchResult[]> {
+    if (USE_MOCK_BOOKING || !API_BASE_URL) {
+      return mockBookingApi.searchPatients(query)
+    }
+
+    return getJson<PatientSearchResult[]>(`/api/patients?search=${encodeURIComponent(query)}`)
+  },
+
   async lockSlot(slotId: string): Promise<LockSlotResponse> {
     if (USE_MOCK_BOOKING || !API_BASE_URL) {
       return mockBookingApi.lockSlot(slotId)
@@ -401,5 +507,13 @@ export const bookingApi = {
     }
 
     return postJson<AppointmentRecord>(`/api/appointments/${payload.appointmentId}/cancel`, {})
+  },
+
+  async submitWalkIn(payload: WalkInBookingPayload): Promise<WalkInBookingResponse> {
+    if (USE_MOCK_BOOKING || !API_BASE_URL) {
+      return mockBookingApi.submitWalkIn(payload)
+    }
+
+    return postJson<WalkInBookingResponse>('/api/appointments/walkin', payload)
   },
 }

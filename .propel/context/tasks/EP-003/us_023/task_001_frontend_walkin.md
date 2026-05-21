@@ -66,11 +66,11 @@ Implement walk-in booking page (SCR-018) for staff with patient search, guest wa
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — search, form submission
+- [x] Unit tests pass — search, form submission
 
 ## Implementation Checklist
 
-- [ ] Create PatientSearchInput with typeahead results (AC-01)
-- [ ] Create WalkInBookingPage with existing patient and guest modes (AC-01, AC-02)
-- [ ] Submit walk-in booking to API (AC-03)
-- [ ] Show duplicate patient suggestions (Edge Cases)
+- [x] Create PatientSearchInput with typeahead results (AC-01)
+- [x] Create WalkInBookingPage with existing patient and guest modes (AC-01, AC-02)
+- [x] Submit walk-in booking to API (AC-03)
+- [x] Show duplicate patient suggestions (Edge Cases)
