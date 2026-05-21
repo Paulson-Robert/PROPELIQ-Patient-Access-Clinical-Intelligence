@@ -84,10 +84,29 @@ const buildExtractedFields = (data: ExtractedData): ExtractedField[] => [
 ]
 
 // ---------------------------------------------------------------------------
+// Props
+// ---------------------------------------------------------------------------
+
+interface AiIntakePageProps {
+  /** Called whenever the user answers a question so the parent can track
+   *  partial AI data for bridging to manual mode (AC-02). */
+  onExtractedDataChange?: (data: Partial<ExtractedData>) => void
+  /** Called when the user clicks "Manual form" toggle (AC-01). */
+  onSwitchToManual?: () => void
+  /** Called when the AI becomes unavailable so the parent can auto-switch
+   *  to manual mode (AC-03). */
+  onAiUnavailable?: () => void
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export const AiIntakePage = () => {
+export const AiIntakePage = ({
+  onExtractedDataChange,
+  onSwitchToManual,
+  onAiUnavailable,
+}: AiIntakePageProps = {}) => {
   const navigate = useNavigate()
 
   const [view, setView] = useState<PageView>('chat')
@@ -125,6 +144,7 @@ export const AiIntakePage = () => {
         setMessages([{ id: 'ai-0', variant: 'ai', text: first.prompt }])
       } catch {
         setAiUnavailable(true)
+        onAiUnavailable?.()
       } finally {
         setIsAiTyping(false)
       }
@@ -160,6 +180,7 @@ export const AiIntakePage = () => {
         } catch {
           setIsAiTyping(false)
           setAiUnavailable(true)
+          onAiUnavailable?.()
         }
       }, AI_RESPONSE_DELAY_MS)
     },
@@ -175,14 +196,16 @@ export const AiIntakePage = () => {
       const msgId = `user-${questionIndex}`
 
       setMessages((prev) => [...prev, { id: msgId, variant: 'user', text: trimmed }])
-      setExtractedData((prev) => ({ ...prev, [currentQuestion.key]: trimmed }))
+      const updated = { ...extractedData, [currentQuestion.key]: trimmed }
+      setExtractedData(updated)
+      onExtractedDataChange?.(updated)
       setInputValue('')
 
       const nextIndex = questionIndex + 1
       setQuestionIndex(nextIndex)
       postAiMessage(nextIndex)
     },
-    [questionIndex, postAiMessage],
+    [questionIndex, postAiMessage, extractedData],
   )
 
   const handleSend = () => handleUserResponse(inputValue)
@@ -226,7 +249,7 @@ export const AiIntakePage = () => {
           <button
             type="button"
             className="mt-4 w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            onClick={() => navigate('/intake/manual')}
+            onClick={() => onSwitchToManual ? onSwitchToManual() : navigate('/intake/manual')}
           >
             Use manual form
           </button>
@@ -332,7 +355,7 @@ export const AiIntakePage = () => {
             role="tab"
             aria-selected="false"
             className="rounded-md px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={() => navigate('/intake/manual')}
+            onClick={() => onSwitchToManual ? onSwitchToManual() : navigate('/intake/manual')}
           >
             Manual form
           </button>

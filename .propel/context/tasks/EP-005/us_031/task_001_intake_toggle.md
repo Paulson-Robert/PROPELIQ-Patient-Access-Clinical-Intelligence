@@ -55,11 +55,11 @@ Implement intake mode toggle between AI and manual, preserving data across switc
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — toggle logic, data preservation
+- [x] Unit tests pass — toggle logic, data preservation
 
 ## Implementation Checklist
 
-- [ ] Create toggle switch between AI and manual modes (AC-01)
-- [ ] Preserve collected data when switching modes (AC-02)
-- [ ] Auto-fallback to manual when AI unavailable (AC-03)
-- [ ] Map partial AI data to manual form fields (Edge Cases)
+- [x] Create toggle switch between AI and manual modes (AC-01)
+- [x] Preserve collected data when switching modes (AC-02)
+- [x] Auto-fallback to manual when AI unavailable (AC-03)
+- [x] Map partial AI data to manual form fields (Edge Cases)
