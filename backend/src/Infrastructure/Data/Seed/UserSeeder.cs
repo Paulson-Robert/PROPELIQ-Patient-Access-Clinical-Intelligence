@@ -1,4 +1,3 @@
-using BCrypt.Net;
 using Domain.Entities;
 using Domain.Enums;
 using Infrastructure.Data;
@@ -35,7 +34,7 @@ public static class UserSeeder
             {
                 UserId = SeedDataConstants.PatientUserId,
                 Email = SeedDataConstants.PatientEmail,
-                PasswordHash = BCrypt.HashPassword(SeedPassword),
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(SeedPassword),
                 AuthProvider = AuthProvider.Local,
                 Role = UserRole.Patient,
                 MfaEnabled = false,
@@ -51,7 +50,7 @@ public static class UserSeeder
             {
                 UserId = SeedDataConstants.StaffUserId,
                 Email = SeedDataConstants.StaffEmail,
-                PasswordHash = BCrypt.HashPassword(SeedPassword),
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(SeedPassword),
                 AuthProvider = AuthProvider.Local,
                 Role = UserRole.Staff,
                 MfaEnabled = true,
@@ -67,7 +66,7 @@ public static class UserSeeder
             {
                 UserId = SeedDataConstants.AdminUserId,
                 Email = SeedDataConstants.AdminEmail,
-                PasswordHash = BCrypt.HashPassword(SeedPassword),
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(SeedPassword),
                 AuthProvider = AuthProvider.Local,
                 Role = UserRole.Admin,
                 MfaEnabled = true,

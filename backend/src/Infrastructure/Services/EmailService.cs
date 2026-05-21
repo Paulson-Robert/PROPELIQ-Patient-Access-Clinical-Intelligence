@@ -21,4 +21,19 @@ public sealed class EmailService : IEmailService
 
         return Task.CompletedTask;
     }
+
+    public Task SendConfirmationEmailAsync(
+        string email,
+        string subject,
+        string body,
+        byte[]? pdfAttachment = null,
+        string? attachmentFileName = null,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation(
+            "Queued confirmation email for {Email}. Subject: {Subject}. PDF attached: {HasPdf}.",
+            email, subject, pdfAttachment is { Length: > 0 });
+
+        return Task.CompletedTask;
+    }
 }

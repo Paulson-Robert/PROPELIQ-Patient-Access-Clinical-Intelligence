@@ -1,5 +1,7 @@
 import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { AuthProvider } from './hooks/useAuth'
+import { AppointmentSearchPage } from './pages/booking/AppointmentSearchPage'
+import { BookingConfirmationPage } from './pages/booking/BookingConfirmationPage'
 import { LoginPage } from './pages/auth/LoginPage'
 
 const DashboardPage = () => {
@@ -30,6 +32,8 @@ function App() {
         <Route path="/" element={<Navigate to="/auth/login" replace />} />
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/dashboard/:role" element={<DashboardPage />} />
+        <Route path="/booking/search" element={<AppointmentSearchPage />} />
+        <Route path="/booking/confirm" element={<BookingConfirmationPage />} />
         <Route path="*" element={<Navigate to="/auth/login" replace />} />
       </Routes>
     </AuthProvider>

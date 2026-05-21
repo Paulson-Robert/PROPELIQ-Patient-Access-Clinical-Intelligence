@@ -46,6 +46,11 @@ public static class DependencyInjection
 
         services.AddScoped<IPatientDataDeletionService, PatientDataDeletionService>();
 
+        // Booking services (US_018)
+        services.AddScoped<ISlotSearchService, SlotSearchService>();
+        services.AddScoped<IBookingConfirmationService, BookingConfirmationService>();
+        services.AddScoped<IBookingPdfService, BookingPdfService>();
+
         // In-memory cache — required by RedisCacheService as fallback (AC-05).
         services.AddMemoryCache();
 
@@ -68,6 +73,7 @@ public static class DependencyInjection
 
             // Distributed slot lock: SETNX with 30-second TTL (AC-03).
             services.AddSingleton<IDistributedLockService, RedisDistributedLockService>();
+            services.AddSingleton<ISlotLockService, SlotLockService>();
 
             // Rate-limiting counter: sliding window per client + endpoint (AC-04).
             services.AddOptions<RateLimitOptions>()
@@ -81,6 +87,8 @@ public static class DependencyInjection
         {
             // Degraded mode: no Redis configured — serve entirely from in-memory cache (AC-05).
             services.AddSingleton<ICacheService, InMemoryCacheService>();
+            // Single-node in-memory slot lock (development / degraded mode).
+            services.AddSingleton<ISlotLockService, InMemorySlotLockService>();
         }
 
         return services;
