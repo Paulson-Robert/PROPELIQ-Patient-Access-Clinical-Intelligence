@@ -20,6 +20,7 @@ import { DocumentUploadPage } from './pages/documents/DocumentUploadPage'
 import { DocumentListPage } from './pages/documents/DocumentListPage'
 import { PatientViewPage } from './pages/clinical/PatientViewPage'
 import { CodeMappingPage } from './pages/clinical/CodeMappingPage'
+import { UserManagementPage } from './pages/admin/UserManagementPage'
 
 const DashboardPage = () => {
   const { role = 'patient' } = useParams<{ role: string }>()
@@ -70,6 +71,7 @@ function App() {
           <Route path="/documents" element={<DocumentListPage />} />
           <Route path="/clinical/patient/:patientId" element={<PatientViewPage />} />
           <Route path="/clinical/patient/:patientId/codes" element={<CodeMappingPage />} />
+          <Route path="/admin/users" element={<UserManagementPage />} />
           <Route path="*" element={<Navigate to="/auth/login" replace />} />
         </Routes>
       </AuthProvider>
