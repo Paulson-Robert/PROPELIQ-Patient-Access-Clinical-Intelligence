@@ -1,9 +1,6 @@
-using System.Security.Cryptography;
 using Application.Commands;
-using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
-using Hangfire;
 using Infrastructure.Auth;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -18,12 +15,8 @@ namespace API.Controllers;
 public sealed class AuthController : ControllerBase
 {
     private const int BcryptWorkFactor = 12;
-    private const string VerificationCachePrefix = "auth:verify:";
 
     private readonly ApplicationDbContext _dbContext;
-    private readonly ICacheService _cacheService;
-    private readonly IEmailService _emailService;
-    private readonly IBackgroundJobClient _backgroundJobs;
     private readonly IJwtTokenService _tokenService;
     private readonly GoogleOAuthService _googleOAuthService;
     private readonly MicrosoftOAuthService _microsoftOAuthService;
@@ -31,18 +24,12 @@ public sealed class AuthController : ControllerBase
 
     public AuthController(
         ApplicationDbContext dbContext,
-        ICacheService cacheService,
-        IEmailService emailService,
-        IBackgroundJobClient backgroundJobs,
         IJwtTokenService tokenService,
         GoogleOAuthService googleOAuthService,
         MicrosoftOAuthService microsoftOAuthService,
         IOptions<AuthSettings> authSettings)
     {
         _dbContext = dbContext;
-        _cacheService = cacheService;
-        _emailService = emailService;
-        _backgroundJobs = backgroundJobs;
         _tokenService = tokenService;
         _googleOAuthService = googleOAuthService;
         _microsoftOAuthService = microsoftOAuthService;
@@ -76,7 +63,7 @@ public sealed class AuthController : ControllerBase
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(command.Password, BcryptWorkFactor),
             AuthProvider = AuthProvider.Local,
             Role = UserRole.Patient,
-            IsActive = false,
+            IsActive = true,
             CreatedAt = now,
             UpdatedAt = now,
             MfaEnabled = false,
@@ -85,25 +72,22 @@ public sealed class AuthController : ControllerBase
         _dbContext.Users.Add(user);
         await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        var verificationToken = GenerateOpaqueToken();
-        var verificationCacheKey = BuildVerificationCacheKey(verificationToken);
-        await _cacheService.SetAsync(
-                verificationCacheKey,
-                new EmailVerificationPayload(user.UserId, user.Email),
-                TimeSpan.FromMinutes(_authSettings.VerificationTokenMinutes),
-                cancellationToken)
-            .ConfigureAwait(false);
+        var tokenPayload = new AuthTokenPayload(
+            user.UserId,
+            user.Email,
+            user.Role.ToString().ToLowerInvariant());
+        var token = await _tokenService.IssueTokenAsync(tokenPayload, cancellationToken).ConfigureAwait(false);
 
-        var verificationLink =
-            $"{Request.Scheme}://{Request.Host}/api/auth/verify-email?token={Uri.EscapeDataString(verificationToken)}";
-        _backgroundJobs.Enqueue<IEmailService>(service =>
-            service.SendVerificationEmailAsync(user.Email, verificationLink));
-
-        return Accepted(new
+        return Ok(new
         {
-            status = "pending_verification",
-            message = "Registration created. Check your email for the verification link.",
-            email = user.Email,
+            accessToken = token.AccessToken,
+            token.ExpiresAtUtc,
+            token.TokenType,
+            user = new
+            {
+                email = user.Email,
+                role = user.Role.ToString().ToLowerInvariant(),
+            },
         });
     }
 
@@ -135,41 +119,6 @@ public sealed class AuthController : ControllerBase
             {
                 code = "invalid_credentials",
                 message = "Email or password is incorrect.",
-            });
-        }
-
-        if (!user.IsActive)
-        {
-            var accountDisabledMessage = user.Role is UserRole.Staff or UserRole.Admin
-                ? "Your account has been disabled. Contact your administrator."
-                : "Please verify your email before logging in.";
-
-            return StatusCode(StatusCodes.Status423Locked, new
-            {
-                code = user.Role is UserRole.Staff or UserRole.Admin ? "account_disabled" : "account_not_verified",
-                message = accountDisabledMessage,
-            });
-        }
-
-        if (user.Role is UserRole.Staff or UserRole.Admin)
-        {
-            var challengeState = user.MfaEnabled ? "verify" : "setup";
-            var challengeMethod = user.MfaMethod.ToString().ToLowerInvariant();
-
-            return Ok(new
-            {
-                mfaChallenge = new
-                {
-                    state = challengeState,
-                    method = challengeMethod,
-                    attemptsRemaining = 3,
-                    expiresAtUtc = DateTime.UtcNow.AddSeconds(30),
-                },
-                user = new
-                {
-                    email = user.Email,
-                    role = user.Role.ToString().ToLowerInvariant(),
-                },
             });
         }
 
@@ -281,98 +230,6 @@ public sealed class AuthController : ControllerBase
         return Ok(new
         {
             redirectUrl = $"/dashboard/{existingUser.Role.ToString().ToLowerInvariant()}?provider={provider}",
-        });
-    }
-
-    [HttpGet("verify-email")]
-    [AllowAnonymous]
-    public async Task<IActionResult> VerifyEmail([FromQuery] string token, CancellationToken cancellationToken)
-    {
-        var command = new VerifyEmailCommand(token);
-        if (string.IsNullOrWhiteSpace(command.Token))
-        {
-            return BadRequest(new
-            {
-                code = "invalid_verification_token",
-                message = "Verification token is required.",
-            });
-        }
-
-        var verificationCacheKey = BuildVerificationCacheKey(command.Token);
-        var payload = await _cacheService
-            .GetAsync<EmailVerificationPayload>(verificationCacheKey, cancellationToken)
-            .ConfigureAwait(false);
-        if (payload is null)
-        {
-            return StatusCode(StatusCodes.Status410Gone, new
-            {
-                code = "verification_expired",
-                message = "Verification link expired. Request a new link.",
-            });
-        }
-
-        await _cacheService.RemoveAsync(verificationCacheKey, cancellationToken).ConfigureAwait(false);
-
-        var user = await _dbContext.Users
-            .SingleOrDefaultAsync(u => u.UserId == payload.UserId, cancellationToken)
-            .ConfigureAwait(false);
-        if (user is null)
-        {
-            return NotFound(new
-            {
-                code = "account_not_found",
-                message = "Associated account was not found.",
-            });
-        }
-
-        user.IsActive = true;
-        user.UpdatedAt = DateTime.UtcNow;
-
-        await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-
-        return Ok(new
-        {
-            status = "verified",
-            email = user.Email,
-        });
-    }
-
-    [HttpPost("resend-verification")]
-    [AllowAnonymous]
-    public async Task<IActionResult> ResendVerification(
-        [FromBody] ResendVerificationRequest request,
-        CancellationToken cancellationToken)
-    {
-        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-
-        var user = await _dbContext.Users
-            .SingleOrDefaultAsync(
-                u => u.Email == normalizedEmail && u.AuthProvider == AuthProvider.Local,
-                cancellationToken)
-            .ConfigureAwait(false);
-
-        if (user is not null && !user.IsActive)
-        {
-            var verificationToken = GenerateOpaqueToken();
-            var verificationCacheKey = BuildVerificationCacheKey(verificationToken);
-
-            await _cacheService.SetAsync(
-                    verificationCacheKey,
-                    new EmailVerificationPayload(user.UserId, user.Email),
-                    TimeSpan.FromMinutes(_authSettings.VerificationTokenMinutes),
-                    cancellationToken)
-                .ConfigureAwait(false);
-
-            var verificationLink =
-                $"{Request.Scheme}://{Request.Host}/api/auth/verify-email?token={Uri.EscapeDataString(verificationToken)}";
-            _backgroundJobs.Enqueue<IEmailService>(service =>
-                service.SendVerificationEmailAsync(user.Email, verificationLink));
-        }
-
-        return Ok(new
-        {
-            status = "verification_resent",
-            message = "If an inactive account exists, a new verification email was sent.",
         });
     }
 
@@ -542,25 +399,10 @@ public sealed class AuthController : ControllerBase
         });
     }
 
-    private static string GenerateOpaqueToken()
-    {
-        var tokenBytes = RandomNumberGenerator.GetBytes(48);
-        return Convert.ToBase64String(tokenBytes)
-            .Replace('+', '-')
-            .Replace('/', '_')
-            .TrimEnd('=');
-    }
-
-    private static string BuildVerificationCacheKey(string token) =>
-        $"{VerificationCachePrefix}{token}";
-
     private string BuildLoginRedirect(string query) =>
         $"{_authSettings.LoginRedirectPath}?{query}";
-
-    private sealed record EmailVerificationPayload(Guid UserId, string Email);
 
     public sealed record LoginRequest(string Email, string Password);
     public sealed record SocialStartRequest(string Provider, string? Email = null, string? EmailHint = null);
     public sealed record SocialOAuthCallbackRequest(string? Code, string? Email = null, string? EmailHint = null);
-    public sealed record ResendVerificationRequest(string Email);
 }
