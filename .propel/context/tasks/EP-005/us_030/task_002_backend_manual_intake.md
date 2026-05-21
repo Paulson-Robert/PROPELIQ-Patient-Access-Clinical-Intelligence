@@ -53,7 +53,7 @@ Implement manual intake submission with server-side validation, draft save/load 
 
 ## Implementation Checklist
 
-- [ ] Create intake submission with server-side validation (AC-01)
-- [ ] Create draft save endpoint for partial intake (AC-02)
-- [ ] Create draft load endpoint (AC-02)
-- [ ] Implement idempotency check preventing duplicate submissions (Edge Cases)
+- [x] Create intake submission with server-side validation (AC-01)
+- [x] Create draft save endpoint for partial intake (AC-02)
+- [x] Create draft load endpoint (AC-02)
+- [x] Implement idempotency check preventing duplicate submissions (Edge Cases)
