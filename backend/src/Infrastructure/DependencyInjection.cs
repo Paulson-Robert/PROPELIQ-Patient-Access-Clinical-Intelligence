@@ -102,6 +102,7 @@ public static class DependencyInjection
         services.AddScoped<IBookingConfirmationService, BookingConfirmationService>();
         services.AddScoped<IWalkInBookingService, WalkInBookingService>();
         services.AddScoped<IAppointmentManagementService, AppointmentManagementService>();
+        services.AddScoped<IQueueService, QueueService>();
 
         return services;
     }

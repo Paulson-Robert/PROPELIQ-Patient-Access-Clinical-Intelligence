@@ -57,11 +57,22 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("SlotId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("ArrivalTimestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("QueuePosition")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid");
 
                     b.HasKey("AppointmentId");
 
@@ -78,6 +89,10 @@ namespace Infrastructure.Migrations
                     b.HasIndex("Status");
 
                     b.HasIndex("PatientId", "Status");
+
+                    b.HasIndex("QueuePosition", "SlotId")
+                        .HasDatabaseName("IX_Appointments_QueuePosition_SlotId")
+                        .HasFilter("\"QueuePosition\" IS NOT NULL");
 
                     b.ToTable("Appointments");
                 });

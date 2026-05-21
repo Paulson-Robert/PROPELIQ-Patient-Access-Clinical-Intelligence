@@ -71,11 +71,11 @@ Implement same-day queue page (SCR-017) with arrival-ordered patient list, "Mark
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — queue rendering, reorder logic
+- [x] Unit tests pass — queue rendering, reorder logic
 
 ## Implementation Checklist
 
-- [ ] Create SameDayQueuePage with arrival-time ordered list (AC-01)
-- [ ] Implement "Mark Arrived" action updating status (AC-02)
-- [ ] Implement drag-and-drop reordering with reason capture (AC-03)
-- [ ] Implement real-time queue updates across staff views (AC-04)
+- [x] Create SameDayQueuePage with arrival-time ordered list (AC-01)
+- [x] Implement "Mark Arrived" action updating status (AC-02)
+- [x] Implement drag-and-drop reordering with reason capture (AC-03)
+- [x] Implement real-time queue updates across staff views (AC-04)

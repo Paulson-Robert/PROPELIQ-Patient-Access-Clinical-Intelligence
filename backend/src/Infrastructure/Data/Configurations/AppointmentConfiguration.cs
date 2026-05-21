@@ -65,5 +65,16 @@ public class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>
         builder.HasIndex(a => a.Status);
         builder.HasIndex(a => a.CreatedAt);
         builder.HasIndex(a => new { a.PatientId, a.Status });
+
+        // Queue position index for same-day ordering (US_024 AC-01)
+        builder.HasIndex(a => new { a.QueuePosition, a.SlotId })
+            .HasFilter("\"QueuePosition\" IS NOT NULL")
+            .HasDatabaseName("IX_Appointments_QueuePosition_SlotId");
+
+        // Optimistic concurrency via PostgreSQL xmin system column (US_024 Edge Case)
+        builder.Property<uint>("xmin")
+            .HasColumnType("xid")
+            .ValueGeneratedOnAddOrUpdate()
+            .IsConcurrencyToken();
     }
 }

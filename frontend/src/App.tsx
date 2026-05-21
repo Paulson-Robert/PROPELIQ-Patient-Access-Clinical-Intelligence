@@ -5,6 +5,7 @@ import { AppointmentDetailPage } from './pages/booking/AppointmentDetailPage'
 import { BookingConfirmationPage } from './pages/booking/BookingConfirmationPage'
 import { AppointmentHistoryPage } from './pages/booking/AppointmentHistoryPage'
 import { WalkInBookingPage } from './pages/walkin/WalkInBookingPage'
+import { SameDayQueuePage } from './pages/queue/SameDayQueuePage'
 import { LoginPage } from './pages/auth/LoginPage'
 import { MfaSetupPage } from './pages/auth/MfaSetupPage'
 import { MfaVerificationPage } from './pages/auth/MfaVerificationPage'
@@ -44,6 +45,7 @@ function App() {
         <Route path="/booking/history" element={<AppointmentHistoryPage />} />
         <Route path="/booking/search" element={<AppointmentSearchPage />} />
         <Route path="/booking/walk-in" element={<WalkInBookingPage />} />
+        <Route path="/queue/same-day" element={<SameDayQueuePage />} />
         <Route path="/booking/appointments/:appointmentId" element={<AppointmentDetailPage />} />
         <Route path="/booking/confirm" element={<BookingConfirmationPage />} />
         <Route path="*" element={<Navigate to="/auth/login" replace />} />
