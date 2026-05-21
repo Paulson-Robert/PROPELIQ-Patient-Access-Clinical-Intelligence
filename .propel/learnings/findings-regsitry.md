@@ -34,3 +34,13 @@
 - Source: implement-tasks Step3 decision
 - Finding: Insurance policy soft validation regex was set to `^[A-Za-z0-9]{2,8}-?[A-Za-z0-9]{4,12}$` and enforced as warning-only to avoid blocking booking flow when format is unusual.
 - Prevention Rule: When policy format is unspecified, use a permissive alphanumeric-hyphen pattern and emit non-blocking warnings only.
+
+- Date: 2026-05-21
+- Source: implement-tasks Step3 decision
+- Finding: Guest walk-in records use generated `guest-{guid}@walkin.local` emails so temporary identities satisfy unique email constraints and can be targeted for later merge.
+- Prevention Rule: When guest account identity is unspecified but email is required, generate a reserved-domain placeholder and keep profile demographics minimal.
+
+- Date: 2026-05-21
+- Source: implement-tasks Step3 decision
+- Finding: Same-day queue insertion was implemented via `PreferredSlotQueues` with `QueueStatus.Waiting` because no dedicated same-day queue entity exists in the current domain model.
+- Prevention Rule: Reuse the existing queue aggregate for queue semantics when task intent matches and no alternate queue table is modeled.

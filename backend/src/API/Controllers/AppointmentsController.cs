@@ -1,6 +1,7 @@
 using Application.Commands;
 using Application.Interfaces;
 using Application.Queries;
+using API.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +39,63 @@ public sealed class AppointmentsController : ControllerBase
             .ConfigureAwait(false);
 
         return Ok(slots);
+    }
+
+    // -------------------------------------------------------------------------
+    // GET /api/appointments/patients/search?name=&dateOfBirth=
+    // AC-02: Search existing patients by name and optional DOB
+    // -------------------------------------------------------------------------
+    [HttpGet("patients/search")]
+    [Authorize(Policy = RoleRequirements.StaffPolicy)]
+    public async Task<ActionResult<IReadOnlyList<PatientSearchResultDto>>> SearchPatients(
+        [FromQuery] string name,
+        [FromQuery] DateOnly? dateOfBirth,
+        CancellationToken cancellationToken)
+    {
+        var results = await _mediator
+            .Send(new SearchPatientsQuery(name, dateOfBirth), cancellationToken)
+            .ConfigureAwait(false);
+
+        return Ok(results);
+    }
+
+    // -------------------------------------------------------------------------
+    // POST /api/appointments/walkin
+    // AC-01, AC-03, AC-04: Create walk-in appointment + guest support + queue
+    // -------------------------------------------------------------------------
+    [HttpPost("walkin")]
+    [Authorize(Policy = RoleRequirements.StaffPolicy)]
+    public async Task<ActionResult<WalkInBookingResultDto>> CreateWalkIn(
+        [FromBody] CreateWalkInRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var staffUserId = GetCurrentUserId();
+        if (staffUserId is null)
+            return Unauthorized();
+
+        try
+        {
+            var result = await _mediator
+                .Send(
+                    new CreateWalkInCommand(
+                        request.SlotId,
+                        staffUserId.Value,
+                        request.ExistingPatientUserId,
+                        request.FirstName,
+                        request.LastName,
+                        request.DateOfBirth,
+                        request.Email,
+                        request.Phone,
+                        request.CreateAccount),
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { code = "WALKIN_CREATE_FAILED", message = ex.Message });
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -187,4 +245,15 @@ public sealed record ConfirmBookingRequest(
     string LockToken,
     string? InsuranceProvider,
     string? InsurancePolicyNumber);
+
+public sealed record CreateWalkInRequestDto(
+    Guid SlotId,
+    Guid? ExistingPatientUserId,
+    string? FirstName,
+    string? LastName,
+    DateOnly? DateOfBirth,
+    string? Email,
+    string? Phone,
+    bool CreateAccount);
+
 public sealed record RescheduleAppointmentRequest(Guid NewSlotId, string LockToken);
