@@ -92,11 +92,11 @@ Implement the appointment search page (SCR-005) with provider/specialty search, 
 
 ## Implementation Checklist
 
-- [ ] Create AppointmentSearchPage with provider/specialty search (AC-01, AC-02)
-- [ ] Create SlotCard displaying provider, specialty, date, time with select action (AC-01)
-- [ ] Implement 30-second CountdownTimer with visual feedback (AC-03, UXR-502)
-- [ ] Create BookingConfirmationPage with slot details and confirm button (AC-03)
-- [ ] Display "temporarily held" message for locked slots (AC-05)
-- [ ] Handle lock timeout with "Slot hold expired" message (AC-06)
-- [ ] Display "No available slots" with alternative suggestions (AC-07)
-- [ ] Handle slot booked between search and selection (Edge Cases)
+- [x] Create AppointmentSearchPage with provider/specialty search (AC-01, AC-02)
+- [x] Create SlotCard displaying provider, specialty, date, time with select action (AC-01)
+- [x] Implement 30-second CountdownTimer with visual feedback (AC-03, UXR-502)
+- [x] Create BookingConfirmationPage with slot details and confirm button (AC-03)
+- [x] Display "temporarily held" message for locked slots (AC-05)
+- [x] Handle lock timeout with "Slot hold expired" message (AC-06)
+- [x] Display "No available slots" with alternative suggestions (AC-07)
+- [x] Handle slot booked between search and selection (Edge Cases)

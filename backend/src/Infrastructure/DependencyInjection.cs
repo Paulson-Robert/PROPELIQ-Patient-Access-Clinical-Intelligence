@@ -74,6 +74,7 @@ public static class DependencyInjection
 
             // Distributed slot lock: SETNX with 30-second TTL (AC-03).
             services.AddSingleton<IDistributedLockService, RedisDistributedLockService>();
+            services.AddSingleton<ISlotLockService, SlotLockService>();
 
             // Rate-limiting counter: sliding window per client + endpoint (AC-04).
             services.AddOptions<RateLimitOptions>()

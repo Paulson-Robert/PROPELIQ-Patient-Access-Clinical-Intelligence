@@ -85,10 +85,10 @@ Implement appointment search endpoints (by provider/specialty), 30-second Redis-
 
 ## Implementation Checklist
 
-- [ ] Create SearchSlotsQuery with provider and specialty filters (AC-01, AC-02)
-- [ ] Implement Redis SETNX slot lock with 30-second TTL (AC-03, AC-06)
-- [ ] Create ConfirmBookingCommand with lock validation and appointment save (AC-04)
-- [ ] Implement PDF confirmation generation via iText7 (AC-04)
-- [ ] Return 409 Conflict for concurrent booking attempts (AC-05)
-- [ ] Implement DB-level fallback for Redis failure (Edge Cases)
-- [ ] Queue PDF for retry on generation failure (Edge Cases)
+- [x] Create SearchSlotsQuery with provider and specialty filters (AC-01, AC-02)
+- [x] Implement Redis SETNX slot lock with 30-second TTL (AC-03, AC-06)
+- [x] Create ConfirmBookingCommand with lock validation and appointment save (AC-04)
+- [x] Implement PDF confirmation generation via iText7 (AC-04)
+- [x] Return 409 Conflict for concurrent booking attempts (AC-05)
+- [x] Implement DB-level fallback for Redis failure (Edge Cases)
+- [x] Queue PDF for retry on generation failure (Edge Cases)

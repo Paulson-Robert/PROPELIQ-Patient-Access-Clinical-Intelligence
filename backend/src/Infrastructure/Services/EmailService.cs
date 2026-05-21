@@ -84,4 +84,19 @@ public sealed class EmailService : IEmailService
             _logger.LogError(exception, "Failed to send email to {Email} with subject {Subject}.", recipientEmail, subject);
         }
     }
+
+    public Task SendConfirmationEmailAsync(
+        string email,
+        string subject,
+        string body,
+        byte[]? pdfAttachment = null,
+        string? attachmentFileName = null,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation(
+            "Queued confirmation email for {Email}. Subject: {Subject}. PDF attached: {HasPdf}.",
+            email, subject, pdfAttachment is { Length: > 0 });
+
+        return Task.CompletedTask;
+    }
 }

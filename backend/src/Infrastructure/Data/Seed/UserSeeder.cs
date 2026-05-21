@@ -1,4 +1,3 @@
-using BCrypt.Net;
 using Domain.Entities;
 using Domain.Enums;
 using Infrastructure.Data;
