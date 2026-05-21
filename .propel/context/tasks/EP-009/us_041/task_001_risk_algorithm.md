@@ -51,7 +51,7 @@ Implement deterministic patient risk scoring algorithm using 4 weighted input fa
 
 ## Implementation Checklist
 
-- [ ] Implement 4-factor weighted scoring algorithm (AC-01)
-- [ ] Ensure reproducible scores given same inputs (AC-02)
-- [ ] Trigger recalculation on relevant data changes (AC-03)
-- [ ] Default to Medium risk with "data pending" on insufficient data (Edge Cases)
+- [x] Implement 4-factor weighted scoring algorithm (AC-01)
+- [x] Ensure reproducible scores given same inputs (AC-02)
+- [x] Trigger recalculation on relevant data changes (AC-03)
+- [x] Default to Medium risk with "data pending" on insufficient data (Edge Cases)

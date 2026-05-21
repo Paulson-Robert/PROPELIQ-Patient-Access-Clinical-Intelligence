@@ -191,6 +191,9 @@ public static class DependencyInjection
         // Conflict detection, persistence, and lifecycle management (US_039)
         services.AddScoped<IConflictDetectionService, ConflictDetectionService>();
 
+        // No-show risk scoring — deterministic 4-factor weighted algorithm (US_041, FR-033, AIR-007)
+        services.AddScoped<IRiskScoringService, RiskScoringService>();
+
         // ICD-10/CPT code mapping — rule-based + ML.NET engine (US_040, AC-01, AC-02, AC-03, AC-04)
         services.AddOptions<CodeMappingOptions>()
             .BindConfiguration(CodeMappingOptions.SectionName);

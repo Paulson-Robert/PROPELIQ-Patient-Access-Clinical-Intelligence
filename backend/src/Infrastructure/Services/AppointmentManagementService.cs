@@ -232,6 +232,11 @@ public sealed class AppointmentManagementService : IAppointmentManagementService
                 .Publish(new SlotCancelledNotification(previousSlotId), cancellationToken)
                 .ConfigureAwait(false);
 
+            // Recalculate risk score — new slot means new lead time and time-of-day (US_041, AC-03)
+            await _publisher
+                .Publish(new AppointmentRiskScoreRequested(appointment.AppointmentId), cancellationToken)
+                .ConfigureAwait(false);
+
             _logger.LogInformation(
                 "Appointment rescheduled. AppointmentId={AppointmentId}, PatientUserId={PatientUserId}, PreviousSlotId={PreviousSlotId}, NewSlotId={NewSlotId}.",
                 appointment.AppointmentId,

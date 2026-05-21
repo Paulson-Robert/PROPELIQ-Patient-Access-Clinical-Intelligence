@@ -6,6 +6,7 @@ using Hangfire.Common;
 using Hangfire.States;
 using Infrastructure.Data;
 using Infrastructure.Services;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -29,6 +30,7 @@ public sealed class BookingConfirmationServiceInsuranceTests
             context,
             new AlwaysValidSlotLockService(),
             new TestBackgroundJobClient(),
+            new NoOpPublisher(),
             NullLogger<BookingConfirmationService>.Instance);
 
         var result = await service.ConfirmAsync(
@@ -63,6 +65,7 @@ public sealed class BookingConfirmationServiceInsuranceTests
             context,
             new AlwaysValidSlotLockService(),
             new TestBackgroundJobClient(),
+            new NoOpPublisher(),
             NullLogger<BookingConfirmationService>.Instance);
 
         var result = await service.ConfirmAsync(
@@ -96,6 +99,7 @@ public sealed class BookingConfirmationServiceInsuranceTests
             context,
             new AlwaysValidSlotLockService(),
             new TestBackgroundJobClient(),
+            new NoOpPublisher(),
             NullLogger<BookingConfirmationService>.Instance);
 
         var result = await service.ConfirmAsync(
@@ -171,5 +175,15 @@ public sealed class BookingConfirmationServiceInsuranceTests
 
         public bool ChangeState(string jobId, IState state, string expectedState)
             => true;
+    }
+
+    private sealed class NoOpPublisher : IPublisher
+    {
+        public Task Publish(object notification, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+
+        public Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
+            where TNotification : INotification
+            => Task.CompletedTask;
     }
 }
