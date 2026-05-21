@@ -62,11 +62,11 @@ Implement metrics dashboard (SCR-025) with KPI cards, trend charts, and date ran
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — rendering, date filtering
+- [x] Unit tests pass — rendering, date filtering
 
 ## Implementation Checklist
 
-- [ ] Create KPI cards displaying key metrics (AC-01)
-- [ ] Create trend charts for weekly/monthly views (AC-02)
-- [ ] Implement date range filter (AC-03)
-- [ ] Handle no data with appropriate message (Edge Cases)
+- [x] Create KPI cards displaying key metrics (AC-01)
+- [x] Create trend charts for weekly/monthly views (AC-02)
+- [x] Implement date range filter (AC-03)
+- [x] Handle no data with appropriate message (Edge Cases)
