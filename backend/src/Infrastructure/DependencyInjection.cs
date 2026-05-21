@@ -188,6 +188,9 @@ public static class DependencyInjection
         services.AddScoped<IVerificationTrackingService, VerificationTrackingService>();
         services.AddScoped<IPatientAggregationService, PatientAggregationService>();
 
+        // Conflict detection, persistence, and lifecycle management (US_039)
+        services.AddScoped<IConflictDetectionService, ConflictDetectionService>();
+
         // Document parsers — format-specific text extractors for NER pipeline (US_035, NFR-011)
         services.AddOptions<TesseractOptions>()
             .BindConfiguration(TesseractOptions.SectionName);

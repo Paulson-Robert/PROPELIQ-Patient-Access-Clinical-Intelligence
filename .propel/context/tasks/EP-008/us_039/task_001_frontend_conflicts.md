@@ -64,7 +64,7 @@ Implement conflict detection UI with amber highlighting, resolution interface fo
 
 ## Implementation Checklist
 
-- [ ] Highlight conflicts with amber background (AC-01)
-- [ ] Create resolution UI for selecting preferred value (AC-02)
-- [ ] Capture resolution audit trail (AC-03)
-- [ ] Show all sources for multiple conflicts on same field (Edge Cases)
+- [x] Highlight conflicts with amber background (AC-01)
+- [x] Create resolution UI for selecting preferred value (AC-02)
+- [x] Capture resolution audit trail (AC-03)
+- [x] Show all sources for multiple conflicts on same field (Edge Cases)

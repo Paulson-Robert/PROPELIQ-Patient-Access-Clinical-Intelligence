@@ -52,7 +52,7 @@ Implement conflict detection comparing data across sources, resolution endpoint 
 
 ## Implementation Checklist
 
-- [ ] Detect mismatches across data sources (AC-01)
-- [ ] Persist resolution selection (AC-02)
-- [ ] Log resolution in audit trail (AC-03)
-- [ ] Re-open resolved conflict on new conflicting data (Edge Cases)
+- [x] Detect mismatches across data sources (AC-01)
+- [x] Persist resolution selection (AC-02)
+- [x] Log resolution in audit trail (AC-03)
+- [x] Re-open resolved conflict on new conflicting data (Edge Cases)
