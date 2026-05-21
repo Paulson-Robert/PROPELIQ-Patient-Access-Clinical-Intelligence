@@ -9,6 +9,7 @@ using Infrastructure.BackgroundJobs;
 using Infrastructure.Data;
 using Infrastructure.Data.Seed;
 using Infrastructure.HealthChecks;
+using Infrastructure.Jobs;
 using Infrastructure.RateLimiting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -198,6 +199,12 @@ recurringJobManager.AddOrUpdate(
 // Enqueue fire-and-forget startup verification job (AC-01)
 var backgroundJobClient = app.Services.GetRequiredService<IBackgroundJobClient>();
 backgroundJobClient.Enqueue(() => Console.WriteLine("[Hangfire] Startup verification job executed."));
+
+// Register Google Calendar sync recurring job — every 5 minutes (US_025 AC-05)
+recurringJobManager.AddOrUpdate<GoogleCalendarSyncJob>(
+    "google-calendar-sync",
+    job => job.ExecuteAsync(),
+    "*/5 * * * *");
 
 app.Run();
 

@@ -71,10 +71,10 @@ Implement Google Calendar integration via OAuth 2.0, encrypted token storage, bi
 
 ## Implementation Checklist
 
-- [ ] Implement Google OAuth 2.0 authorization code flow (AC-01)
-- [ ] Store access/refresh tokens encrypted via Data Protection (AC-02)
-- [ ] Sync appointments to Google Calendar as events (AC-03)
-- [ ] Remove events on appointment cancellation (AC-04)
-- [ ] Create Hangfire recurring job with 5-minute interval (AC-05)
-- [ ] Handle token refresh failure marking integration disconnected (Edge Cases)
-- [ ] Implement exponential backoff on rate limits (Edge Cases)
+- [x] Implement Google OAuth 2.0 authorization code flow (AC-01)
+- [x] Store access/refresh tokens encrypted via Data Protection (AC-02)
+- [x] Sync appointments to Google Calendar as events (AC-03)
+- [x] Remove events on appointment cancellation (AC-04)
+- [x] Create Hangfire recurring job with 5-minute interval (AC-05)
+- [x] Handle token refresh failure marking integration disconnected (Edge Cases)
+- [x] Implement exponential backoff on rate limits (Edge Cases)

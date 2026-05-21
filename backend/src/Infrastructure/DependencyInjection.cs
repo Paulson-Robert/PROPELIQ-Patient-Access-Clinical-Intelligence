@@ -1,8 +1,10 @@
 using Application.Interfaces;
 using Infrastructure.Caching;
 using Infrastructure.Auth;
+using Infrastructure.Calendar;
 using Infrastructure.Data;
 using Infrastructure.Data.Options;
+using Infrastructure.Jobs;
 using Infrastructure.Locking;
 using Infrastructure.RateLimiting;
 using Infrastructure.Services;
@@ -103,6 +105,15 @@ public static class DependencyInjection
         services.AddScoped<IWalkInBookingService, WalkInBookingService>();
         services.AddScoped<IAppointmentManagementService, AppointmentManagementService>();
         services.AddScoped<IQueueService, QueueService>();
+
+        // Google Calendar integration (US_025)
+        services.AddDataProtection();
+        services.AddOptions<GoogleCalendarSettings>()
+            .BindConfiguration(GoogleCalendarSettings.SectionName);
+        services.AddHttpClient<GoogleCalendarService>();
+        services.AddScoped<ICalendarService, GoogleCalendarService>();
+        services.AddScoped<ICalendarTokenStore, CalendarTokenStore>();
+        services.AddScoped<GoogleCalendarSyncJob>();
 
         return services;
     }
