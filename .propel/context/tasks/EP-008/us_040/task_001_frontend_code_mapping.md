@@ -66,7 +66,7 @@ Implement code mapping UI (SCR-021) displaying ICD-10/CPT suggestions with confi
 
 ## Implementation Checklist
 
-- [ ] Display ICD-10/CPT codes with confidence indicators (AC-01)
-- [ ] Implement verify/modify/reject actions per suggestion (AC-02)
-- [ ] Capture modification reason (AC-03)
-- [ ] Show "Unable to map" with manual entry option (Edge Cases)
+- [x] Display ICD-10/CPT codes with confidence indicators (AC-01)
+- [x] Implement verify/modify/reject actions per suggestion (AC-02)
+- [x] Capture modification reason (AC-03)
+- [x] Show "Unable to map" with manual entry option (Edge Cases)

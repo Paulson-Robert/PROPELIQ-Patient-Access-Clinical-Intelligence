@@ -191,6 +191,11 @@ public static class DependencyInjection
         // Conflict detection, persistence, and lifecycle management (US_039)
         services.AddScoped<IConflictDetectionService, ConflictDetectionService>();
 
+        // ICD-10/CPT code mapping — rule-based + ML.NET engine (US_040, AC-01, AC-02, AC-03, AC-04)
+        services.AddOptions<CodeMappingOptions>()
+            .BindConfiguration(CodeMappingOptions.SectionName);
+        services.AddScoped<ICodeMappingService, CodeMappingService>();
+
         // Document parsers — format-specific text extractors for NER pipeline (US_035, NFR-011)
         services.AddOptions<TesseractOptions>()
             .BindConfiguration(TesseractOptions.SectionName);
