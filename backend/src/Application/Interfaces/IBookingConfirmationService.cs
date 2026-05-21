@@ -10,7 +10,10 @@ public sealed record AppointmentConfirmationDto(
     DateTime StartTime,
     int DurationMinutes,
     string Status,
-    string PatientEmail);
+    string PatientEmail,
+    string? InsuranceProvider,
+    string? InsurancePolicyNumber,
+    string? InsuranceValidationWarning);
 
 /// <summary>
 /// Result wrapping either a confirmed appointment or a failure reason.
@@ -32,5 +35,7 @@ public interface IBookingConfirmationService
         Guid slotId,
         string lockToken,
         Guid patientUserId,
+        string? insuranceProvider,
+        string? insurancePolicyNumber,
         CancellationToken cancellationToken = default);
 }

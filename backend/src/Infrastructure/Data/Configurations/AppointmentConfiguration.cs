@@ -19,6 +19,12 @@ public class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>
         builder.Property(a => a.NoShowRiskScore)
             .HasPrecision(5, 2);
 
+        builder.Property(a => a.InsuranceProvider)
+            .HasMaxLength(256);
+
+        builder.Property(a => a.InsurancePolicyNumber)
+            .HasMaxLength(128);
+
         builder.Property(a => a.CreatedAt)
             .IsRequired();
 

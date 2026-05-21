@@ -9,7 +9,9 @@ namespace Application.Commands;
 public sealed record ConfirmBookingCommand(
     Guid SlotId,
     string LockToken,
-    Guid PatientUserId) : IRequest<BookingConfirmationResult>;
+    Guid PatientUserId,
+    string? InsuranceProvider,
+    string? InsurancePolicyNumber) : IRequest<BookingConfirmationResult>;
 
 internal sealed class ConfirmBookingCommandHandler
     : IRequestHandler<ConfirmBookingCommand, BookingConfirmationResult>
@@ -28,5 +30,7 @@ internal sealed class ConfirmBookingCommandHandler
             request.SlotId,
             request.LockToken,
             request.PatientUserId,
+            request.InsuranceProvider,
+            request.InsurancePolicyNumber,
             cancellationToken);
 }
