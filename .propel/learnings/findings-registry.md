@@ -8,6 +8,7 @@
 | --------------------------------------------------------------- | ---------------- |
 | src/Infrastructure/Notifications/NotificationDeliveryService.cs | F001, F002, F003 |
 | src/Infrastructure/Jobs/ScheduleRemindersJob.cs                 | F004             |
+| frontend/src/pages/admin/AuditLogPage.tsx                       | F005, F006, F007 |
 
 ## Entries
 
@@ -50,5 +51,35 @@
   issue: ScheduleRemindersJob recurrence set to every 15 minutes
   cause: Task specifies no scan frequency; 15-min cadence balances latency vs DB load for a 26-hour scan window
   date: 2026-05-21
+  workflow: implement-tasks
+
+- id: F005
+  file: frontend/src/pages/admin/AuditLogPage.tsx
+  cat: implementation-decision
+  type: decision
+  severity: HIGH
+  issue: Actor filter implemented as free-text input with partial case-insensitive match on actor name
+  cause: AC-02 requires actor (user) filter but wireframe SCR-024 omits an actor input; text search chosen as most flexible approach
+  date: 2026-05-22
+  workflow: implement-tasks
+
+- id: F006
+  file: frontend/src/pages/admin/AuditLogPage.tsx
+  cat: implementation-decision
+  type: decision
+  severity: HIGH
+  issue: Export button rendered as stub with no API call
+  cause: Task and spec define no export endpoint, format, or scope; button present per wireframe, functionality deferred
+  date: 2026-05-22
+  workflow: implement-tasks
+
+- id: F007
+  file: frontend/src/pages/admin/AuditLogPage.tsx
+  cat: implementation-decision
+  type: decision
+  severity: HIGH
+  issue: Details expand interaction shows inline prettified JSON row
+  cause: Wireframe shows an Expand button but specifies no detail view format; inline JSON row chosen to minimise navigation and keep context visible
+  date: 2026-05-22
   workflow: implement-tasks
 ```

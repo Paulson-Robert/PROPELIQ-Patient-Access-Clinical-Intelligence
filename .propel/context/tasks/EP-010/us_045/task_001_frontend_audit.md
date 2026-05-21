@@ -62,6 +62,6 @@ Implement audit log viewer page (SCR-024) with date/actor/action filters and ser
 
 ## Implementation Checklist
 
-- [ ] Create audit log table with date range filter (AC-01)
-- [ ] Implement actor and action type filters (AC-02)
-- [ ] Implement server-side pagination (25/page) (AC-03)
+- [x] Create audit log table with date range filter (AC-01)
+- [x] Implement actor and action type filters (AC-02)
+- [x] Implement server-side pagination (25/page) (AC-03)
