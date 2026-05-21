@@ -59,11 +59,11 @@ Configure Shadcn UI + TailwindCSS design system with design tokens (4px spacing,
 
 ## Implementation Validation Strategy
 
-- [ ] Visual check — tokens applied correctly
+- [x] Visual check — tokens applied correctly
 
 ## Implementation Checklist
 
-- [ ] Configure Shadcn UI + TailwindCSS (AC-01)
-- [ ] Define 4px spacing scale and typography scale (AC-02)
-- [ ] Integrate Lucide icons (AC-03)
-- [ ] Make theme tokens configurable via CSS variables (AC-04)
+- [x] Configure Shadcn UI + TailwindCSS (AC-01)
+- [x] Define 4px spacing scale and typography scale (AC-02)
+- [x] Integrate Lucide icons (AC-03)
+- [x] Make theme tokens configurable via CSS variables (AC-04)

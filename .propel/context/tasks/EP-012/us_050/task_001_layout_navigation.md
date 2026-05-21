@@ -58,8 +58,8 @@ Implement application layout shell with sidebar navigation (desktop), bottom nav
 
 ## Implementation Checklist
 
-- [ ] Create AppLayout with header, sidebar, and content area (AC-01)
-- [ ] Create BottomNav for mobile breakpoint (AC-02)
-- [ ] Configure role-based menu items (AC-03)
-- [ ] Implement active page indicator (AC-04)
-- [ ] Hide unauthorized nav items (Edge Cases)
+- [x] Create AppLayout with header, sidebar, and content area (AC-01)
+- [x] Create BottomNav for mobile breakpoint (AC-02)
+- [x] Configure role-based menu items (AC-03)
+- [x] Implement active page indicator (AC-04)
+- [x] Hide unauthorized nav items (Edge Cases)

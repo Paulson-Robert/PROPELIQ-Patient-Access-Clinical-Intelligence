@@ -49,10 +49,10 @@ Implement responsive design with defined breakpoints, table-to-card mobile trans
 
 ## Implementation Validation Strategy
 
-- [ ] Visual check — breakpoint behavior, card transformation
+- [x] Visual check — breakpoint behavior, card transformation
 
 ## Implementation Checklist
 
-- [ ] Configure breakpoints at 375/768/1024/1440px (AC-01)
-- [ ] Create ResponsiveTable transforming to cards on mobile (AC-02)
-- [ ] Ensure 44px minimum touch targets on mobile (AC-03)
+- [x] Configure breakpoints at 375/768/1024/1440px (AC-01)
+- [x] Create ResponsiveTable transforming to cards on mobile (AC-02)
+- [x] Ensure 44px minimum touch targets on mobile (AC-03)
