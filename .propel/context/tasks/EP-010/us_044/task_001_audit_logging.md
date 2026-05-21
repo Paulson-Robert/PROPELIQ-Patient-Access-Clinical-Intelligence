@@ -65,8 +65,8 @@ Implement immutable audit logging via MediatR pipeline behavior, capturing all s
 
 ## Implementation Checklist
 
-- [ ] Create AuditLogEntry with actor, action, timestamp, entity (AC-01)
-- [ ] Implement INSERT-only PostgreSQL rules (AC-02)
-- [ ] Create MediatR pipeline behavior for automatic capture (AC-03)
-- [ ] Log PHI access explicitly (AC-04)
-- [ ] Implement batch insert for high-volume operations (Edge Cases)
+- [x] Create AuditLogEntry with actor, action, timestamp, entity (AC-01)
+- [x] Implement INSERT-only PostgreSQL rules (AC-02)
+- [x] Create MediatR pipeline behavior for automatic capture (AC-03)
+- [x] Log PHI access explicitly (AC-04)
+- [x] Implement batch insert for high-volume operations (Edge Cases)
