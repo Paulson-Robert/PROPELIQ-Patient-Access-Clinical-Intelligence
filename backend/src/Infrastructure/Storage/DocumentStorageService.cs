@@ -1,7 +1,9 @@
 using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
+using Hangfire;
 using Infrastructure.Data;
+using Infrastructure.Jobs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -36,15 +38,18 @@ public sealed class DocumentStorageService : IDocumentStorageService
 
     private readonly ApplicationDbContext _db;
     private readonly DocumentStorageOptions _options;
+    private readonly IBackgroundJobClient _jobClient;
     private readonly ILogger<DocumentStorageService> _logger;
 
     public DocumentStorageService(
         ApplicationDbContext db,
         IOptions<DocumentStorageOptions> options,
+        IBackgroundJobClient jobClient,
         ILogger<DocumentStorageService> logger)
     {
         _db = db;
         _options = options.Value;
+        _jobClient = jobClient;
         _logger = logger;
     }
 
@@ -174,6 +179,13 @@ public sealed class DocumentStorageService : IDocumentStorageService
                 FailureCode: "STORAGE_ERROR",
                 FailureReason: "Document metadata could not be saved. Please try again.");
         }
+
+        _logger.LogInformation(
+            "DocumentStorage: stored DocumentId {DocumentId} for PatientProfileId {PatientProfileId}.",
+            document.DocumentId, profile.PatientProfileId);
+
+        // US_033: enqueue malware scan immediately after upload (AC-01).
+        _jobClient.Enqueue<MalwareScanJob>(job => job.ExecuteAsync(document.DocumentId));
 
         _logger.LogInformation(
             "DocumentStorage: stored DocumentId {DocumentId} for PatientProfileId {PatientProfileId}.",

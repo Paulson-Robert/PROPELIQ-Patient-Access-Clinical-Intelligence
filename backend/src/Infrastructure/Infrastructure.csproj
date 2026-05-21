@@ -37,6 +37,7 @@
     <PackageReference Include="StackExchange.Redis" Version="2.8.16" />
     <PackageReference Include="itext7" Version="9.1.0" />
     <PackageReference Include="itext7.bouncy-castle-adapter" Version="9.1.0" />
+    <PackageReference Include="nClam" Version="6.0.0" />
   </ItemGroup>
 
 </Project>
