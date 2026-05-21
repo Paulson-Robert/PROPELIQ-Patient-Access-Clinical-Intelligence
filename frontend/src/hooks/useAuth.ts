@@ -12,10 +12,8 @@ import {
   type AuthResponse,
   type AuthUser,
   type RegisterPayload,
-  type RegisterResponse,
   type SocialProvider,
   type UserRole,
-  type VerificationStatus,
 } from '../services/authApi'
 
 interface AuthState {
@@ -26,10 +24,8 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   loginWithPassword: (email: string, password: string) => Promise<AuthResponse>
-  registerWithEmail: (payload: RegisterPayload) => Promise<RegisterResponse>
+  registerWithEmail: (payload: RegisterPayload) => Promise<AuthResponse>
   startSocialLogin: (provider: SocialProvider) => Promise<string>
-  verifyEmailToken: (token?: string) => Promise<VerificationStatus>
-  resendVerificationEmail: (email: string) => Promise<void>
   logout: () => void
   redirectPathForRole: (role: UserRole) => string
 }
@@ -116,7 +112,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
     try {
       const response = await authApi.register(payload)
-      dispatch({ type: 'clear-error' })
+      dispatch({ type: 'success', payload: response.user })
       return response
     } catch (error) {
       const errorMessage =
@@ -147,37 +143,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     }
   }, [])
 
-  const verifyEmailToken = useCallback(async (token?: string) => {
-    try {
-      const response = await authApi.verifyEmail(token)
-      dispatch({ type: 'clear-error' })
-      return response.status
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Unable to verify email with this link'
-
-      dispatch({ type: 'failure', payload: errorMessage })
-      throw error
-    }
-  }, [])
-
-  const resendVerificationEmail = useCallback(async (email: string) => {
-    try {
-      await authApi.resendVerification(email)
-      dispatch({ type: 'clear-error' })
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Unable to resend verification email'
-
-      dispatch({ type: 'failure', payload: errorMessage })
-      throw error
-    }
-  }, [])
-
   const logout = useCallback(() => {
     dispatch({ type: 'logout' })
   }, [])
@@ -193,8 +158,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       loginWithPassword,
       registerWithEmail,
       startSocialLogin,
-      verifyEmailToken,
-      resendVerificationEmail,
       logout,
       redirectPathForRole,
     }),
@@ -203,8 +166,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       loginWithPassword,
       registerWithEmail,
       startSocialLogin,
-      verifyEmailToken,
-      resendVerificationEmail,
       logout,
       redirectPathForRole,
     ],
