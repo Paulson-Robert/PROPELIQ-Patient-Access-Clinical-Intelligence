@@ -1,5 +1,7 @@
+using API.Authorization;
 using Application.Commands;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
@@ -27,10 +29,26 @@ public class PingController : ControllerBase
     /// </summary>
     /// <returns>HTTP 200 with ping response payload.</returns>
     [HttpPost]
+    [Authorize(Policy = RoleRequirements.StaffPolicy)]
     public async Task<ActionResult<PingResponse>> Ping()
     {
         var command = new PingCommand();
         var response = await _mediator.Send(command);
         return Ok(response);
     }
+
+    [HttpGet("patient")]
+    [Authorize(Policy = RoleRequirements.PatientPolicy)]
+    public IActionResult PatientPing() =>
+        Ok(new { status = "ok", scope = "patient" });
+
+    [HttpGet("staff")]
+    [Authorize(Policy = RoleRequirements.StaffPolicy)]
+    public IActionResult StaffPing() =>
+        Ok(new { status = "ok", scope = "staff" });
+
+    [HttpGet("admin")]
+    [Authorize(Policy = RoleRequirements.AdminPolicy)]
+    public IActionResult AdminPing() =>
+        Ok(new { status = "ok", scope = "admin" });
 }

@@ -3,6 +3,9 @@ import { AuthProvider } from './hooks/useAuth'
 import { AppointmentSearchPage } from './pages/booking/AppointmentSearchPage'
 import { BookingConfirmationPage } from './pages/booking/BookingConfirmationPage'
 import { LoginPage } from './pages/auth/LoginPage'
+import { MfaSetupPage } from './pages/auth/MfaSetupPage'
+import { MfaVerificationPage } from './pages/auth/MfaVerificationPage'
+import { PasswordResetPage } from './pages/auth/PasswordResetPage'
 
 const DashboardPage = () => {
   const { role = 'patient' } = useParams<{ role: string }>()
@@ -31,6 +34,9 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/auth/login" replace />} />
         <Route path="/auth/login" element={<LoginPage />} />
+        <Route path="/auth/password-reset" element={<PasswordResetPage />} />
+        <Route path="/auth/mfa/verify" element={<MfaVerificationPage />} />
+        <Route path="/auth/mfa/setup" element={<MfaSetupPage />} />
         <Route path="/dashboard/:role" element={<DashboardPage />} />
         <Route path="/booking/search" element={<AppointmentSearchPage />} />
         <Route path="/booking/confirm" element={<BookingConfirmationPage />} />

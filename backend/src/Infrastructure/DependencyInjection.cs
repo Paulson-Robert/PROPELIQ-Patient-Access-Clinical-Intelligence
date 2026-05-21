@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Infrastructure.Caching;
+using Infrastructure.Auth;
 using Infrastructure.Data;
 using Infrastructure.Data.Options;
 using Infrastructure.Locking;
@@ -45,11 +46,10 @@ public static class DependencyInjection
             }));
 
         services.AddScoped<IPatientDataDeletionService, PatientDataDeletionService>();
-
-        // Booking services (US_018)
-        services.AddScoped<ISlotSearchService, SlotSearchService>();
-        services.AddScoped<IBookingConfirmationService, BookingConfirmationService>();
-        services.AddScoped<IBookingPdfService, BookingPdfService>();
+        services.AddScoped<IPasswordHashService, PasswordHashService>();
+        services.AddScoped<IAccountLockoutService, AccountLockoutService>();
+        services.AddOptions<EmailDeliverySettings>()
+            .BindConfiguration(EmailDeliverySettings.SectionName);
 
         // In-memory cache — required by RedisCacheService as fallback (AC-05).
         services.AddMemoryCache();
@@ -70,6 +70,7 @@ public static class DependencyInjection
                     sp.GetRequiredService<IConnectionMultiplexer>(),
                     sp.GetRequiredService<IMemoryCache>(),
                     sp.GetRequiredService<ILogger<RedisCacheService>>()));
+            services.AddScoped<ISessionService, SessionService>();
 
             // Distributed slot lock: SETNX with 30-second TTL (AC-03).
             services.AddSingleton<IDistributedLockService, RedisDistributedLockService>();
@@ -87,8 +88,7 @@ public static class DependencyInjection
         {
             // Degraded mode: no Redis configured — serve entirely from in-memory cache (AC-05).
             services.AddSingleton<ICacheService, InMemoryCacheService>();
-            // Single-node in-memory slot lock (development / degraded mode).
-            services.AddSingleton<ISlotLockService, InMemorySlotLockService>();
+            services.AddScoped<ISessionService, SessionService>();
         }
 
         return services;

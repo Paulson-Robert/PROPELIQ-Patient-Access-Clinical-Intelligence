@@ -20,15 +20,31 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.PasswordHash)
             .HasMaxLength(512);
 
+        builder.Property(u => u.MfaMethod)
+            .IsRequired();
+
         // TOTP seed — encryption converter applied in ApplicationDbContext (AC-02)
         builder.Property(u => u.MfaSecret)
             .HasMaxLength(512); // Max covers base64-encoded ciphertext
+
+        builder.Property(u => u.MfaPhoneNumber)
+            .HasMaxLength(512); // Max covers encrypted contact data
 
         builder.Property(u => u.Role)
             .IsRequired();
 
         builder.Property(u => u.AuthProvider)
             .IsRequired();
+
+        builder.Property(u => u.FailedLoginAttempts)
+            .HasDefaultValue(0)
+            .IsRequired();
+
+        builder.Property(u => u.LastFailedLoginAtUtc);
+
+        builder.Property(u => u.LockedUntilUtc);
+
+        builder.Property(u => u.PasswordUpdatedAtUtc);
 
         builder.Property(u => u.CreatedAt)
             .IsRequired();
@@ -69,5 +85,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(u => u.CreatedAt);
+        builder.HasIndex(u => u.LockedUntilUtc);
     }
 }

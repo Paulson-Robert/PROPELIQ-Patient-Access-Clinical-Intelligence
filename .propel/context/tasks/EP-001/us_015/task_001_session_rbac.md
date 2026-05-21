@@ -85,11 +85,11 @@ Implement JWT session management with 15-minute sliding expiry via Redis, and ro
 
 ## Implementation Checklist
 
-- [ ] Create session service with Redis-backed 15-minute TTL management (AC-01, AC-02)
-- [ ] Implement sliding expiry middleware refreshing session on authenticated requests (AC-02)
-- [ ] Configure role-based authorization policies for Patient, Staff, Admin (AC-03, AC-04, AC-05)
-- [ ] Apply authorization attributes restricting endpoints by role (AC-03, AC-04)
-- [ ] Return 401 with consistent body for expired tokens (AC-06)
-- [ ] Return 403 for unauthorized role access attempts (AC-03, AC-04)
-- [ ] Validate JWT signature and reject tampered tokens (Edge Cases)
-- [ ] Reject tokens with multiple role claims (Edge Cases)
+- [x] Create session service with Redis-backed 15-minute TTL management (AC-01, AC-02)
+- [x] Implement sliding expiry middleware refreshing session on authenticated requests (AC-02)
+- [x] Configure role-based authorization policies for Patient, Staff, Admin (AC-03, AC-04, AC-05)
+- [x] Apply authorization attributes restricting endpoints by role (AC-03, AC-04)
+- [x] Return 401 with consistent body for expired tokens (AC-06)
+- [x] Return 403 for unauthorized role access attempts (AC-03, AC-04)
+- [x] Validate JWT signature and reject tampered tokens (Edge Cases)
+- [x] Reject tokens with multiple role claims (Edge Cases)
