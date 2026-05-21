@@ -36,6 +36,27 @@ internal sealed class PhiEncryptionOptionsValidator : IValidateOptions<PhiEncryp
                 $"got {keyBytes.Length} byte(s). " +
                 $"Generate a key with: openssl rand -base64 32");
 
+        // Validate PreviousKey only when provided (optional — used during key rotation)
+        if (!string.IsNullOrWhiteSpace(options.PreviousKey))
+        {
+            byte[] previousKeyBytes;
+            try
+            {
+                previousKeyBytes = Convert.FromBase64String(options.PreviousKey);
+            }
+            catch (FormatException)
+            {
+                return ValidateOptionsResult.Fail(
+                    "PhiEncryption:PreviousKey is not valid Base64. " +
+                    "Generate a key with: openssl rand -base64 32");
+            }
+
+            if (previousKeyBytes.Length != 32)
+                return ValidateOptionsResult.Fail(
+                    $"PhiEncryption:PreviousKey must decode to exactly 32 bytes (256-bit AES); " +
+                    $"got {previousKeyBytes.Length} byte(s).");
+        }
+
         return ValidateOptionsResult.Success;
     }
 }

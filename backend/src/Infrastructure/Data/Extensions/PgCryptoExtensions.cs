@@ -39,7 +39,7 @@ public static class PgCryptoExtensions
             date => date == null ? null : Encrypt(date.Value.ToString("yyyy-MM-dd"), key),
             ciphertext => ciphertext == null ? null : DateOnly.Parse(Decrypt(ciphertext, key)));
 
-    private static string Encrypt(string plaintext, byte[] key)
+    internal static string Encrypt(string plaintext, byte[] key)
     {
         using var aes = Aes.Create();
         aes.Key = key;
@@ -58,7 +58,7 @@ public static class PgCryptoExtensions
         return Convert.ToBase64String(result);
     }
 
-    private static string Decrypt(string ciphertext, byte[] key)
+    internal static string Decrypt(string ciphertext, byte[] key)
     {
         var ciphertextBytes = Convert.FromBase64String(ciphertext);
 

@@ -9,4 +9,12 @@ public class PhiEncryptionOptions
     /// Must be set via environment variable or secrets manager — never hardcoded.
     /// </summary>
     public string Key { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Optional: previous Base64-encoded 32-byte AES key retained during zero-downtime
+    /// key rotation (dual-key period). Decryption tries <see cref="Key"/> first;
+    /// falls back to this value if the current key fails.
+    /// Remove once all records have been re-encrypted with the new <see cref="Key"/>.
+    /// </summary>
+    public string? PreviousKey { get; set; }
 }

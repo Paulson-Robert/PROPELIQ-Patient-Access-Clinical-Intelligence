@@ -77,6 +77,7 @@ public static class DependencyInjection
         services.AddScoped<IPatientDataDeletionService, PatientDataDeletionService>();
         services.AddScoped<IPasswordHashService, PasswordHashService>();
         services.AddScoped<IAccountLockoutService, AccountLockoutService>();
+        services.AddSingleton<IPhiEncryptionService, PhiEncryptionService>();
         services.AddOptions<EmailDeliverySettings>()
             .BindConfiguration(EmailDeliverySettings.SectionName);
 
