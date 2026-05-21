@@ -48,6 +48,6 @@ Implement risk tier classification mapping numeric scores to Low/Medium/High tie
 
 ## Implementation Checklist
 
-- [ ] Classify scores into Low/Medium/High tiers (AC-01)
-- [ ] Return tier with contributing factor breakdown (AC-02)
-- [ ] Handle boundary scores consistently (Edge Cases)
+- [x] Classify scores into Low/Medium/High tiers (AC-01)
+- [x] Return tier with contributing factor breakdown (AC-02)
+- [x] Handle boundary scores consistently (Edge Cases)

@@ -51,7 +51,7 @@ Implement risk tier badge component with color-coded Low/Medium/High display inc
 
 ## Implementation Checklist
 
-- [ ] Create RiskTierBadge with Low/Medium/High color variants (AC-01)
-- [ ] Include icon + text + color per tier (AC-02)
-- [ ] Integrate in queue and patient views (AC-03)
-- [ ] Handle pending score with grey "Calculating..." badge (Edge Cases)
+- [x] Create RiskTierBadge with Low/Medium/High color variants (AC-01)
+- [x] Include icon + text + color per tier (AC-02)
+- [x] Integrate in queue and patient views (AC-03)
+- [x] Handle pending score with grey "Calculating..." badge (Edge Cases)

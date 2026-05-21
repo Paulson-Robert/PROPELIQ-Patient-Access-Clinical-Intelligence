@@ -16,6 +16,28 @@ public sealed record RiskScoringResult(
     IReadOnlyList<string> MissingFactors);
 
 // ---------------------------------------------------------------------------
+// Read DTOs (US_042 AC-02: tier with contributing factor breakdown)
+// ---------------------------------------------------------------------------
+
+/// <summary>Individual factor contribution to the no-show risk score.</summary>
+/// <param name="FactorName">Machine-readable factor identifier.</param>
+/// <param name="ContributionPoints">Points awarded to this factor (0–max weight).</param>
+/// <param name="RawValue">Human-readable raw value used in scoring.</param>
+public sealed record RiskFactorBreakdownItem(
+    string FactorName,
+    decimal ContributionPoints,
+    string RawValue);
+
+/// <summary>Read-only risk data for a scored appointment (US_042 AC-02).</summary>
+/// <param name="Score">Persisted composite risk score (0–100).</param>
+/// <param name="IsDataPending">True when risk factors were absent at calculation time.</param>
+/// <param name="ContributingFactors">Per-factor contribution breakdown.</param>
+public sealed record RiskAppointmentDataDto(
+    decimal Score,
+    bool IsDataPending,
+    IReadOnlyList<RiskFactorBreakdownItem> ContributingFactors);
+
+// ---------------------------------------------------------------------------
 // Interface
 // ---------------------------------------------------------------------------
 
@@ -42,6 +64,18 @@ public interface IRiskScoringService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Scoring result including score, tier, and any data-pending flags.</returns>
     Task<RiskScoringResult> CalculateAndPersistAsync(
+        Guid appointmentId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns the persisted risk score and per-factor contribution breakdown for an appointment.
+    /// Does not recalculate — reads already-persisted data (US_042 AC-02).
+    /// Returns <c>null</c> when the appointment does not exist.
+    /// Returns <see cref="RiskAppointmentDataDto.IsDataPending"/> = <c>true</c> when factors are absent.
+    /// </summary>
+    /// <param name="appointmentId">The appointment whose stored risk data to fetch.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task<RiskAppointmentDataDto?> GetAppointmentRiskDataAsync(
         Guid appointmentId,
         CancellationToken cancellationToken = default);
 }

@@ -1,7 +1,8 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
-import type { QueueEntry, QueueStatus, RiskLevel } from '../../services/queueApi'
+import { RiskTierBadge } from '../clinical/RiskTierBadge'
+import type { QueueEntry, QueueStatus } from '../../services/queueApi'
 
 interface QueueItemProps {
   entry: QueueEntry
@@ -15,12 +16,6 @@ const STATUS_STYLES: Record<QueueStatus, string> = {
   Arrived: 'bg-amber-500/10 text-amber-700',
   Cancelled: 'bg-secondary text-secondary-foreground',
   Completed: 'bg-emerald-500/10 text-emerald-700',
-}
-
-const RISK_STYLES: Record<RiskLevel, string> = {
-  High: 'bg-red-500/10 text-red-700',
-  Medium: 'bg-amber-500/10 text-amber-700',
-  Low: 'bg-emerald-500/10 text-emerald-700',
 }
 
 const formatArrivalTime = (isoTimestamp: string): string => {
@@ -97,14 +92,9 @@ export const QueueItem = ({ entry, isMarkingArrived, onMarkArrived }: QueueItemP
         </span>
       </td>
 
-      {/* Risk */}
+      {/* Risk — AC-03: RiskTierBadge in queue view */}
       <td className="px-3 py-3">
-        <span
-          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${RISK_STYLES[entry.riskLevel]}`}
-          aria-label={`Risk level: ${entry.riskLevel}`}
-        >
-          {entry.riskLevel}
-        </span>
+        <RiskTierBadge tier={entry.riskLevel} />
       </td>
 
       {/* Actions */}
