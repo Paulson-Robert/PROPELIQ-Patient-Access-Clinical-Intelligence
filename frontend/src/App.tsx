@@ -3,6 +3,7 @@ import { AuthProvider } from './hooks/useAuth'
 import { AppointmentSearchPage } from './pages/booking/AppointmentSearchPage'
 import { AppointmentDetailPage } from './pages/booking/AppointmentDetailPage'
 import { BookingConfirmationPage } from './pages/booking/BookingConfirmationPage'
+import { AppointmentHistoryPage } from './pages/booking/AppointmentHistoryPage'
 import { LoginPage } from './pages/auth/LoginPage'
 import { MfaSetupPage } from './pages/auth/MfaSetupPage'
 import { MfaVerificationPage } from './pages/auth/MfaVerificationPage'
@@ -39,6 +40,7 @@ function App() {
         <Route path="/auth/mfa/verify" element={<MfaVerificationPage />} />
         <Route path="/auth/mfa/setup" element={<MfaSetupPage />} />
         <Route path="/dashboard/:role" element={<DashboardPage />} />
+        <Route path="/booking/history" element={<AppointmentHistoryPage />} />
         <Route path="/booking/search" element={<AppointmentSearchPage />} />
         <Route path="/booking/appointments/:appointmentId" element={<AppointmentDetailPage />} />
         <Route path="/booking/confirm" element={<BookingConfirmationPage />} />
