@@ -9,6 +9,7 @@ using Infrastructure.Jobs;
 using Infrastructure.Locking;
 using Infrastructure.Notifications;
 using Infrastructure.RateLimiting;
+using Infrastructure.Security;
 using Infrastructure.Services;
 using Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
@@ -151,6 +152,12 @@ public static class DependencyInjection
         services.AddOptions<DocumentStorageOptions>()
             .BindConfiguration(DocumentStorageOptions.SectionName);
         services.AddScoped<IDocumentStorageService, DocumentStorageService>();
+
+        // Malware scanning pipeline (US_033)
+        services.AddOptions<ClamAvOptions>()
+            .BindConfiguration(ClamAvOptions.SectionName);
+        services.AddScoped<IMalwareScanService, MalwareScanService>();
+        services.AddScoped<MalwareScanJob>();
 
         return services;
     }
