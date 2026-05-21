@@ -58,11 +58,11 @@ Implement NER model versioning, accuracy monitoring comparing predictions to hum
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — accuracy calculation, alert threshold
+- [x] Unit tests pass — accuracy calculation, alert threshold
 
 ## Implementation Checklist
 
-- [ ] Track model versions with deployment history (AC-01)
-- [ ] Monitor accuracy against human-verified extractions (AC-02)
-- [ ] Alert when agreement rate drops below 98% (AC-03)
-- [ ] Handle insufficient verification data gracefully (Edge Cases)
+- [x] Track model versions with deployment history (AC-01)
+- [x] Monitor accuracy against human-verified extractions (AC-02)
+- [x] Alert when agreement rate drops below 98% (AC-03)
+- [x] Handle insufficient verification data gracefully (Edge Cases)
