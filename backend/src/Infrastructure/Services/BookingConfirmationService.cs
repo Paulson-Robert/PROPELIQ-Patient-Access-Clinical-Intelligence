@@ -5,6 +5,7 @@ using Hangfire;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Text.RegularExpressions;
 
 namespace Infrastructure.Services;
 
@@ -16,6 +17,10 @@ namespace Infrastructure.Services;
 /// </summary>
 public sealed class BookingConfirmationService : IBookingConfirmationService
 {
+    private static readonly Regex PolicyNumberPattern = new(
+        "^[A-Za-z0-9]{2,8}-?[A-Za-z0-9]{4,12}$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
     private readonly ApplicationDbContext _db;
     private readonly ISlotLockService _slotLock;
     private readonly IBackgroundJobClient _jobClient;
@@ -38,6 +43,8 @@ public sealed class BookingConfirmationService : IBookingConfirmationService
         Guid slotId,
         string lockToken,
         Guid patientUserId,
+        string? insuranceProvider,
+        string? insurancePolicyNumber,
         CancellationToken cancellationToken = default)
     {
         // AC-05: Validate the caller still owns the Redis lock
@@ -77,6 +84,13 @@ public sealed class BookingConfirmationService : IBookingConfirmationService
             .ConfigureAwait(false) ?? string.Empty;
 
         var now = DateTime.UtcNow;
+        var trimmedInsuranceProvider = string.IsNullOrWhiteSpace(insuranceProvider)
+            ? null
+            : insuranceProvider.Trim();
+        var trimmedInsurancePolicyNumber = string.IsNullOrWhiteSpace(insurancePolicyNumber)
+            ? null
+            : insurancePolicyNumber.Trim();
+        var insuranceValidationWarning = ValidatePolicyNumber(trimmedInsurancePolicyNumber);
 
         var appointment = new Appointment
         {
@@ -86,10 +100,21 @@ public sealed class BookingConfirmationService : IBookingConfirmationService
             SlotId = slotId,
             Status = AppointmentStatus.Scheduled,
             BookingType = BookingType.Online,
+            InsuranceProvider = trimmedInsuranceProvider,
+            InsurancePolicyNumber = trimmedInsurancePolicyNumber,
             CreatedByUserId = patientUserId,
             CreatedAt = now,
             UpdatedAt = now,
         };
+
+        if (insuranceValidationWarning is not null)
+        {
+            _logger.LogInformation(
+                "Soft insurance policy format warning for PatientId={PatientId}, SlotId={SlotId}: {Warning}",
+                patientUserId,
+                slotId,
+                insuranceValidationWarning);
+        }
 
         // Mark slot as booked
         slot.IsAvailable = false;
@@ -140,8 +165,23 @@ public sealed class BookingConfirmationService : IBookingConfirmationService
                 slot.StartTime,
                 (int)(slot.EndTime - slot.StartTime).TotalMinutes,
                 nameof(AppointmentStatus.Scheduled),
-                patientEmail),
+                patientEmail,
+                appointment.InsuranceProvider,
+                appointment.InsurancePolicyNumber,
+                insuranceValidationWarning),
             FailureReason: null,
             FailureCode: null);
+    }
+
+    private static string? ValidatePolicyNumber(string? policyNumber)
+    {
+        if (policyNumber is null)
+        {
+            return null;
+        }
+
+        return PolicyNumberPattern.IsMatch(policyNumber)
+            ? null
+            : "Insurance policy number format looks unusual. This is a soft validation warning only.";
     }
 }

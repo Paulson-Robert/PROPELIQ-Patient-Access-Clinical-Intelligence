@@ -55,11 +55,11 @@ Persist insurance information with appointment records, include insurance detail
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — insurance persistence, PDF contains insurance
+- [x] Unit tests pass — insurance persistence, PDF contains insurance
 
 ## Implementation Checklist
 
-- [ ] Add insurance provider and policy number to Appointment entity (AC-01)
-- [ ] Persist insurance info with booking confirmation (AC-01)
-- [ ] Include insurance details in PDF confirmation (AC-02)
-- [ ] Implement server-side soft validation for policy format (AC-03)
+- [x] Add insurance provider and policy number to Appointment entity (AC-01)
+- [x] Persist insurance info with booking confirmation (AC-01)
+- [x] Include insurance details in PDF confirmation (AC-02)
+- [x] Implement server-side soft validation for policy format (AC-03)

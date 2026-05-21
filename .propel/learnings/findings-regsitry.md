@@ -29,3 +29,8 @@
 - Source: implement-tasks Step3 decision
 - Finding: Authentication responses enforce a 250ms minimum duration to reduce user-enumeration and timing side-channel risk.
 - Prevention Rule: Add minimum response timing in controller-level auth paths when existence checks can short-circuit early.
+
+- Date: 2026-05-21
+- Source: implement-tasks Step3 decision
+- Finding: Insurance policy soft validation regex was set to `^[A-Za-z0-9]{2,8}-?[A-Za-z0-9]{4,12}$` and enforced as warning-only to avoid blocking booking flow when format is unusual.
+- Prevention Rule: When policy format is unspecified, use a permissive alphanumeric-hyphen pattern and emit non-blocking warnings only.

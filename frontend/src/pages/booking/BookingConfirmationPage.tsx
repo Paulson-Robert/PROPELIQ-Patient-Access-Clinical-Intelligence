@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { CountdownTimer } from '../../components/booking/CountdownTimer'
+import { InsuranceForm, type InsuranceFormValue } from '../../components/booking/InsuranceForm'
 import {
   BookingError,
   bookingApi,
@@ -57,6 +58,10 @@ export const BookingConfirmationPage = () => {
   const [lockSecondsRemaining, setLockSecondsRemaining] = useState(LOCK_TOTAL_SECONDS)
   const [appointment, setAppointment] = useState<AppointmentRecord | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [insurance, setInsurance] = useState<InsuranceFormValue>({
+    provider: '',
+    policyNumber: '',
+  })
 
   const lockTickRef = useRef<number | null>(null)
 
@@ -88,6 +93,9 @@ export const BookingConfirmationPage = () => {
   const handleConfirm = async () => {
     if (!state || pageState !== 'confirming') return
 
+    const insuranceProvider = insurance.provider.trim()
+    const insurancePolicyNumber = insurance.policyNumber.trim()
+
     clearTick()
     setPageState('submitting')
 
@@ -95,6 +103,8 @@ export const BookingConfirmationPage = () => {
       const record = await bookingApi.confirmBooking({
         slotId: state.slot.id,
         lockToken: state.lockToken,
+        insuranceProvider: insuranceProvider || undefined,
+        insurancePolicyNumber: insurancePolicyNumber || undefined,
       })
       setAppointment(record)
       setPageState('confirmed')
@@ -207,6 +217,10 @@ export const BookingConfirmationPage = () => {
 
   /* Confirmed state — SCR-006 success */
   if (pageState === 'confirmed' && appointment) {
+    const insuranceProvider = appointment.insuranceProvider ?? insurance.provider.trim()
+    const insurancePolicyNumber =
+      appointment.insurancePolicyNumber ?? insurance.policyNumber.trim()
+
     return (
       <main className="min-h-screen bg-background text-foreground" id="main-content">
         <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 text-center">
@@ -254,6 +268,18 @@ export const BookingConfirmationPage = () => {
                   <span className="inline-flex items-center rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-700">
                     Confirmed
                   </span>
+                </dd>
+              </div>
+              <div className="flex justify-between py-1 text-sm">
+                <dt className="text-muted-foreground">Insurance provider</dt>
+                <dd className="text-right text-foreground">
+                  {insuranceProvider || 'Not provided'}
+                </dd>
+              </div>
+              <div className="flex justify-between py-1 text-sm">
+                <dt className="text-muted-foreground">Policy number</dt>
+                <dd className="text-right text-foreground">
+                  {insurancePolicyNumber || 'Not provided'}
                 </dd>
               </div>
             </dl>
@@ -358,6 +384,8 @@ export const BookingConfirmationPage = () => {
             </div>
           </dl>
         </div>
+
+        <InsuranceForm value={insurance} onChange={setInsurance} />
 
         <div className="mt-6 flex gap-3">
           <button

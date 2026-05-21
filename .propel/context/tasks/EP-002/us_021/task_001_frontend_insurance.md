@@ -67,11 +67,11 @@ Implement insurance information capture form (SCR-014) with provider/policy fiel
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — form rendering, soft validation warnings
+- [x] Unit tests pass — form rendering, soft validation warnings
 
 ## Implementation Checklist
 
-- [ ] Create InsuranceForm with provider and policy number fields (AC-01)
-- [ ] Implement soft validation showing non-blocking warnings (AC-02)
-- [ ] Display insurance information on booking confirmation page (AC-03)
-- [ ] Handle optional insurance — booking proceeds without it (Edge Cases)
+- [x] Create InsuranceForm with provider and policy number fields (AC-01)
+- [x] Implement soft validation showing non-blocking warnings (AC-02)
+- [x] Display insurance information on booking confirmation page (AC-03)
+- [x] Handle optional insurance — booking proceeds without it (Edge Cases)

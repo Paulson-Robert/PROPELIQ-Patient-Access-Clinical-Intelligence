@@ -12,6 +12,8 @@ public class Appointment
     public NoShowRiskTier? NoShowRiskTier { get; set; }
     public decimal? NoShowRiskScore { get; set; }
     public BookingType BookingType { get; set; }
+    public string? InsuranceProvider { get; set; }
+    public string? InsurancePolicyNumber { get; set; }
     public Guid? PreferredSlotId { get; set; }
     public Guid CreatedByUserId { get; set; }
     public DateTime CreatedAt { get; set; }

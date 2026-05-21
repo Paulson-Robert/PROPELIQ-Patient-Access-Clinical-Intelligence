@@ -124,6 +124,8 @@ public sealed class BookingPdfService : IBookingPdfService
         AddRow(table, "Time", appt.Slot.StartTime.ToString("hh:mm tt"), headerFont, bodyFont);
         AddRow(table, "Duration", $"{(int)(appt.Slot.EndTime - appt.Slot.StartTime).TotalMinutes} minutes", headerFont, bodyFont);
         AddRow(table, "Status", "Confirmed", headerFont, bodyFont);
+        AddRow(table, "Insurance provider", appt.InsuranceProvider ?? "Not provided", headerFont, bodyFont);
+        AddRow(table, "Policy number", appt.InsurancePolicyNumber ?? "Not provided", headerFont, bodyFont);
         AddRow(table, "Reference", appt.AppointmentId.ToString("N")[..8].ToUpperInvariant(), headerFont, bodyFont);
 
         document.Add(table);

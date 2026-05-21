@@ -81,7 +81,14 @@ public sealed class AppointmentsController : ControllerBase
             return Unauthorized();
 
         var result = await _mediator
-            .Send(new ConfirmBookingCommand(request.SlotId, request.LockToken, patientUserId.Value), cancellationToken)
+            .Send(
+                new ConfirmBookingCommand(
+                    request.SlotId,
+                    request.LockToken,
+                    patientUserId.Value,
+                    request.InsuranceProvider,
+                    request.InsurancePolicyNumber),
+                cancellationToken)
             .ConfigureAwait(false);
 
         if (!result.Success)
@@ -175,5 +182,9 @@ public sealed class AppointmentsController : ControllerBase
     }
 }
 
-public sealed record ConfirmBookingRequest(Guid SlotId, string LockToken);
+public sealed record ConfirmBookingRequest(
+    Guid SlotId,
+    string LockToken,
+    string? InsuranceProvider,
+    string? InsurancePolicyNumber);
 public sealed record RescheduleAppointmentRequest(Guid NewSlotId, string LockToken);

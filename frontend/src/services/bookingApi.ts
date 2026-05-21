@@ -29,6 +29,8 @@ export interface LockSlotResponse {
 export interface ConfirmBookingPayload {
   slotId: string
   lockToken: string
+  insuranceProvider?: string
+  insurancePolicyNumber?: string
 }
 
 export interface CancelAppointmentPayload {
@@ -46,6 +48,8 @@ export interface AppointmentRecord {
   durationMinutes: number
   status: 'Scheduled' | 'Cancelled'
   patientEmail: string
+  insuranceProvider?: string
+  insurancePolicyNumber?: string
 }
 
 export type BookingErrorCode =
@@ -316,6 +320,8 @@ const mockBookingApi = {
       durationMinutes: slot.durationMinutes,
       status: 'Scheduled',
       patientEmail: 'patient@example.com',
+      insuranceProvider: payload.insuranceProvider,
+      insurancePolicyNumber: payload.insurancePolicyNumber,
     }
   },
 
