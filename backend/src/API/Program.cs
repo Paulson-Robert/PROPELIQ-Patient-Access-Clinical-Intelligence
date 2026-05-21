@@ -206,6 +206,12 @@ recurringJobManager.AddOrUpdate<GoogleCalendarSyncJob>(
     job => job.ExecuteAsync(),
     "*/5 * * * *");
 
+// Register Outlook Calendar sync recurring job — every 5 minutes (US_026 AC-05)
+recurringJobManager.AddOrUpdate<OutlookCalendarSyncJob>(
+    "outlook-calendar-sync",
+    job => job.ExecuteAsync(),
+    "*/5 * * * *");
+
 app.Run();
 
 }
