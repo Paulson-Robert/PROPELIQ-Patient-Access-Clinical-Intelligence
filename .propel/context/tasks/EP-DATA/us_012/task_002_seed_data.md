@@ -73,14 +73,14 @@ Create idempotent seed data scripts that populate the database with representati
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — seeder idempotency verification
-- [ ] Integration tests pass — seed runs twice without duplicate errors
+- [x] Unit tests pass — seeder idempotency verification
+- [x] Integration tests pass — seed runs twice without duplicate errors
 
 ## Implementation Checklist
 
-- [ ] Create DatabaseSeeder orchestrating all sub-seeders in dependency order (AC-04)
-- [ ] Implement UserSeeder with 1 patient, 1 staff, 1 admin with bcrypt-hashed passwords (AC-04)
-- [ ] Implement AppointmentSeeder with 5 availability slots and 2 appointments (AC-04)
-- [ ] Implement ClinicalDataSeeder with 1 document and extracted records (AC-04)
-- [ ] Implement upsert/existence-check logic for idempotent re-execution (AC-05)
-- [ ] Register seeder execution in Development environment startup (AC-04)
+- [x] Create DatabaseSeeder orchestrating all sub-seeders in dependency order (AC-04)
+- [x] Implement UserSeeder with 1 patient, 1 staff, 1 admin with bcrypt-hashed passwords (AC-04)
+- [x] Implement AppointmentSeeder with 5 availability slots and 2 appointments (AC-04)
+- [x] Implement ClinicalDataSeeder with 1 document and extracted records (AC-04)
+- [x] Implement upsert/existence-check logic for idempotent re-execution (AC-05)
+- [x] Register seeder execution in Development environment startup (AC-04)

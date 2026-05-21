@@ -76,14 +76,14 @@ Implement a complete cascade deletion mechanism that permanently removes all pat
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — deletion ordering, Redis cleanup
-- [ ] Integration tests pass — full cascade deletion leaves zero orphaned records
+- [x] Unit tests pass — deletion ordering, Redis cleanup
+- [x] Integration tests pass — full cascade deletion leaves zero orphaned records
 
 ## Implementation Checklist
 
-- [ ] Create deletion service interface and MediatR command/handler (AC-01)
-- [ ] Implement ordered cascade deletion across all 12 patient-related entities in PostgreSQL (AC-01)
-- [ ] Implement Redis key pattern deletion for patient sessions and cached data (AC-02)
-- [ ] Create immutable audit log entry recording deletion actor, timestamp, patient ID, and deleted resource summary (AC-03)
-- [ ] Wrap all deletions in a database transaction for atomicity (AC-01)
-- [ ] Handle deletion of patient with no data gracefully (Edge Cases)
+- [x] Create deletion service interface and MediatR command/handler (AC-01)
+- [x] Implement ordered cascade deletion across all 12 patient-related entities in PostgreSQL (AC-01)
+- [x] Implement Redis key pattern deletion for patient sessions and cached data (AC-02)
+- [x] Create immutable audit log entry recording deletion actor, timestamp, patient ID, and deleted resource summary (AC-03)
+- [x] Wrap all deletions in a database transaction for atomicity (AC-01)
+- [x] Handle deletion of patient with no data gracefully (Edge Cases)

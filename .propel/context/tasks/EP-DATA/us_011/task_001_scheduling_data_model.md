@@ -84,16 +84,16 @@ Configure the database schema for appointment scheduling (AvailabilitySlot with 
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — enum mappings, configuration validation
-- [ ] Integration tests pass — status transitions, constraint enforcement
+- [x] Unit tests pass — enum mappings, configuration validation
+- [x] Integration tests pass — status transitions, constraint enforcement
 
 ## Implementation Checklist
 
-- [ ] Create all scheduling-related enums (AppointmentStatus, NotificationChannel, NotificationStatus, QueueStatus) (AC-02, AC-03, AC-05)
-- [ ] Configure AvailabilitySlot with recurrence pattern support and time boundary validation (AC-01)
-- [ ] Configure Appointment status lifecycle with UpdatedAt timestamp per transition (AC-02)
-- [ ] Configure PreferredSlotQueue with RequestedAt-based FCFS ordering and status transitions (AC-03)
-- [ ] Configure NoShowRiskFactor with all four scoring input fields and LastCalculatedAt (AC-04)
-- [ ] Configure Notification entity with channel, retry count, and failure tracking fields (AC-05)
-- [ ] Add overlap prevention constraint or index on AvailabilitySlot (Edge Cases)
-- [ ] Generate migration and validate successful application (AC-01)
+- [x] Create all scheduling-related enums (AppointmentStatus, NotificationChannel, NotificationStatus, QueueStatus) (AC-02, AC-03, AC-05)
+- [x] Configure AvailabilitySlot with recurrence pattern support and time boundary validation (AC-01)
+- [x] Configure Appointment status lifecycle with UpdatedAt timestamp per transition (AC-02)
+- [x] Configure PreferredSlotQueue with RequestedAt-based FCFS ordering and status transitions (AC-03)
+- [x] Configure NoShowRiskFactor with all four scoring input fields and LastCalculatedAt (AC-04)
+- [x] Configure Notification entity with channel, retry count, and failure tracking fields (AC-05)
+- [x] Add overlap prevention constraint or index on AvailabilitySlot (Edge Cases)
+- [x] Generate migration and validate successful application (AC-01)
