@@ -86,16 +86,16 @@ Integrate Upstash Redis into the backend for session caching with sliding expiry
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — mock Redis for cache and lock service tests
-- [ ] Integration tests pass — verify Redis health check, lock acquisition/release
+- [x] Unit tests pass — mock Redis for cache and lock service tests
+- [x] Integration tests pass — verify Redis health check, lock acquisition/release
 
 ## Implementation Checklist
 
-- [ ] Create cache and lock abstraction interfaces in Application layer (AC-01)
-- [ ] Implement Redis connection factory with Upstash TLS configuration (AC-01)
-- [ ] Implement session caching with 15-minute sliding expiry using Redis SETEX and TTL refresh (AC-02)
-- [ ] Implement distributed slot lock using SETNX with 30-second TTL and explicit release (AC-03)
-- [ ] Implement sliding window rate-limiting counters with HTTP 429 and Retry-After header (AC-04)
-- [ ] Implement in-memory fallback cache with automatic failover on Redis unavailability (AC-05)
-- [ ] Add Redis connectivity health check to /health endpoint (AC-01)
-- [ ] Log critical warning on Redis connection failure and quota exhaustion (Edge Cases)
+- [x] Create cache and lock abstraction interfaces in Application layer (AC-01)
+- [x] Implement Redis connection factory with Upstash TLS configuration (AC-01)
+- [x] Implement session caching with 15-minute sliding expiry using Redis SETEX and TTL refresh (AC-02)
+- [x] Implement distributed slot lock using SETNX with 30-second TTL and explicit release (AC-03)
+- [x] Implement sliding window rate-limiting counters with HTTP 429 and Retry-After header (AC-04)
+- [x] Implement in-memory fallback cache with automatic failover on Redis unavailability (AC-05)
+- [x] Add Redis connectivity health check to /health endpoint (AC-01)
+- [x] Log critical warning on Redis connection failure and quota exhaustion (Edge Cases)

@@ -86,16 +86,16 @@ Configure the ClinicalDocument entity with format validation and pipeline status
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — enum validation, seed data idempotency
-- [ ] Integration tests pass — migration applies, seed data loads, code lookups work
+- [x] Unit tests pass — enum validation, seed data idempotency
+- [x] Integration tests pass — migration applies, seed data loads, code lookups work
 
 ## Implementation Checklist
 
-- [ ] Create DocumentFormat and ProcessingStatus enums with all required values (AC-01, AC-02)
-- [ ] Configure ClinicalDocument entity with format constraint and status transition timestamps (AC-01, AC-02)
-- [ ] Create Icd10Code entity with CodeValue, Description, Category, CodeSetVersion columns (AC-03)
-- [ ] Create CptCode entity with matching structure and independent versioning (AC-04)
-- [ ] Implement seed data script with representative ICD-10-CM and CPT-4 codes (AC-03, AC-04)
-- [ ] Configure MedicalCodeMapping to reference CodeSetVersion for traceability (AC-05)
-- [ ] Add composite unique constraint (CodeValue + CodeSetVersion) on reference tables (Edge Cases)
-- [ ] Generate migration and validate successful application (AC-01)
+- [x] Create DocumentFormat and ProcessingStatus enums with all required values (AC-01, AC-02)
+- [x] Configure ClinicalDocument entity with format constraint and status transition timestamps (AC-01, AC-02)
+- [x] Create Icd10Code entity with CodeValue, Description, Category, CodeSetVersion columns (AC-03)
+- [x] Create CptCode entity with matching structure and independent versioning (AC-04)
+- [x] Implement seed data script with representative ICD-10-CM and CPT-4 codes (AC-03, AC-04)
+- [x] Configure MedicalCodeMapping to reference CodeSetVersion for traceability (AC-05)
+- [x] Add composite unique constraint (CodeValue + CodeSetVersion) on reference tables (Edge Cases)
+- [x] Generate migration and validate successful application (AC-01)
