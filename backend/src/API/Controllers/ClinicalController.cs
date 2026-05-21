@@ -1,5 +1,6 @@
 using Application.Commands;
 using Application.Interfaces;
+using Application.Queries;
 using API.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -123,6 +124,28 @@ public sealed class ClinicalController : ControllerBase
 
     // -----------------------------------------------------------------------
     // Helpers
+    // -----------------------------------------------------------------------
+
+    // -------------------------------------------------------------------------
+    // GET /api/clinical/appointments/{appointmentId}/risk-tier
+    // AC-02 (US_042): Returns persisted risk tier with contributing factor breakdown
+    // -------------------------------------------------------------------------
+    [HttpGet("appointments/{appointmentId:guid}/risk-tier")]
+    public async Task<ActionResult<RiskTierDto>> GetRiskTier(
+        [FromRoute] Guid appointmentId,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator
+            .Send(new GetPatientRiskTierQuery(appointmentId), cancellationToken)
+            .ConfigureAwait(false);
+
+        return result is null
+            ? NotFound(new { code = "APPOINTMENT_NOT_FOUND", message = "Appointment not found or risk score not yet calculated." })
+            : Ok(result);
+    }
+
+    // -----------------------------------------------------------------------
+    // Helpers (continued)
     // -----------------------------------------------------------------------
 
     private Guid? GetCurrentUserId()

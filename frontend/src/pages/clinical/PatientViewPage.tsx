@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 import { DataCategoryCard } from '../../components/clinical/DataCategoryCard'
 import { VerificationBadge, type VerificationStatus } from '../../components/clinical/VerificationBadge'
+import { RiskTierBadge } from '../../components/clinical/RiskTierBadge'
+import type { RiskLevel } from '../../services/queueApi'
 
 // --- Types ---
 
@@ -127,10 +129,11 @@ const MOCK_PROCEDURES: ProcedureEntry[] = []
 
 // --- Helpers ---
 
-const RISK_CONFIG: Record<RiskTier, { label: string; className: string }> = {
-  low: { label: 'Low risk', className: 'bg-emerald-500/10 text-emerald-700 border border-emerald-600/20' },
-  medium: { label: 'Medium risk', className: 'bg-amber-500/10 text-amber-700 border border-amber-600/20' },
-  high: { label: 'High risk', className: 'bg-destructive/10 text-destructive border border-destructive/20' },
+// Map PatientViewPage's lowercase RiskTier to the canonical RiskLevel type
+const RISK_TIER_MAP: Record<RiskTier, RiskLevel> = {
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
 }
 
 const SEVERITY_CONFIG: Record<AllergyEntry['severity'], string> = {
@@ -261,7 +264,6 @@ const TAB_PANELS: Record<TabKey, JSX.Element> = {
 export const PatientViewPage = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('vitals')
   const patient = MOCK_PATIENT
-  const riskConfig = RISK_CONFIG[patient.riskTier]
 
   return (
     <main className="min-h-screen bg-background text-foreground" id="main-content">
@@ -315,16 +317,11 @@ export const PatientViewPage = () => {
             </p>
           </div>
 
-          {/* Risk tier */}
-          <span
-            className={cn(
-              'shrink-0 rounded-full px-3 py-1 text-xs font-semibold',
-              riskConfig.className,
-            )}
-            aria-label={`Risk tier: ${riskConfig.label}`}
-          >
-            {riskConfig.label}
-          </span>
+          {/* Risk tier — AC-03: RiskTierBadge in patient view */}
+          <RiskTierBadge
+            tier={RISK_TIER_MAP[patient.riskTier]}
+            className="shrink-0 px-3 py-1 text-xs font-semibold"
+          />
         </section>
 
         {/* Category tabs — AC-03: data grouped by category */}

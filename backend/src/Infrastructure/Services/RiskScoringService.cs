@@ -238,4 +238,76 @@ public sealed class RiskScoringService : IRiskScoringService
             <= MediumTierMax => NoShowRiskTier.Medium,
             _                => NoShowRiskTier.High,
         };
+
+    // ---------------------------------------------------------------------------
+    // Read-only: factor breakdown for an already-scored appointment (US_042 AC-02)
+    // ---------------------------------------------------------------------------
+
+    /// <inheritdoc/>
+    public async Task<RiskAppointmentDataDto?> GetAppointmentRiskDataAsync(
+        Guid appointmentId,
+        CancellationToken cancellationToken = default)
+    {
+        var appointment = await _db.Appointments
+            .AsNoTracking()
+            .Include(a => a.Slot)
+            .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (appointment is null)
+            return null;
+
+        // Score not yet computed — return data-pending with empty factors
+        if (appointment.NoShowRiskScore is null)
+        {
+            return new RiskAppointmentDataDto(
+                Score: 50m,
+                IsDataPending: true,
+                ContributingFactors: []);
+        }
+
+        var riskFactor = await _db.NoShowRiskFactors
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                r => r.PatientProfile.UserId == appointment.PatientId,
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        // Factors absent — return persisted score with data-pending flag and empty breakdown
+        if (riskFactor is null)
+        {
+            return new RiskAppointmentDataDto(
+                Score: appointment.NoShowRiskScore.Value,
+                IsDataPending: true,
+                ContributingFactors: []);
+        }
+
+        // Recompute individual contributions from persisted raw values using shared calculators
+        var noShowPts = CalculateNoShowPoints(riskFactor.HistoricalNoShowCount);
+
+        var leadTimeDays = appointment.Slot is not null
+            ? (appointment.Slot.StartTime - appointment.CreatedAt).TotalDays
+            : -1;
+
+        bool isWalkIn = appointment.BookingType == BookingType.WalkIn;
+        var leadTimePts = CalculateLeadTimePoints(leadTimeDays, isWalkIn);
+
+        var timeOfDayPts = CalculateTimeOfDayPoints(riskFactor.PreferredTimeOfDay);
+        var newPatientPts = riskFactor.IsNewPatient ? MaxNewPatientPts : 0m;
+
+        var leadTimeRaw = isWalkIn ? "walk_in" : $"{leadTimeDays:F1} days";
+
+        IReadOnlyList<RiskFactorBreakdownItem> factors =
+        [
+            new("historical_no_show_count", noShowPts, riskFactor.HistoricalNoShowCount.ToString()),
+            new("appointment_lead_time",    leadTimePts, leadTimeRaw),
+            new("time_of_day",             timeOfDayPts, riskFactor.PreferredTimeOfDay ?? "unknown"),
+            new("new_patient",             newPatientPts, riskFactor.IsNewPatient ? "true" : "false"),
+        ];
+
+        return new RiskAppointmentDataDto(
+            Score: appointment.NoShowRiskScore.Value,
+            IsDataPending: false,
+            ContributingFactors: factors);
+    }
 }
