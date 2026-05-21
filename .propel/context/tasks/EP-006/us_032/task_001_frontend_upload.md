@@ -67,7 +67,7 @@ Implement document upload page (SCR-011) with drag-and-drop zone, format/size va
 
 ## Implementation Checklist
 
-- [ ] Create DropZone with drag-and-drop and click fallback (AC-01)
-- [ ] Implement file format validation with clear error messages (AC-02)
-- [ ] Implement 25MB file size validation (AC-03)
-- [ ] Create per-file UploadProgress indicator (AC-04)
+- [x] Create DropZone with drag-and-drop and click fallback (AC-01)
+- [x] Implement file format validation with clear error messages (AC-02)
+- [x] Implement 25MB file size validation (AC-03)
+- [x] Create per-file UploadProgress indicator (AC-04)

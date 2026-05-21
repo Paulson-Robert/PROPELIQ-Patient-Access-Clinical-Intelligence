@@ -54,7 +54,7 @@ Implement document upload endpoint with server-side validation, file storage wit
 
 ## Implementation Checklist
 
-- [ ] Create upload endpoint accepting multipart/form-data (AC-01)
-- [ ] Implement server-side format and size validation (AC-02)
-- [ ] Store files with metadata (patient, date, type) (AC-03)
-- [ ] Trigger malware scan pipeline after upload (AC-04)
+- [x] Create upload endpoint accepting multipart/form-data (AC-01)
+- [x] Implement server-side format and size validation (AC-02)
+- [x] Store files with metadata (patient, date, type) (AC-03)
+- [x] Trigger malware scan pipeline after upload (AC-04)
