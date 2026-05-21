@@ -62,12 +62,12 @@ Implement PHI field-level encryption using pgcrypto AES-256, enforce TLS 1.2+, e
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — encryption/decryption, header presence
+- [x] Unit tests pass — encryption/decryption, header presence
 
 ## Implementation Checklist
 
-- [ ] Implement pgcrypto AES-256 encryption for PHI fields (AC-01)
-- [ ] Enforce TLS 1.2+ for all connections (AC-02)
-- [ ] Configure encrypted Redis transport (AC-03)
-- [ ] Enable HSTS with 1-year max-age (AC-04)
-- [ ] Document key rotation procedure (Edge Cases)
+- [x] Implement pgcrypto AES-256 encryption for PHI fields (AC-01)
+- [x] Enforce TLS 1.2+ for all connections (AC-02)
+- [x] Configure encrypted Redis transport (AC-03)
+- [x] Enable HSTS with 1-year max-age (AC-04)
+- [x] Document key rotation procedure (Edge Cases)

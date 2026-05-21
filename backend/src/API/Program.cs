@@ -1,3 +1,4 @@
+using API.Configuration;
 using API.Filters;
 using API.Authorization;
 using API.Middleware;
@@ -52,6 +53,19 @@ builder.Services.AddApplication();
 
 // Add infrastructure layer services (EF Core + Npgsql)
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// Enforce TLS 1.2+ on all HTTPS connections in Kestrel (AC-02)
+builder.WebHost.ConfigureKestrel(kestrel =>
+{
+    kestrel.ConfigureHttpsDefaults(https =>
+    {
+        https.SslProtocols = System.Security.Authentication.SslProtocols.Tls12
+                           | System.Security.Authentication.SslProtocols.Tls13;
+    });
+});
+
+// Register HSTS options with 1-year max-age (AC-04)
+builder.Services.AddSecurityHeaders();
 
 // Add authentication services (JWT + OpenIddict + OAuth handlers)
 builder.Services.AddOpenIddictAuthentication(builder.Configuration);
@@ -176,6 +190,7 @@ app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks
 });
 
 app.UseHttpsRedirection();
+app.UseSecurityHeaders(app.Environment);
 app.UseCors("FrontendDev");
 app.UseAuthentication();
 app.UseSessionSlidingExpiry();
