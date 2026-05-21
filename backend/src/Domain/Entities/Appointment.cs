@@ -19,6 +19,10 @@ public class Appointment
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
+    // Same-day queue fields (US_024)
+    public int? QueuePosition { get; set; }
+    public DateTime? ArrivalTimestamp { get; set; }
+
     // Navigation properties
     public User Patient { get; set; } = null!;
     public User CreatedByUser { get; set; } = null!;

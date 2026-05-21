@@ -58,12 +58,12 @@ Implement same-day queue backend: query today's patients by arrival order, mark 
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — queue ordering, arrival marking, reorder
+- [x] Unit tests pass — queue ordering, arrival marking, reorder
 
 ## Implementation Checklist
 
-- [ ] Create queue query returning today's patients by arrival order (AC-01)
-- [ ] Create mark arrived command with timestamp (AC-02)
-- [ ] Create reorder command persisting new order with reason (AC-03)
-- [ ] Implement change notification for connected clients (AC-04)
-- [ ] Handle concurrent reorder with optimistic concurrency (Edge Cases)
+- [x] Create queue query returning today's patients by arrival order (AC-01)
+- [x] Create mark arrived command with timestamp (AC-02)
+- [x] Create reorder command persisting new order with reason (AC-03)
+- [x] Implement change notification for connected clients (AC-04)
+- [x] Handle concurrent reorder with optimistic concurrency (Edge Cases)
