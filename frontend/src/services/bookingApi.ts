@@ -31,8 +31,13 @@ export interface ConfirmBookingPayload {
   lockToken: string
 }
 
+export interface CancelAppointmentPayload {
+  appointmentId: string
+}
+
 export interface AppointmentRecord {
   id: string
+  slotId: string
   providerName: string
   providerInitials: string
   specialty: string
@@ -199,9 +204,35 @@ const MOCK_SLOTS: AvailabilitySlot[] = [
   },
 ]
 
+const MOCK_APPOINTMENTS: AppointmentRecord[] = [
+  {
+    id: 'appt-001',
+    slotId: 'slot-900',
+    providerName: 'Dr. Sarah Chen',
+    providerInitials: 'SC',
+    specialty: 'Internal Medicine',
+    date: '2025-01-27',
+    startTime: '09:00',
+    durationMinutes: 30,
+    status: 'Scheduled',
+    patientEmail: 'patient@example.com',
+  },
+]
+
 const mockLockedSlotIds = new Set<string>()
 
 const mockBookingApi = {
+  async getAppointment(appointmentId: string): Promise<AppointmentRecord> {
+    await wait(200)
+
+    const record = MOCK_APPOINTMENTS.find((appt) => appt.id === appointmentId)
+    if (!record) {
+      throw new BookingError('Appointment not found', 'NOT_FOUND', 404)
+    }
+
+    return { ...record }
+  },
+
   async searchSlots(params: SlotSearchParams): Promise<AvailabilitySlot[]> {
     await wait()
 
@@ -276,6 +307,7 @@ const mockBookingApi = {
 
     return {
       id: `appt-${Date.now()}`,
+      slotId: slot.id,
       providerName: slot.providerName,
       providerInitials: slot.providerInitials,
       specialty: slot.specialty,
@@ -286,9 +318,47 @@ const mockBookingApi = {
       patientEmail: 'patient@example.com',
     }
   },
+
+  async cancelAppointment({ appointmentId }: CancelAppointmentPayload): Promise<AppointmentRecord> {
+    await wait(250)
+
+    const record = MOCK_APPOINTMENTS.find((appt) => appt.id === appointmentId)
+    if (!record) {
+      throw new BookingError('Appointment not found', 'NOT_FOUND', 404)
+    }
+
+    if (record.status === 'Cancelled') {
+      return { ...record }
+    }
+
+    if (mockLockedSlotIds.has(record.slotId)) {
+      throw new BookingError(
+        'This slot is temporarily held by another user. Please try again in a moment.',
+        'SLOT_LOCKED',
+        409,
+      )
+    }
+
+    const releasedSlot = MOCK_SLOTS.find((slot) => slot.id === record.slotId)
+    if (releasedSlot) {
+      releasedSlot.isAvailable = true
+      releasedSlot.isLocked = false
+    }
+
+    record.status = 'Cancelled'
+    return { ...record }
+  },
 }
 
 export const bookingApi = {
+  async getAppointment(appointmentId: string): Promise<AppointmentRecord> {
+    if (USE_MOCK_BOOKING || !API_BASE_URL) {
+      return mockBookingApi.getAppointment(appointmentId)
+    }
+
+    return getJson<AppointmentRecord>(`/api/appointments/${appointmentId}`)
+  },
+
   async searchSlots(params: SlotSearchParams): Promise<AvailabilitySlot[]> {
     if (USE_MOCK_BOOKING || !API_BASE_URL) {
       return mockBookingApi.searchSlots(params)
@@ -317,5 +387,13 @@ export const bookingApi = {
     }
 
     return postJson<AppointmentRecord>('/api/appointments', payload)
+  },
+
+  async cancelAppointment(payload: CancelAppointmentPayload): Promise<AppointmentRecord> {
+    if (USE_MOCK_BOOKING || !API_BASE_URL) {
+      return mockBookingApi.cancelAppointment(payload)
+    }
+
+    return postJson<AppointmentRecord>(`/api/appointments/${payload.appointmentId}/cancel`, {})
   },
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { SlotCard } from '../../components/booking/SlotCard'
 import {
   BookingError,
@@ -59,11 +59,12 @@ const formatSlotSummary = (slot: AvailabilitySlot): string => {
 
 export const AppointmentSearchPage = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
-  const [provider, setProvider] = useState('')
-  const [specialty, setSpecialty] = useState('')
-  const [from, setFrom] = useState('')
-  const [to, setTo] = useState('')
+  const [provider, setProvider] = useState(() => searchParams.get('provider') ?? '')
+  const [specialty, setSpecialty] = useState(() => searchParams.get('specialty') ?? '')
+  const [from, setFrom] = useState(() => searchParams.get('from') ?? '')
+  const [to, setTo] = useState(() => searchParams.get('to') ?? '')
 
   const [searchState, setSearchState] = useState<SearchState>('idle')
   const [slots, setSlots] = useState<AvailabilitySlot[]>([])

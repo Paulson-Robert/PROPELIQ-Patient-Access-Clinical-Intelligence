@@ -97,6 +97,75 @@ public sealed class AppointmentsController : ControllerBase
         return Ok(result.Appointment);
     }
 
+    // -------------------------------------------------------------------------
+    // POST /api/appointments/{appointmentId}/cancel
+    // AC-01: Cancel appointment, release slot, trigger swap + calendar sync
+    // -------------------------------------------------------------------------
+    [HttpPost("{appointmentId:guid}/cancel")]
+    public async Task<ActionResult<AppointmentMutationDto>> CancelAppointment(
+        [FromRoute] Guid appointmentId,
+        CancellationToken cancellationToken)
+    {
+        var patientUserId = GetCurrentUserId();
+        if (patientUserId is null)
+            return Unauthorized();
+
+        var result = await _mediator
+            .Send(new CancelAppointmentCommand(appointmentId, patientUserId.Value), cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!result.Success)
+        {
+            return result.FailureCode switch
+            {
+                "NOT_FOUND" => NotFound(new { code = result.FailureCode, message = result.FailureReason }),
+                "CONFLICT" => Conflict(new { code = result.FailureCode, message = result.FailureReason }),
+                _ => StatusCode(500, new { code = "CANCEL_FAILED", message = result.FailureReason }),
+            };
+        }
+
+        return Ok(result.Appointment);
+    }
+
+    // -------------------------------------------------------------------------
+    // PUT /api/appointments/{appointmentId}/reschedule
+    // AC-02: Atomic old-slot release + new-slot booking with rollback on failure
+    // -------------------------------------------------------------------------
+    [HttpPut("{appointmentId:guid}/reschedule")]
+    public async Task<ActionResult<AppointmentMutationDto>> RescheduleAppointment(
+        [FromRoute] Guid appointmentId,
+        [FromBody] RescheduleAppointmentRequest request,
+        CancellationToken cancellationToken)
+    {
+        var patientUserId = GetCurrentUserId();
+        if (patientUserId is null)
+            return Unauthorized();
+
+        var result = await _mediator
+            .Send(
+                new RescheduleAppointmentCommand(
+                    appointmentId,
+                    request.NewSlotId,
+                    request.LockToken,
+                    patientUserId.Value),
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!result.Success)
+        {
+            return result.FailureCode switch
+            {
+                "NOT_FOUND" => NotFound(new { code = result.FailureCode, message = result.FailureReason }),
+                "LOCK_EXPIRED" => Conflict(new { code = result.FailureCode, message = result.FailureReason }),
+                "SLOT_UNAVAILABLE" => Conflict(new { code = result.FailureCode, message = result.FailureReason }),
+                "SAME_SLOT" => Conflict(new { code = result.FailureCode, message = result.FailureReason }),
+                _ => StatusCode(500, new { code = "RESCHEDULE_FAILED", message = result.FailureReason }),
+            };
+        }
+
+        return Ok(result.Appointment);
+    }
+
     private Guid? GetCurrentUserId()
     {
         var sub = User.FindFirstValue(ClaimTypes.NameIdentifier)
@@ -107,3 +176,4 @@ public sealed class AppointmentsController : ControllerBase
 }
 
 public sealed record ConfirmBookingRequest(Guid SlotId, string LockToken);
+public sealed record RescheduleAppointmentRequest(Guid NewSlotId, string LockToken);
