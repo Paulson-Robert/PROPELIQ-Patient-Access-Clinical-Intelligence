@@ -43,6 +43,8 @@ public static class SecurityHeadersConfig
             context.Response.Headers["X-Frame-Options"] = "DENY";
             context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
             context.Response.Headers["X-Permitted-Cross-Domain-Policies"] = "none";
+            context.Response.Headers["Content-Security-Policy"] =
+                "default-src 'none'; frame-ancestors 'none'; form-action 'self'";
             await next().ConfigureAwait(false);
         });
 

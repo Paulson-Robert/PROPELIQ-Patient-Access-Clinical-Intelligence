@@ -62,7 +62,7 @@ Implement Redis sliding window rate limiting middleware with HTTP 429 responses 
 
 ## Implementation Checklist
 
-- [ ] Implement Redis sliding window rate limiting (AC-01)
-- [ ] Return HTTP 429 with Retry-After header (AC-02)
-- [ ] Add security headers (X-Content-Type-Options, X-Frame-Options, CSP) (AC-03)
-- [ ] Fail-open with logging on Redis unavailability (Edge Cases)
+- [x] Implement Redis sliding window rate limiting (AC-01)
+- [x] Return HTTP 429 with Retry-After header (AC-02)
+- [x] Add security headers (X-Content-Type-Options, X-Frame-Options, CSP) (AC-03)
+- [x] Fail-open with logging on Redis unavailability (Edge Cases)

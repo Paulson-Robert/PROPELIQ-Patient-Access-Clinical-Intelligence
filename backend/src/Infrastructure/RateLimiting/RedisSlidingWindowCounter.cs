@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -159,8 +160,12 @@ public static class RateLimitingMiddlewareExtensions
                 return;
             }
 
-            // Use forwarded IP when behind a reverse proxy; fall back to remote address.
-            var clientId = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            // Prefer authenticated user ID for per-user limiting; fall back to IP for anonymous traffic.
+            var clientId = context.User.Identity?.IsAuthenticated == true
+                ? context.User.FindFirstValue(ClaimTypes.NameIdentifier)
+                    ?? context.Connection.RemoteIpAddress?.ToString()
+                    ?? "unknown"
+                : context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             var endpoint = context.Request.Path.Value ?? "/";
 
             var result = await counter.CheckAsync(clientId, endpoint, context.RequestAborted);
