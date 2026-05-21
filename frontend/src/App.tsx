@@ -13,6 +13,7 @@ import { LoginPage } from './pages/auth/LoginPage'
 import { MfaSetupPage } from './pages/auth/MfaSetupPage'
 import { MfaVerificationPage } from './pages/auth/MfaVerificationPage'
 import { PasswordResetPage } from './pages/auth/PasswordResetPage'
+import { AiIntakePage } from './pages/intake/AiIntakePage'
 
 const DashboardPage = () => {
   const { role = 'patient' } = useParams<{ role: string }>()
@@ -56,6 +57,7 @@ function App() {
           <Route path="/queue/same-day" element={<SameDayQueuePage />} />
           <Route path="/booking/appointments/:appointmentId" element={<AppointmentDetailPage />} />
           <Route path="/booking/confirm" element={<BookingConfirmationPage />} />
+          <Route path="/intake/ai" element={<AiIntakePage />} />
           <Route path="*" element={<Navigate to="/auth/login" replace />} />
         </Routes>
       </AuthProvider>
