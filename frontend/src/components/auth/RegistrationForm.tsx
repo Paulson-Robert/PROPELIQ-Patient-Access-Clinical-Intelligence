@@ -1,4 +1,6 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
+import { isPasswordComplexityValid } from '../../utils/passwordValidation'
+import { PasswordInput } from './PasswordInput'
 
 interface RegistrationFormValues {
   email: string
@@ -12,34 +14,6 @@ interface RegistrationFormProps {
   onSubmit: (values: RegistrationFormValues) => Promise<void>
 }
 
-const passwordCriteria = [
-  {
-    id: 'length',
-    label: 'At least 8 characters',
-    test: (value: string) => value.length >= 8,
-  },
-  {
-    id: 'uppercase',
-    label: 'Contains an uppercase letter',
-    test: (value: string) => /[A-Z]/.test(value),
-  },
-  {
-    id: 'lowercase',
-    label: 'Contains a lowercase letter',
-    test: (value: string) => /[a-z]/.test(value),
-  },
-  {
-    id: 'number',
-    label: 'Contains a number',
-    test: (value: string) => /\d/.test(value),
-  },
-  {
-    id: 'special',
-    label: 'Contains a special character',
-    test: (value: string) => /[^A-Za-z0-9]/.test(value),
-  },
-]
-
 export const RegistrationForm = ({
   isSubmitting,
   onSubmit,
@@ -52,16 +26,7 @@ export const RegistrationForm = ({
   })
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const passwordValidation = useMemo(
-    () =>
-      passwordCriteria.map((criteria) => ({
-        ...criteria,
-        passed: criteria.test(values.password),
-      })),
-    [values.password],
-  )
-
-  const isPasswordValid = passwordValidation.every((item) => item.passed)
+  const isPasswordValid = isPasswordComplexityValid(values.password)
 
   const onFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -113,34 +78,17 @@ export const RegistrationForm = ({
         />
       </div>
 
-      <div className="space-y-1">
-        <label htmlFor="register-password" className="text-sm font-medium">
-          Password
-        </label>
-        <input
-          id="register-password"
-          type="password"
-          className="min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          placeholder="Create a strong password"
-          value={values.password}
-          onChange={(event) =>
-            setValues((previous) => ({ ...previous, password: event.target.value }))
-          }
-          autoComplete="new-password"
-          required
-        />
-
-        <ul className="space-y-1" aria-label="Password requirements">
-          {passwordValidation.map((criteria) => (
-            <li
-              key={criteria.id}
-              className={`text-xs ${criteria.passed ? 'text-green-700' : 'text-muted-foreground'}`}
-            >
-              {criteria.label}
-            </li>
-          ))}
-        </ul>
-      </div>
+      <PasswordInput
+        id="register-password"
+        label="Password"
+        value={values.password}
+        onChange={(nextValue) =>
+          setValues((previous) => ({ ...previous, password: nextValue }))
+        }
+        placeholder="Create a strong password"
+        autoComplete="new-password"
+        required
+      />
 
       <div className="space-y-1">
         <label htmlFor="register-confirm-password" className="text-sm font-medium">

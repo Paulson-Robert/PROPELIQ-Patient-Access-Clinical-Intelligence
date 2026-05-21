@@ -1,4 +1,6 @@
 using API.Filters;
+using API.Authorization;
+using API.Middleware;
 using Application;
 using Hangfire;
 using Infrastructure;
@@ -52,6 +54,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 // Add authentication services (JWT + OpenIddict + OAuth handlers)
 builder.Services.AddOpenIddictAuthentication(builder.Configuration);
+builder.Services.AddRoleAuthorizationPolicies();
 
 // Add Hangfire background job processing with PostgreSQL storage
 builder.Services.AddHangfireBackgroundJobs(builder.Configuration);
@@ -174,6 +177,7 @@ app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks
 app.UseHttpsRedirection();
 app.UseCors("FrontendDev");
 app.UseAuthentication();
+app.UseSessionSlidingExpiry();
 app.UseAuthorization();
 
 // Hangfire dashboard — authenticated Admin-only at /hangfire (unauthenticated → 401)

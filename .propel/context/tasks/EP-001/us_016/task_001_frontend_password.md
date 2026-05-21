@@ -73,11 +73,11 @@ Implement password complexity inline validation in the registration and password
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — validation rules, component rendering
+- [x] Unit tests pass — validation rules, component rendering
 
 ## Implementation Checklist
 
-- [ ] Create password validation utility enforcing all complexity requirements (AC-01)
-- [ ] Create PasswordInput component showing inline requirement indicators (AC-01)
-- [ ] Create PasswordResetPage matching SCR-029 wireframe (AC-01)
-- [ ] Integrate complexity validation into registration and reset forms (AC-01)
+- [x] Create password validation utility enforcing all complexity requirements (AC-01)
+- [x] Create PasswordInput component showing inline requirement indicators (AC-01)
+- [x] Create PasswordResetPage matching SCR-029 wireframe (AC-01)
+- [x] Integrate complexity validation into registration and reset forms (AC-01)

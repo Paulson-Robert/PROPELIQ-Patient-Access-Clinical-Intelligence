@@ -80,14 +80,14 @@ Implement MFA verification page (SCR-026) with TOTP/SMS code input, countdown ti
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — code input validation, attempt counter
-- [ ] Integration tests pass — MFA flow navigation
+- [x] Unit tests pass — code input validation, attempt counter
+- [x] Integration tests pass — MFA flow navigation
 
 ## Implementation Checklist
 
-- [ ] Create MfaVerificationPage with 6-digit input and 30-second countdown (AC-01, AC-02)
-- [ ] Create MfaSetupPage with QR code rendering and manual key display (AC-03)
-- [ ] Implement 3-attempt lockout with session termination and error message (AC-04)
-- [ ] Implement expired code handling with "Request new code" button (AC-05)
-- [ ] Display deactivated account rejection message (AC-06)
-- [ ] Connect MFA pages to backend verification endpoints (AC-01, AC-02)
+- [x] Create MfaVerificationPage with 6-digit input and 30-second countdown (AC-01, AC-02)
+- [x] Create MfaSetupPage with QR code rendering and manual key display (AC-03)
+- [x] Implement 3-attempt lockout with session termination and error message (AC-04)
+- [x] Implement expired code handling with "Request new code" button (AC-05)
+- [x] Display deactivated account rejection message (AC-06)
+- [x] Connect MFA pages to backend verification endpoints (AC-01, AC-02)

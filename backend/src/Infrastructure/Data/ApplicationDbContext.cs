@@ -83,6 +83,10 @@ public class ApplicationDbContext : DbContext
             modelBuilder.Entity<User>()
                 .Property(u => u.MfaSecret)
                 .HasConversion(nullableStringConverter);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.MfaPhoneNumber)
+                .HasConversion(nullableStringConverter);
         }
     }
 }

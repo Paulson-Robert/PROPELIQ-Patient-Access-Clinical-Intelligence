@@ -841,11 +841,29 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<int>("FailedLoginAttempts")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<DateTime?>("LastFailedLoginAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LockedUntilUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<bool>("MfaEnabled")
                         .HasColumnType("boolean");
+
+                    b.Property<int>("MfaMethod")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("MfaPhoneNumber")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
 
                     b.Property<string>("MfaSecret")
                         .HasMaxLength(512)
@@ -854,6 +872,9 @@ namespace Infrastructure.Migrations
                     b.Property<string>("PasswordHash")
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
+
+                    b.Property<DateTime?>("PasswordUpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer");
@@ -867,6 +888,8 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("LockedUntilUtc");
 
                     b.ToTable("Users");
                 });
