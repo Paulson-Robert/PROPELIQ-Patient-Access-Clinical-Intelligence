@@ -45,9 +45,9 @@ Implement metrics aggregation endpoint returning KPIs and trend data grouped by 
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — aggregation accuracy
+- [x] Unit tests pass — aggregation accuracy
 
 ## Implementation Checklist
 
-- [ ] Create metrics aggregation endpoint with date range (AC-01)
-- [ ] Group trend data by day/week/month (AC-02)
+- [x] Create metrics aggregation endpoint with date range (AC-01)
+- [x] Group trend data by day/week/month (AC-02)
