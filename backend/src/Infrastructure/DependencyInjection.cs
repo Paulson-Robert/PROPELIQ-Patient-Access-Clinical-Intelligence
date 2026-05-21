@@ -7,7 +7,9 @@ using Infrastructure.Data;
 using Infrastructure.Data.Options;
 using Infrastructure.Jobs;
 using Infrastructure.Locking;
+using Infrastructure.ML;
 using Infrastructure.Notifications;
+using Infrastructure.Parsers;
 using Infrastructure.RateLimiting;
 using Infrastructure.Security;
 using Infrastructure.Services;
@@ -163,6 +165,22 @@ public static class DependencyInjection
         services.AddScoped<IDocumentDeletionService, DocumentDeletionService>();
         services.AddScoped<PatientViewAggregationJob>();
         services.AddScoped<RetentionCleanupJob>();
+
+        // NER clinical entity extraction pipeline (US_035, TR-010)
+        services.AddOptions<NerModelOptions>()
+            .BindConfiguration(NerModelOptions.SectionName);
+        services.AddSingleton<INerModelService, NerModelService>();
+        services.AddScoped<INerTrainingPipeline, NerTrainingPipeline>();
+
+        // Document parsers — format-specific text extractors for NER pipeline (US_035, NFR-011)
+        services.AddOptions<TesseractOptions>()
+            .BindConfiguration(TesseractOptions.SectionName);
+        services.AddSingleton<IDocumentParser, PdfDocumentParser>();
+        services.AddSingleton<IDocumentParser, DocxDocumentParser>();
+        services.AddSingleton<IDocumentParser, OcrDocumentParser>();
+        services.AddSingleton<IDocumentParser, DicomDocumentParser>();
+        services.AddSingleton<IDocumentParser, FhirDocumentParser>();
+        services.AddSingleton<IDocumentParserFactory, DocumentParserFactory>();
 
         return services;
     }

@@ -1,5 +1,6 @@
 using Domain.Entities;
 using Domain.Enums;
+using FileFormat = Domain.Enums.DocumentFormat;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,7 +36,7 @@ public static class ClinicalDataSeeder
             DocumentId = SeedDataConstants.ClinicalDocumentId,
             PatientProfileId = patientProfileId,
             FileName = "seed-labs-2026-01.pdf",
-            FileFormat = DocumentFormat.Pdf,
+            FileFormat = FileFormat.Pdf,
             FileSizeBytes = 245_760,
             StoragePath = "seed/patient-records/seed-labs-2026-01.pdf",
             MalwareScanStatus = MalwareScanStatus.Clean,

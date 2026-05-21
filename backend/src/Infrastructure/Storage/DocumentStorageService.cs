@@ -2,6 +2,7 @@ using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
 using Hangfire;
+using FileFormat = Domain.Enums.DocumentFormat;
 using Infrastructure.Data;
 using Infrastructure.Jobs;
 using Microsoft.EntityFrameworkCore;
@@ -25,15 +26,15 @@ namespace Infrastructure.Storage;
 public sealed class DocumentStorageService : IDocumentStorageService
 {
     // AC-02: permitted formats keyed by lower-cased extension → domain enum value.
-    private static readonly Dictionary<string, DocumentFormat> AllowedExtensions =
+    private static readonly Dictionary<string, FileFormat> AllowedExtensions =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            [".pdf"]  = DocumentFormat.Pdf,
-            [".docx"] = DocumentFormat.Docx,
-            [".jpg"]  = DocumentFormat.Jpg,
-            [".jpeg"] = DocumentFormat.Jpg,
-            [".png"]  = DocumentFormat.Png,
-            [".dcm"]  = DocumentFormat.Dicom,
+            [".pdf"]  = FileFormat.Pdf,
+            [".docx"] = FileFormat.Docx,
+            [".jpg"]  = FileFormat.Jpg,
+            [".jpeg"] = FileFormat.Jpg,
+            [".png"]  = FileFormat.Png,
+            [".dcm"]  = FileFormat.Dicom,
         };
 
     private readonly ApplicationDbContext _db;

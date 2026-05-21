@@ -76,10 +76,10 @@ Implement format-specific document parsers (PDF via iText7, DOCX via OpenXml, im
 
 ## Implementation Checklist
 
-- [ ] Create IDocumentParser interface (AC-01-05)
-- [ ] Implement PDF parser via iText7 (AC-01)
-- [ ] Implement DOCX parser via DocumentFormat.OpenXml (AC-02)
-- [ ] Implement OCR parser via Tesseract.NET (AC-03)
-- [ ] Implement DICOM metadata extractor (AC-04)
-- [ ] Implement FHIR document parser (AC-05)
-- [ ] Handle corrupt files with error logging (Edge Cases)
+- [x] Create IDocumentParser interface (AC-01-05)
+- [x] Implement PDF parser via iText7 (AC-01)
+- [x] Implement DOCX parser via DocumentFormat.OpenXml (AC-02)
+- [x] Implement OCR parser via Tesseract.NET (AC-03)
+- [x] Implement DICOM metadata extractor (AC-04)
+- [x] Implement FHIR document parser (AC-05)
+- [x] Handle corrupt files with error logging (Edge Cases)
