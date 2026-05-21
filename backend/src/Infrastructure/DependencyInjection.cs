@@ -83,10 +83,15 @@ public static class DependencyInjection
                 .Validate(options => options.WindowSeconds > 0, "RateLimitOptions.WindowSeconds must be greater than 0.")
                 .ValidateOnStart();
             services.AddSingleton<RedisSlidingWindowCounter>();
+
+            // Swap engine: Redis sorted set queue + FCFS engine (DR-002, US-019).
+            services.AddScoped<ISwapQueueService, SwapQueueService>();
+            services.AddScoped<ISwapEngineService, SwapEngineService>();
         }
         else
         {
             // Degraded mode: no Redis configured — serve entirely from in-memory cache (AC-05).
+            // Swap engine is unavailable without Redis (DR-002).
             services.AddSingleton<ICacheService, InMemoryCacheService>();
             services.AddScoped<ISessionService, SessionService>();
             services.AddSingleton<ISlotLockService, InMemorySlotLockService>();

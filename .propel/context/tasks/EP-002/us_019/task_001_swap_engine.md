@@ -73,14 +73,14 @@ Implement the preferred slot swap engine: patients register preferred slots, can
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — FCFS ordering, swap matching logic
+- [x] Unit tests pass — FCFS ordering, swap matching logic
 
 ## Implementation Checklist
 
-- [ ] Create Redis sorted set swap queue with timestamp-based ordering (AC-01, AC-02)
-- [ ] Create RegisterSwapPreferenceCommand adding patient to queue (AC-01)
-- [ ] Create SlotCancelledHandler triggering swap engine (AC-03)
-- [ ] Implement FCFS matching assigning slot to earliest queued patient (AC-02)
-- [ ] Execute auto-swap booking and notify staff (AC-03, AC-04)
-- [ ] Send patient confirmation on completed swap (AC-05)
-- [ ] Handle patient cancellation of swap request (Edge Cases)
+- [x] Create Redis sorted set swap queue with timestamp-based ordering (AC-01, AC-02)
+- [x] Create RegisterSwapPreferenceCommand adding patient to queue (AC-01)
+- [x] Create SlotCancelledHandler triggering swap engine (AC-03)
+- [x] Implement FCFS matching assigning slot to earliest queued patient (AC-02)
+- [x] Execute auto-swap booking and notify staff (AC-03, AC-04)
+- [x] Send patient confirmation on completed swap (AC-05)
+- [x] Handle patient cancellation of swap request (Edge Cases)
