@@ -282,7 +282,13 @@ const STEP_DESCRIPTIONS = [
 // Page component
 // ---------------------------------------------------------------------------
 
-export const ManualIntakePage = () => {
+interface ManualIntakePageProps {
+  /** When provided, the AI assistant toggle calls this callback instead of
+   *  navigating to /intake/ai — used by the parent IntakePage (AC-01). */
+  onSwitchToAi?: () => void
+}
+
+export const ManualIntakePage = ({ onSwitchToAi }: ManualIntakePageProps = {}) => {
   const navigate = useNavigate()
 
   const [currentStep, setCurrentStep] = useState(0)
@@ -416,12 +422,22 @@ export const ManualIntakePage = () => {
             className="ml-auto flex items-center gap-1 rounded-lg border border-border bg-background p-1"
             aria-label="Intake mode"
           >
-            <a
-              href="/intake/ai"
-              className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              AI assistant
-            </a>
+            {onSwitchToAi ? (
+              <button
+                type="button"
+                className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onClick={onSwitchToAi}
+              >
+                AI assistant
+              </button>
+            ) : (
+              <a
+                href="/intake/ai"
+                className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                AI assistant
+              </a>
+            )}
             <span
               className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground"
               aria-current="page"
