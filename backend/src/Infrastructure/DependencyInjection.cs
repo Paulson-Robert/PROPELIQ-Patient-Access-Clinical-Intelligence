@@ -10,6 +10,7 @@ using Infrastructure.Locking;
 using Infrastructure.Notifications;
 using Infrastructure.RateLimiting;
 using Infrastructure.Services;
+using Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -145,6 +146,11 @@ public static class DependencyInjection
 
         // Manual intake orchestration (US_030)
         services.AddScoped<IManualIntakeService, ManualIntakeService>();
+
+        // Document upload and storage (US_032)
+        services.AddOptions<DocumentStorageOptions>()
+            .BindConfiguration(DocumentStorageOptions.SectionName);
+        services.AddScoped<IDocumentStorageService, DocumentStorageService>();
 
         return services;
     }
