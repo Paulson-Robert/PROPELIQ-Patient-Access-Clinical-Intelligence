@@ -1,8 +1,10 @@
+using Application.EventHandlers;
 using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
 using Hangfire;
 using Infrastructure.Data;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
@@ -24,17 +26,20 @@ public sealed class BookingConfirmationService : IBookingConfirmationService
     private readonly ApplicationDbContext _db;
     private readonly ISlotLockService _slotLock;
     private readonly IBackgroundJobClient _jobClient;
+    private readonly IPublisher _publisher;
     private readonly ILogger<BookingConfirmationService> _logger;
 
     public BookingConfirmationService(
         ApplicationDbContext db,
         ISlotLockService slotLock,
         IBackgroundJobClient jobClient,
+        IPublisher publisher,
         ILogger<BookingConfirmationService> logger)
     {
         _db = db;
         _slotLock = slotLock;
         _jobClient = jobClient;
+        _publisher = publisher;
         _logger = logger;
     }
 
@@ -151,6 +156,11 @@ public sealed class BookingConfirmationService : IBookingConfirmationService
         // Enqueue PDF generation and email delivery (AC-04, Edge Case: PDF failure queued for retry)
         _jobClient.Enqueue<IBookingPdfService>(
             svc => svc.GenerateAndDeliverAsync(appointment.AppointmentId, CancellationToken.None));
+
+        // Trigger no-show risk scoring on appointment creation (US_041, AC-01, AC-03)
+        await _publisher
+            .Publish(new AppointmentRiskScoreRequested(appointment.AppointmentId), cancellationToken)
+            .ConfigureAwait(false);
 
         _logger.LogInformation(
             "Booking confirmed. AppointmentId={AppointmentId}, SlotId={SlotId}, PatientId={PatientId}.",
