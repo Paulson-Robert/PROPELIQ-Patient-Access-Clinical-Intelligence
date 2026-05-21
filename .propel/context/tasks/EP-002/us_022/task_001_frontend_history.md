@@ -67,11 +67,11 @@ Implement appointment history page (SCR-016) with status badges, pagination (10/
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — badge rendering, pagination logic
+- [x] Unit tests pass — badge rendering, pagination logic
 
 ## Implementation Checklist
 
-- [ ] Create StatusBadge with Confirmed/Cancelled/Completed/No-Show variants (AC-01)
-- [ ] Create AppointmentHistoryPage with paginated list (AC-02)
-- [ ] Implement status and date range filters (AC-03)
-- [ ] Handle empty state with "No appointments yet" and book action (Edge Cases)
+- [x] Create StatusBadge with Confirmed/Cancelled/Completed/No-Show variants (AC-01)
+- [x] Create AppointmentHistoryPage with paginated list (AC-02)
+- [x] Implement status and date range filters (AC-03)
+- [x] Handle empty state with "No appointments yet" and book action (Edge Cases)
