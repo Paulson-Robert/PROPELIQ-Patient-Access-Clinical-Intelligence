@@ -54,6 +54,6 @@ Implement notification persistence, paginated history query, and mark-as-read en
 
 ## Implementation Checklist
 
-- [ ] Create notification persistence command (AC-01)
-- [ ] Create paginated notification history query (AC-02)
-- [ ] Create mark-as-read command (AC-03)
+- [x] Create notification persistence command (AC-01)
+- [x] Create paginated notification history query (AC-02)
+- [x] Create mark-as-read command (AC-03)

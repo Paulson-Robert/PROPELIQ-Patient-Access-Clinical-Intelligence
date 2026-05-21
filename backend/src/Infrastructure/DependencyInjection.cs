@@ -123,6 +123,9 @@ public static class DependencyInjection
         services.AddScoped<IOutlookCalendarTokenStore, OutlookCalendarTokenStore>();
         services.AddScoped<OutlookCalendarSyncJob>();
 
+        // Staff notification persistence (US_028)
+        services.AddScoped<IStaffNotificationService, StaffNotificationService>();
+
         return services;
     }
 }
