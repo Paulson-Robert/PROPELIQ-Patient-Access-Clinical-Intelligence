@@ -143,6 +143,9 @@ public static class DependencyInjection
         services.AddScoped<IDeIdentificationService, DeIdentificationService>();
         services.AddScoped<IAiIntakePersistenceService, AiIntakePersistenceService>();
 
+        // Manual intake orchestration (US_030)
+        services.AddScoped<IManualIntakeService, ManualIntakeService>();
+
         return services;
     }
 }

@@ -70,7 +70,7 @@ Implement manual intake multi-step form (SCR-010) with inline validation, step p
 
 ## Implementation Checklist
 
-- [ ] Create multi-step form with inline validation (AC-01)
-- [ ] Create IntakeStepper showing current position (AC-02)
-- [ ] Implement draft saving between steps (AC-03)
-- [ ] Preserve draft on browser close via localStorage (Edge Cases)
+- [x] Create multi-step form with inline validation (AC-01)
+- [x] Create IntakeStepper showing current position (AC-02)
+- [x] Implement draft saving between steps (AC-03)
+- [x] Preserve draft on browser close via localStorage (Edge Cases)
