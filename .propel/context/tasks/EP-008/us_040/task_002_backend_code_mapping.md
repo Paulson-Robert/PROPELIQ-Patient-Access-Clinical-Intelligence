@@ -52,12 +52,12 @@ Implement ICD-10/CPT code mapping using rule-based + ML.NET approach, with confi
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass — mapping accuracy, verification persistence
+- [x] Unit tests pass — mapping accuracy, verification persistence
 
 ## Implementation Checklist
 
-- [ ] Implement rule-based + ML.NET code mapping (AC-01)
-- [ ] Assign confidence score to each mapping (AC-02)
-- [ ] Create verification endpoint for verify/modify/reject (AC-03)
-- [ ] Log modifications with reason for audit (AC-04)
-- [ ] Return multiple ranked suggestions for ambiguous diagnoses (Edge Cases)
+- [x] Implement rule-based + ML.NET code mapping (AC-01)
+- [x] Assign confidence score to each mapping (AC-02)
+- [x] Create verification endpoint for verify/modify/reject (AC-03)
+- [x] Log modifications with reason for audit (AC-04)
+- [x] Return multiple ranked suggestions for ambiguous diagnoses (Edge Cases)
