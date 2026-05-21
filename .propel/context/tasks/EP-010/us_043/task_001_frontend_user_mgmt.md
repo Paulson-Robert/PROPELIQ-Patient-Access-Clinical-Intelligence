@@ -66,7 +66,7 @@ Implement user management page (SCR-023) for admins with CRUD operations, role a
 
 ## Implementation Checklist
 
-- [ ] Create user management table with create/edit/deactivate actions (AC-01)
-- [ ] Implement role assignment dropdown (AC-02)
-- [ ] Create deactivation dialog (MOD-004) preventing login (AC-03)
-- [ ] Prevent admin self-deactivation (Edge Cases)
+- [x] Create user management table with create/edit/deactivate actions (AC-01)
+- [x] Implement role assignment dropdown (AC-02)
+- [x] Create deactivation dialog (MOD-004) preventing login (AC-03)
+- [x] Prevent admin self-deactivation (Edge Cases)

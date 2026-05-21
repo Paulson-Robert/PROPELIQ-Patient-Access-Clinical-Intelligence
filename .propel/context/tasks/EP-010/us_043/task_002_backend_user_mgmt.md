@@ -54,7 +54,7 @@ Implement admin user management CRUD endpoints with role assignment and account 
 
 ## Implementation Checklist
 
-- [ ] Create user management CRUD endpoints (admin-only) (AC-01)
-- [ ] Persist role assignment (AC-02)
-- [ ] Implement deactivation preventing auth (AC-03)
-- [ ] Block self-deactivation server-side (Edge Cases)
+- [x] Create user management CRUD endpoints (admin-only) (AC-01)
+- [x] Persist role assignment (AC-02)
+- [x] Implement deactivation preventing auth (AC-03)
+- [x] Block self-deactivation server-side (Edge Cases)

@@ -861,6 +861,10 @@ namespace Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(0);
 
+                    b.Property<string>("FullName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 

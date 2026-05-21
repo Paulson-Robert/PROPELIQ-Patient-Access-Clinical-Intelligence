@@ -58,3 +58,26 @@ public sealed class RequestPasswordResetCodeCommandValidator : AbstractValidator
             .EmailAddress();
     }
 }
+
+public sealed class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
+{
+    public CreateUserCommandValidator()
+    {
+        RuleFor(c => c.Email)
+            .NotEmpty()
+            .EmailAddress();
+
+        RuleFor(c => c.Password)
+            .SetValidator(new PasswordComplexityValidator());
+    }
+}
+
+public sealed class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
+{
+    public UpdateUserCommandValidator()
+    {
+        RuleFor(c => c.Email)
+            .NotEmpty()
+            .EmailAddress();
+    }
+}
