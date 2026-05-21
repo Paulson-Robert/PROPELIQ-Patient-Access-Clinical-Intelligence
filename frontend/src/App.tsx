@@ -21,6 +21,7 @@ import { DocumentListPage } from './pages/documents/DocumentListPage'
 import { PatientViewPage } from './pages/clinical/PatientViewPage'
 import { CodeMappingPage } from './pages/clinical/CodeMappingPage'
 import { UserManagementPage } from './pages/admin/UserManagementPage'
+import { AuditLogPage } from './pages/admin/AuditLogPage'
 
 const DashboardPage = () => {
   const { role = 'patient' } = useParams<{ role: string }>()
@@ -72,6 +73,7 @@ function App() {
           <Route path="/clinical/patient/:patientId" element={<PatientViewPage />} />
           <Route path="/clinical/patient/:patientId/codes" element={<CodeMappingPage />} />
           <Route path="/admin/users" element={<UserManagementPage />} />
+          <Route path="/admin/audit-log" element={<AuditLogPage />} />
           <Route path="*" element={<Navigate to="/auth/login" replace />} />
         </Routes>
       </AuthProvider>

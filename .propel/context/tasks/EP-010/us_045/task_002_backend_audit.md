@@ -49,5 +49,5 @@ Implement paginated audit log query endpoint with date/actor/action filters and 
 
 ## Implementation Checklist
 
-- [ ] Create paginated audit log query with filters (AC-01)
-- [ ] Ensure indexed query performance (AC-02)
+- [x] Create paginated audit log query with filters (AC-01)
+- [x] Ensure indexed query performance (AC-02)
