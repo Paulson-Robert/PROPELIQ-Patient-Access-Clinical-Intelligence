@@ -89,7 +89,11 @@ public static class DependencyInjection
             // Degraded mode: no Redis configured — serve entirely from in-memory cache (AC-05).
             services.AddSingleton<ICacheService, InMemoryCacheService>();
             services.AddScoped<ISessionService, SessionService>();
+            services.AddSingleton<ISlotLockService, InMemorySlotLockService>();
         }
+
+        services.AddScoped<ISlotSearchService, SlotSearchService>();
+        services.AddScoped<IBookingConfirmationService, BookingConfirmationService>();
 
         return services;
     }
