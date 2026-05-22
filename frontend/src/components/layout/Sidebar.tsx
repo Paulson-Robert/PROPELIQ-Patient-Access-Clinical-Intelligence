@@ -43,7 +43,7 @@ export const Sidebar = ({ role }: SidebarProps) => {
                         : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                     )
                   }
-                  end={item.path === '/dashboard'}
+                  end={item.path.startsWith('/dashboard/')}
                 >
                   {({ isActive }) => (
                     <>
