@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Bell, Trash2 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import {
@@ -33,6 +33,7 @@ const HistoryItem = ({ notification }: HistoryItemProps) => (
       aria-hidden="true"
     />
     <div className="min-w-0 flex-1">
+      <span className="sr-only">Notification type: {notification.variant}. </span>
       <p className="text-sm font-medium leading-snug">{notification.title}</p>
       {notification.message && (
         <p className="mt-0.5 text-xs text-muted-foreground">{notification.message}</p>
@@ -50,6 +51,23 @@ const HistoryItem = ({ notification }: HistoryItemProps) => (
 export const NotificationHistory = () => {
   const [open, setOpen] = useState(false)
   const { history, clearHistory } = useNotifications()
+  const lastCountRef = useRef(history.length)
+  const [announcement, setAnnouncement] = useState('')
+
+  useEffect(() => {
+    if (history.length === lastCountRef.current) return
+
+    if (history.length === 0 && lastCountRef.current > 0) {
+      setAnnouncement('Notification history cleared.')
+    } else if (history.length > lastCountRef.current) {
+      const delta = history.length - lastCountRef.current
+      setAnnouncement(`${delta} new notification${delta > 1 ? 's' : ''} added. ${history.length} total.`)
+    } else {
+      setAnnouncement(`Notification count updated. ${history.length} total.`)
+    }
+
+    lastCountRef.current = history.length
+  }, [history.length])
 
   const badgeCount = history.length > BADGE_CAP ? `${BADGE_CAP}+` : String(history.length)
   const ariaLabel = history.length > 0
@@ -87,12 +105,12 @@ export const NotificationHistory = () => {
           />
           <div
             role="dialog"
-            aria-label="Notification history"
+            aria-labelledby="notification-history-title"
             aria-modal="true"
             className="absolute right-0 top-full z-50 mt-2 w-80 rounded-lg border border-border bg-card shadow-lg"
           >
             <header className="flex items-center justify-between border-b border-border px-4 py-3">
-              <h2 className="text-sm font-semibold">Notification History</h2>
+              <h2 id="notification-history-title" className="text-sm font-semibold">Notification History</h2>
               {history.length > 0 && (
                 <button
                   type="button"
@@ -123,6 +141,10 @@ export const NotificationHistory = () => {
           </div>
         </>
       )}
+
+      <p aria-live="polite" className="sr-only">
+        {announcement}
+      </p>
     </div>
   )
 }
