@@ -29,6 +29,9 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("ArrivalTimestamp")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("BookingType")
                         .HasColumnType("integer");
 
@@ -37,6 +40,14 @@ namespace Infrastructure.Migrations
 
                     b.Property<Guid>("CreatedByUserId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("InsurancePolicyNumber")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("InsuranceProvider")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<decimal?>("NoShowRiskScore")
                         .HasPrecision(5, 2)
@@ -54,14 +65,11 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("ProviderId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("SlotId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("ArrivalTimestamp")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<int?>("QueuePosition")
                         .HasColumnType("integer");
+
+                    b.Property<Guid>("SlotId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -72,7 +80,8 @@ namespace Infrastructure.Migrations
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid");
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("AppointmentId");
 
@@ -225,9 +234,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("character varying(4096)");
 
                     b.Property<int>("FailedLoginAttempts")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0);
+                        .HasColumnType("integer");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -850,6 +857,49 @@ namespace Infrastructure.Migrations
                     b.ToTable("PreferredSlotQueues");
                 });
 
+            modelBuilder.Entity("Domain.Entities.StaffNotification", b =>
+                {
+                    b.Property<Guid>("StaffNotificationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("StaffUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<int>("Variant")
+                        .HasColumnType("integer");
+
+                    b.HasKey("StaffNotificationId");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("StaffUserId");
+
+                    b.HasIndex("StaffUserId", "IsRead");
+
+                    b.ToTable("StaffNotifications");
+                });
+
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -873,8 +923,7 @@ namespace Infrastructure.Migrations
                         .HasDefaultValue(0);
 
                     b.Property<string>("FullName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -1164,6 +1213,17 @@ namespace Infrastructure.Migrations
                     b.Navigation("Appointment");
 
                     b.Navigation("PreferredSlot");
+                });
+
+            modelBuilder.Entity("Domain.Entities.StaffNotification", b =>
+                {
+                    b.HasOne("Domain.Entities.User", "Staff")
+                        .WithMany()
+                        .HasForeignKey("StaffUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Staff");
                 });
 
             modelBuilder.Entity("Domain.Entities.Appointment", b =>
