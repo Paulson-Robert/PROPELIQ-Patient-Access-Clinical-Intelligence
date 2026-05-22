@@ -52,13 +52,13 @@ Implement accessible error states with recovery actions, inline form validation,
 
 ## Implementation Validation Strategy
 
-- [ ] axe-core tests pass in CI
-- [ ] Unit tests pass — error rendering, retry logic
+- [x] axe-core tests pass in CI
+- [x] Unit tests pass — error rendering, retry logic
 
 ## Implementation Checklist
 
-- [ ] Create error states with clear recovery actions (AC-01)
-- [ ] Create InlineError with descriptive validation messages (AC-02)
-- [ ] Create ErrorBanner for network errors with retry (AC-03)
-- [ ] Integrate axe-core testing in CI pipeline (AC-04)
-- [ ] Handle multiple simultaneous errors with priority (Edge Cases)
+- [x] Create error states with clear recovery actions (AC-01)
+- [x] Create InlineError with descriptive validation messages (AC-02)
+- [x] Create ErrorBanner for network errors with retry (AC-03)
+- [x] Integrate axe-core testing in CI pipeline (AC-04)
+- [x] Handle multiple simultaneous errors with priority (Edge Cases)

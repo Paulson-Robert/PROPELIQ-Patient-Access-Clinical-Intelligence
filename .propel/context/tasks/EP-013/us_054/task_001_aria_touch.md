@@ -62,8 +62,8 @@ Implement ARIA labels/roles across all components, ensure 44x44px touch targets,
 
 ## Implementation Checklist
 
-- [ ] Add ARIA labels to all interactive elements (AC-01)
-- [ ] Add ARIA roles to custom components (AC-02)
-- [ ] Ensure 44x44px minimum touch targets (AC-03)
-- [ ] Add non-color information encoding (AC-04)
-- [ ] Add aria-live regions for dynamic content (Edge Cases)
+- [x] Add ARIA labels to all interactive elements (AC-01)
+- [x] Add ARIA roles to custom components (AC-02)
+- [x] Ensure 44x44px minimum touch targets (AC-03)
+- [x] Add non-color information encoding (AC-04)
+- [x] Add aria-live regions for dynamic content (Edge Cases)

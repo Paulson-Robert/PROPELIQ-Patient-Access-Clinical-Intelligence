@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { ArrowLeft, AlertTriangle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { cn } from '../../lib/utils'
@@ -264,6 +264,50 @@ const TAB_PANELS: Record<TabKey, JSX.Element> = {
 export const PatientViewPage = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('vitals')
   const patient = MOCK_PATIENT
+  const tabRefs = useRef<Record<TabKey, HTMLButtonElement | null>>({
+    vitals: null,
+    medications: null,
+    allergies: null,
+    diagnoses: null,
+    procedures: null,
+  })
+
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, tabKey: TabKey) => {
+    const currentIndex = TABS.findIndex((tab) => tab.key === tabKey)
+    if (currentIndex === -1) return
+
+    const nextTab = (offset: number) => {
+      const nextIndex = (currentIndex + offset + TABS.length) % TABS.length
+      const nextKey = TABS[nextIndex].key
+      setActiveTab(nextKey)
+      tabRefs.current[nextKey]?.focus()
+    }
+
+    switch (event.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+        event.preventDefault()
+        nextTab(1)
+        break
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        event.preventDefault()
+        nextTab(-1)
+        break
+      case 'Home':
+        event.preventDefault()
+        setActiveTab(TABS[0].key)
+        tabRefs.current[TABS[0].key]?.focus()
+        break
+      case 'End':
+        event.preventDefault()
+        setActiveTab(TABS[TABS.length - 1].key)
+        tabRefs.current[TABS[TABS.length - 1].key]?.focus()
+        break
+      default:
+        break
+    }
+  }
 
   return (
     <main className="min-h-screen bg-background text-foreground" id="main-content">
@@ -329,17 +373,23 @@ export const PatientViewPage = () => {
         <div
           role="tablist"
           aria-label="Patient data categories"
+          aria-orientation="horizontal"
           className="mb-4 flex gap-1 overflow-x-auto rounded-lg border border-border bg-muted/30 p-1"
         >
           {TABS.map(({ key, label }) => (
             <button
+              ref={(element) => {
+                tabRefs.current[key] = element
+              }}
               key={key}
               role="tab"
               aria-selected={activeTab === key}
               aria-controls={`tabpanel-${key}`}
               id={`tab-${key}`}
+              tabIndex={activeTab === key ? 0 : -1}
               type="button"
               onClick={() => setActiveTab(key)}
+              onKeyDown={(event) => handleTabKeyDown(event, key)}
               className={cn(
                 'whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring',
                 activeTab === key
@@ -357,9 +407,14 @@ export const PatientViewPage = () => {
           id={`tabpanel-${activeTab}`}
           role="tabpanel"
           aria-labelledby={`tab-${activeTab}`}
+          tabIndex={0}
         >
           {TAB_PANELS[activeTab]}
         </div>
+
+        <p className="sr-only" aria-live="polite">
+          Showing {TABS.find((tab) => tab.key === activeTab)?.label} data panel.
+        </p>
         </div>
       </div>
     </main>

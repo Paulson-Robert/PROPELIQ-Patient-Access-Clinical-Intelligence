@@ -309,3 +309,107 @@
   from { stroke-dashoffset: 0; }
   to { stroke-dashoffset: 188.5; }
 }
+
+/* --- WCAG 2.2 AA Focus Indicators (AC-02, AC-03) --- */
+/*
+ * Uses :focus-visible so indicators appear only for keyboard / sequential
+ * navigation, not on mouse/touch clicks (UXR-203).
+ * outline-offset: 2px satisfies the WCAG 2.2 focus-appearance criterion.
+ * Contrast: --ring = #1e40af on white (#fff) → 8.6:1 (well above 3:1).
+ */
+
+/* Remove any browser default that would hide the outline entirely */
+*:focus {
+  outline: none;
+}
+
+/* Provide a visible indicator only when navigating by keyboard */
+*:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Inputs and textareas: inset ring matches existing border treatment */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 20%, transparent);
+}
+
+/* Buttons and links: offset ring so focus is clearly outside the element */
+button:focus-visible,
+a:focus-visible,
+[role='button']:focus-visible,
+[role='link']:focus-visible,
+[role='menuitem']:focus-visible,
+[role='tab']:focus-visible,
+[role='option']:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Checkbox and radio: wrap the control with a square ring */
+[type='checkbox']:focus-visible,
+[type='radio']:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Dark-mode ring uses --ring which is already remapped in .dark */
+
+/* Respect reduced-motion: keep the ring visible but skip any ring transition */
+@media (prefers-reduced-motion: reduce) {
+  *:focus-visible {
+    transition: none;
+  }
+}
+
+/* --- Skip Navigation Link (AC-06) --- */
+/*
+ * Visually hidden until focused; appears at top-left on keyboard focus so
+ * a keyboard user can skip past the sidebar navigation (UXR-202).
+ */
+.skip-nav-link {
+  position: fixed;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: var(--z-toast);
+  padding: var(--space-2) var(--space-4);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border-radius: var(--radius);
+  text-decoration: none;
+  /* Hidden off-screen until focused */
+  transform: translateY(calc(-100% - var(--space-2)));
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.skip-nav-link:focus-visible {
+  transform: translateY(0);
+  outline: 2px solid var(--primary-foreground);
+  outline-offset: 2px;
+}
+
+/* --- Touch Target Minimum (AC-03, UXR-205) --- */
+@media (pointer: coarse) {
+  :where(
+    button,
+    [role='button'],
+    [role='tab'],
+    [role='menuitem'],
+    a[href],
+    input:not([type='hidden']),
+    select,
+    summary
+  ) {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
