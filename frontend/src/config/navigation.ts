@@ -23,7 +23,8 @@ export interface NavItem {
 
 // Single source of truth for all navigable routes and their role access rules
 export const NAV_ITEMS: ReadonlyArray<NavItem> = [
-  { label: 'Dashboard',      path: '/dashboard',         icon: LayoutDashboard, roles: ['patient', 'staff', 'admin'] },
+  { label: 'Dashboard',      path: '/dashboard/patient',  icon: LayoutDashboard, roles: ['patient', 'staff'] },
+  { label: 'Dashboard',      path: '/dashboard/admin',    icon: LayoutDashboard, roles: ['admin'] },
   { label: 'Appointments',   path: '/booking/history',   icon: Calendar,        roles: ['patient'] },
   { label: 'Book',           path: '/booking/search',    icon: Calendar,        roles: ['patient'] },
   { label: 'Intake',         path: '/intake',            icon: ClipboardList,   roles: ['patient', 'staff'] },

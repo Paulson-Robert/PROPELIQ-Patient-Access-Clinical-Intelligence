@@ -5,6 +5,7 @@ import { ToastContainer } from './components/notifications/ToastContainer'
 import { NotificationHistory } from './components/notifications/NotificationHistory'
 import { AppLayout } from './components/layout/AppLayout'
 import { PatientDashboardPage } from './pages/dashboard/PatientDashboardPage'
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
 import { AppointmentSearchPage } from './pages/booking/AppointmentSearchPage'
 import { AppointmentDetailPage } from './pages/booking/AppointmentDetailPage'
 import { BookingConfirmationPage } from './pages/booking/BookingConfirmationPage'
@@ -47,6 +48,7 @@ function App() {
           <Route path="/auth/mfa/verify" element={<MfaVerificationPage />} />
           <Route path="/auth/mfa/setup" element={<MfaSetupPage />} />
           <Route path="/dashboard/patient" element={<AppLayout><PatientDashboardPage /></AppLayout>} />
+          <Route path="/dashboard/admin" element={<AdminDashboardPage />} />
           <Route path="/dashboard/:role" element={<AppLayout><PatientDashboardPage /></AppLayout>} />
           <Route path="/dashboard" element={<Navigate to="/dashboard/patient" replace />} />
           <Route path="/booking/history" element={<AppointmentHistoryPage />} />
