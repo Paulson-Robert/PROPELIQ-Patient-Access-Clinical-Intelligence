@@ -55,6 +55,7 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // Enforce TLS 1.2+ on all HTTPS connections in Kestrel (AC-02)
+// Explicit URL binding prevents "Unable to connect to web server" errors in VS
 builder.WebHost.ConfigureKestrel(kestrel =>
 {
     kestrel.ConfigureHttpsDefaults(https =>
@@ -63,6 +64,13 @@ builder.WebHost.ConfigureKestrel(kestrel =>
                            | System.Security.Authentication.SslProtocols.Tls13;
     });
 });
+
+// Ensure Kestrel binds to the URLs from launchSettings/ASPNETCORE_URLS
+// to prevent VS from failing to reconnect after unclean shutdowns
+if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ASPNETCORE_URLS")))
+{
+    builder.WebHost.UseUrls("http://localhost:5000");
+}
 
 // Register HSTS options with 1-year max-age (AC-04)
 builder.Services.AddSecurityHeaders();
