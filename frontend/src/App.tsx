@@ -1,8 +1,10 @@
-import { Navigate, Route, Routes, useParams } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './hooks/useAuth'
 import { NotificationProvider } from './hooks/useNotifications'
 import { ToastContainer } from './components/notifications/ToastContainer'
 import { NotificationHistory } from './components/notifications/NotificationHistory'
+import { AppLayout } from './components/layout/AppLayout'
+import { PatientDashboardPage } from './pages/dashboard/PatientDashboardPage'
 import { AppointmentSearchPage } from './pages/booking/AppointmentSearchPage'
 import { AppointmentDetailPage } from './pages/booking/AppointmentDetailPage'
 import { BookingConfirmationPage } from './pages/booking/BookingConfirmationPage'
@@ -24,21 +26,6 @@ import { UserManagementPage } from './pages/admin/UserManagementPage'
 import { AuditLogPage } from './pages/admin/AuditLogPage'
 import { MetricsDashboardPage } from './pages/admin/MetricsDashboardPage'
 
-const DashboardPage = () => {
-  const { role = 'patient' } = useParams<{ role: string }>()
-
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8 text-foreground">
-      <section className="w-full max-w-xl rounded-xl border border-border bg-card p-6 text-center shadow-sm">
-        <h1 className="text-3xl font-semibold tracking-tight">PropelIQ Dashboard</h1>
-        <p className="mt-3 text-muted-foreground">
-          Signed in successfully. Active role: <span className="font-medium text-foreground">{role}</span>
-        </p>
-      </section>
-    </main>
-  )
-}
-
 function App() {
   return (
     <NotificationProvider>
@@ -59,7 +46,9 @@ function App() {
           <Route path="/auth/password-reset" element={<PasswordResetPage />} />
           <Route path="/auth/mfa/verify" element={<MfaVerificationPage />} />
           <Route path="/auth/mfa/setup" element={<MfaSetupPage />} />
-          <Route path="/dashboard/:role" element={<DashboardPage />} />
+          <Route path="/dashboard/patient" element={<AppLayout><PatientDashboardPage /></AppLayout>} />
+          <Route path="/dashboard/:role" element={<AppLayout><PatientDashboardPage /></AppLayout>} />
+          <Route path="/dashboard" element={<Navigate to="/dashboard/patient" replace />} />
           <Route path="/booking/history" element={<AppointmentHistoryPage />} />
           <Route path="/booking/search" element={<AppointmentSearchPage />} />
           <Route path="/booking/walk-in" element={<WalkInBookingPage />} />
