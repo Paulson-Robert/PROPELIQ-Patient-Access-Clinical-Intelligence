@@ -1,10 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { AuthProvider } from './hooks/useAuth'
+import { AuthProvider, useAuth } from './hooks/useAuth'
 import { NotificationProvider } from './hooks/useNotifications'
 import { ToastContainer } from './components/notifications/ToastContainer'
 import { NotificationHistory } from './components/notifications/NotificationHistory'
 import { AppLayout } from './components/layout/AppLayout'
 import { PatientDashboardPage } from './pages/dashboard/PatientDashboardPage'
+import { StaffDashboardPage } from './pages/dashboard/StaffDashboardPage'
 import { AppointmentSearchPage } from './pages/booking/AppointmentSearchPage'
 import { AppointmentDetailPage } from './pages/booking/AppointmentDetailPage'
 import { BookingConfirmationPage } from './pages/booking/BookingConfirmationPage'
@@ -25,6 +26,13 @@ import { CodeMappingPage } from './pages/clinical/CodeMappingPage'
 import { UserManagementPage } from './pages/admin/UserManagementPage'
 import { AuditLogPage } from './pages/admin/AuditLogPage'
 import { MetricsDashboardPage } from './pages/admin/MetricsDashboardPage'
+
+// Redirects /dashboard to the landing page for the authenticated user's role
+const DashboardRedirect = () => {
+  const { user } = useAuth()
+  const role = user?.role ?? 'patient'
+  return <Navigate to={`/dashboard/${role}`} replace />
+}
 
 function App() {
   return (
@@ -47,8 +55,9 @@ function App() {
           <Route path="/auth/mfa/verify" element={<MfaVerificationPage />} />
           <Route path="/auth/mfa/setup" element={<MfaSetupPage />} />
           <Route path="/dashboard/patient" element={<AppLayout><PatientDashboardPage /></AppLayout>} />
-          <Route path="/dashboard/:role" element={<AppLayout><PatientDashboardPage /></AppLayout>} />
-          <Route path="/dashboard" element={<Navigate to="/dashboard/patient" replace />} />
+          <Route path="/dashboard/staff" element={<AppLayout><StaffDashboardPage /></AppLayout>} />
+          <Route path="/dashboard/admin" element={<AppLayout><PatientDashboardPage /></AppLayout>} />
+          <Route path="/dashboard" element={<DashboardRedirect />} />
           <Route path="/booking/history" element={<AppointmentHistoryPage />} />
           <Route path="/booking/search" element={<AppointmentSearchPage />} />
           <Route path="/booking/walk-in" element={<WalkInBookingPage />} />

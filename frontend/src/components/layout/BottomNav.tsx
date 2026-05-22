@@ -32,7 +32,7 @@ export const BottomNav = ({ role }: BottomNavProps) => {
                   : 'text-muted-foreground',
               )
             }
-            end={item.path === '/dashboard'}
+            end={item.path.startsWith('/dashboard/')}
           >
             {({ isActive }) => (
               <>
