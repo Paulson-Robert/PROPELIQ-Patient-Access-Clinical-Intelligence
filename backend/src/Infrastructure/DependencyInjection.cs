@@ -125,6 +125,8 @@ public static class DependencyInjection
             services.AddSingleton<ICacheService, InMemoryCacheService>();
             services.AddScoped<ISessionService, SessionService>();
             services.AddSingleton<ISlotLockService, InMemorySlotLockService>();
+            services.AddScoped<ISwapQueueService, NoOpSwapQueueService>();
+            services.AddScoped<ISwapEngineService, NoOpSwapEngineService>();
         }
 
         services.AddScoped<ISlotSearchService, SlotSearchService>();
