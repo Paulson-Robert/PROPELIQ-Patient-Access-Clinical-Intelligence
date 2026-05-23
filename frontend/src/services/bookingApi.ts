@@ -100,6 +100,19 @@ export class BookingError extends Error {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 const USE_MOCK_BOOKING = (import.meta.env.VITE_USE_MOCK_AUTH ?? 'true') !== 'false'
 
+// ---------------------------------------------------------------------------
+// Auth token store — populated by the auth layer after login.
+// bookingApi reads it so every real API call includes Authorization: Bearer.
+// ---------------------------------------------------------------------------
+let _accessToken: string | null = null
+
+export const setBookingAuthToken = (token: string | null): void => {
+  _accessToken = token
+}
+
+const authHeaders = (): Record<string, string> =>
+  _accessToken ? { Authorization: `Bearer ${_accessToken}` } : {}
+
 const wait = (ms = 300): Promise<void> =>
   new Promise((resolve) => {
     window.setTimeout(resolve, ms)
@@ -108,6 +121,7 @@ const wait = (ms = 300): Promise<void> =>
 const getJson = async <TResponse>(path: string): Promise<TResponse> => {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     credentials: 'include',
+    headers: authHeaders(),
   })
 
   if (!response.ok) {
@@ -131,7 +145,7 @@ const getJson = async <TResponse>(path: string): Promise<TResponse> => {
 const postJson = async <TResponse>(path: string, body: unknown): Promise<TResponse> => {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     credentials: 'include',
     body: JSON.stringify(body),
   })
@@ -153,6 +167,135 @@ const postJson = async <TResponse>(path: string, body: unknown): Promise<TRespon
 
   return (await response.json()) as TResponse
 }
+
+const putJson = async <TResponse>(path: string, body: unknown): Promise<TResponse> => {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    credentials: 'include',
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    let message = 'Request failed'
+    let code: BookingErrorCode = 'NOT_FOUND'
+
+    try {
+      const parsed = (await response.json()) as { message?: string; code?: BookingErrorCode }
+      message = parsed.message ?? message
+      code = parsed.code ?? code
+    } catch {
+      // use defaults
+    }
+
+    throw new BookingError(message, code, response.status)
+  }
+
+  return (await response.json()) as TResponse
+}
+
+// ---------------------------------------------------------------------------
+// Response adapters — convert backend DTO shapes to frontend model shapes
+// ---------------------------------------------------------------------------
+
+/** Derives "AB" initials from "Dr. Alice Brown" → "AB" */
+const initialsFromName = (name: string): string =>
+  name
+    .replace(/^Dr\.\s*/i, '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('')
+
+/** Formats a UTC DateTime string into "YYYY-MM-DD" */
+const toDateString = (utcDateTime: string): string =>
+  utcDateTime.substring(0, 10)
+
+/** Formats a UTC DateTime string into "HH:mm" local (display) time */
+const toTimeString = (utcDateTime: string): string => {
+  const d = new Date(utcDateTime)
+  return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
+}
+
+const adaptSlotDto = (raw: {
+  slotId: string
+  providerId: string
+  providerName: string
+  specialty: string
+  startTime: string
+  endTime: string
+  durationMinutes: number
+  isAvailable: boolean
+  isLocked: boolean
+}): AvailabilitySlot => ({
+  id: raw.slotId,
+  providerId: raw.providerId,
+  providerName: raw.providerName,
+  providerInitials: initialsFromName(raw.providerName),
+  specialty: raw.specialty,
+  date: toDateString(raw.startTime),
+  startTime: toTimeString(raw.startTime),
+  endTime: toTimeString(raw.endTime),
+  durationMinutes: raw.durationMinutes,
+  isAvailable: raw.isAvailable,
+  isLocked: raw.isLocked,
+})
+
+const adaptConfirmationDto = (
+  raw: {
+    appointmentId: string
+    providerName: string
+    specialty: string
+    startTime: string
+    durationMinutes: number
+    status: string
+    patientEmail: string
+    insuranceProvider?: string
+    insurancePolicyNumber?: string
+  },
+  slotId: string,
+): AppointmentRecord => ({
+  id: raw.appointmentId,
+  slotId,
+  providerName: raw.providerName,
+  providerInitials: initialsFromName(raw.providerName),
+  specialty: raw.specialty,
+  date: toDateString(raw.startTime),
+  startTime: toTimeString(raw.startTime),
+  durationMinutes: raw.durationMinutes,
+  status: raw.status === 'Cancelled' ? 'Cancelled' : 'Scheduled',
+  patientEmail: raw.patientEmail,
+  insuranceProvider: raw.insuranceProvider,
+  insurancePolicyNumber: raw.insurancePolicyNumber,
+})
+
+const adaptAppointmentDetail = (raw: {
+  appointmentId: string
+  slotId: string
+  providerName: string
+  specialty: string
+  startTime: string
+  endTime: string
+  durationMinutes: number
+  status: string
+  patientEmail: string
+  insuranceProvider?: string
+  insurancePolicyNumber?: string
+}): AppointmentRecord => ({
+  id: raw.appointmentId,
+  slotId: raw.slotId,
+  providerName: raw.providerName,
+  providerInitials: initialsFromName(raw.providerName),
+  specialty: raw.specialty,
+  date: toDateString(raw.startTime),
+  startTime: toTimeString(raw.startTime),
+  durationMinutes: raw.durationMinutes,
+  status: raw.status === 'Cancelled' ? 'Cancelled' : 'Scheduled',
+  patientEmail: raw.patientEmail,
+  insuranceProvider: raw.insuranceProvider,
+  insurancePolicyNumber: raw.insurancePolicyNumber,
+})
 
 const MOCK_SLOTS: AvailabilitySlot[] = [
   {
@@ -278,12 +421,16 @@ const MOCK_PATIENTS: PatientSearchResult[] = [
 ]
 
 const mockLockedSlotIds = new Set<string>()
+const mockConfirmedAppointments: AppointmentRecord[] = []
 
 let mockWalkInCounter = 1
 
 const mockBookingApi = {
   async getAppointment(appointmentId: string): Promise<AppointmentRecord> {
     await wait(200)
+
+    const confirmed = mockConfirmedAppointments.find((appt) => appt.id === appointmentId)
+    if (confirmed) return { ...confirmed }
 
     const record = MOCK_APPOINTMENTS.find((appt) => appt.id === appointmentId)
     if (!record) {
@@ -296,7 +443,7 @@ const mockBookingApi = {
   async searchSlots(params: SlotSearchParams): Promise<AvailabilitySlot[]> {
     await wait()
 
-    return MOCK_SLOTS.filter((slot) => {
+    const filtered = MOCK_SLOTS.filter((slot) => {
       if (!slot.isAvailable) return false
 
       const providerMatch =
@@ -314,6 +461,8 @@ const mockBookingApi = {
       ...slot,
       isLocked: mockLockedSlotIds.has(slot.id),
     }))
+
+    return filtered
   },
 
   async searchPatients(query: string): Promise<PatientSearchResult[]> {
@@ -380,7 +529,7 @@ const mockBookingApi = {
     mockLockedSlotIds.delete(payload.slotId)
     slot.isAvailable = false
 
-    return {
+    const newAppointment: AppointmentRecord = {
       id: `appt-${Date.now()}`,
       slotId: slot.id,
       providerName: slot.providerName,
@@ -394,12 +543,17 @@ const mockBookingApi = {
       insuranceProvider: payload.insuranceProvider,
       insurancePolicyNumber: payload.insurancePolicyNumber,
     }
+
+    mockConfirmedAppointments.push(newAppointment)
+    return newAppointment
   },
 
   async cancelAppointment({ appointmentId }: CancelAppointmentPayload): Promise<AppointmentRecord> {
     await wait(250)
 
-    const record = MOCK_APPOINTMENTS.find((appt) => appt.id === appointmentId)
+    const record =
+      mockConfirmedAppointments.find((appt) => appt.id === appointmentId) ??
+      MOCK_APPOINTMENTS.find((appt) => appt.id === appointmentId)
     if (!record) {
       throw new BookingError('Appointment not found', 'NOT_FOUND', 404)
     }
@@ -460,7 +614,22 @@ export const bookingApi = {
       return mockBookingApi.getAppointment(appointmentId)
     }
 
-    return getJson<AppointmentRecord>(`/api/appointments/${appointmentId}`)
+    // Backend returns AppointmentDetailDto — adapt to AppointmentRecord
+    const raw = await getJson<{
+      appointmentId: string
+      slotId: string
+      providerName: string
+      specialty: string
+      startTime: string
+      endTime: string
+      durationMinutes: number
+      status: string
+      patientEmail: string
+      insuranceProvider?: string
+      insurancePolicyNumber?: string
+    }>(`/api/appointments/${appointmentId}`)
+
+    return adaptAppointmentDetail(raw)
   },
 
   async searchSlots(params: SlotSearchParams): Promise<AvailabilitySlot[]> {
@@ -474,7 +643,20 @@ export const bookingApi = {
     if (params.from) query.set('from', params.from)
     if (params.to) query.set('to', params.to)
 
-    return getJson<AvailabilitySlot[]>(`/api/appointments/slots?${query.toString()}`)
+    // Backend returns SlotDto[] — adapt each to AvailabilitySlot
+    const raw = await getJson<{
+      slotId: string
+      providerId: string
+      providerName: string
+      specialty: string
+      startTime: string
+      endTime: string
+      durationMinutes: number
+      isAvailable: boolean
+      isLocked: boolean
+    }[]>(`/api/appointments/slots?${query.toString()}`)
+
+    return raw.map(adaptSlotDto)
   },
 
   async searchPatients(query: string): Promise<PatientSearchResult[]> {
@@ -490,7 +672,20 @@ export const bookingApi = {
       return mockBookingApi.lockSlot(slotId)
     }
 
-    return postJson<LockSlotResponse>(`/api/appointments/slots/${slotId}/lock`, {})
+    // Backend returns SlotLockResult — adapt to LockSlotResponse
+    const raw = await postJson<{
+      slotId: string
+      lockToken: string
+      expiresAt: string
+      lockDurationSeconds: number
+    }>(`/api/appointments/slots/${slotId}/lock`, {})
+
+    return {
+      slotId: raw.slotId,
+      lockToken: raw.lockToken,
+      expiresAtUtc: raw.expiresAt,
+      lockDurationSeconds: raw.lockDurationSeconds,
+    }
   },
 
   async confirmBooking(payload: ConfirmBookingPayload): Promise<AppointmentRecord> {
@@ -498,7 +693,20 @@ export const bookingApi = {
       return mockBookingApi.confirmBooking(payload)
     }
 
-    return postJson<AppointmentRecord>('/api/appointments', payload)
+    // Backend returns AppointmentConfirmationDto — adapt to AppointmentRecord
+    const raw = await postJson<{
+      appointmentId: string
+      providerName: string
+      specialty: string
+      startTime: string
+      durationMinutes: number
+      status: string
+      patientEmail: string
+      insuranceProvider?: string
+      insurancePolicyNumber?: string
+    }>('/api/appointments', payload)
+
+    return adaptConfirmationDto(raw, payload.slotId)
   },
 
   async cancelAppointment(payload: CancelAppointmentPayload): Promise<AppointmentRecord> {
@@ -506,7 +714,56 @@ export const bookingApi = {
       return mockBookingApi.cancelAppointment(payload)
     }
 
-    return postJson<AppointmentRecord>(`/api/appointments/${payload.appointmentId}/cancel`, {})
+    const raw = await postJson<{
+      appointmentId: string
+      slotId: string
+      status: string
+      updatedAtUtc: string
+    }>(`/api/appointments/${payload.appointmentId}/cancel`, {})
+
+    // Return minimal record sufficient for UI to reflect cancellation
+    return {
+      id: raw.appointmentId,
+      slotId: raw.slotId,
+      providerName: '',
+      providerInitials: '',
+      specialty: '',
+      date: '',
+      startTime: '',
+      durationMinutes: 0,
+      status: raw.status === 'Cancelled' ? 'Cancelled' : 'Scheduled',
+      patientEmail: '',
+    }
+  },
+
+  async rescheduleAppointment(
+    appointmentId: string,
+    newSlotId: string,
+    lockToken: string,
+  ): Promise<AppointmentRecord> {
+    if (USE_MOCK_BOOKING || !API_BASE_URL) {
+      throw new BookingError('Reschedule not supported in mock mode', 'NOT_FOUND', 501)
+    }
+
+    const raw = await putJson<{
+      appointmentId: string
+      slotId: string
+      status: string
+      updatedAtUtc: string
+    }>(`/api/appointments/${appointmentId}/reschedule`, { newSlotId, lockToken })
+
+    return {
+      id: raw.appointmentId,
+      slotId: raw.slotId,
+      providerName: '',
+      providerInitials: '',
+      specialty: '',
+      date: '',
+      startTime: '',
+      durationMinutes: 0,
+      status: raw.status === 'Cancelled' ? 'Cancelled' : 'Scheduled',
+      patientEmail: '',
+    }
   },
 
   async submitWalkIn(payload: WalkInBookingPayload): Promise<WalkInBookingResponse> {

@@ -20,6 +20,7 @@ import {
   type SocialProvider,
   type UserRole,
 } from '../services/authApi'
+import { setBookingAuthToken } from '../services/bookingApi'
 
 interface AuthState {
   user: AuthUser | null
@@ -103,6 +104,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       try {
         const response = await authApi.login({ email, password })
         dispatch({ type: 'success', payload: response.user })
+        setBookingAuthToken(response.accessToken)
         return response
       } catch (error) {
         const errorMessage =
@@ -121,6 +123,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     try {
       const response = await authApi.register(payload)
       dispatch({ type: 'success', payload: response.user })
+      setBookingAuthToken(response.accessToken)
       return response
     } catch (error) {
       const errorMessage =
@@ -195,6 +198,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
   const logout = useCallback(() => {
     dispatch({ type: 'logout' })
+    setBookingAuthToken(null)
   }, [])
 
   const redirectPathForRole = useCallback(

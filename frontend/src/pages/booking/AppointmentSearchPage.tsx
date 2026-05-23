@@ -24,6 +24,7 @@ const groupSlotsByDate = (slots: AvailabilitySlot[]): Map<string, AvailabilitySl
   const grouped = new Map<string, AvailabilitySlot[]>()
 
   for (const slot of slots) {
+    if (!slot.date) continue
     const existing = grouped.get(slot.date) ?? []
     existing.push(slot)
     grouped.set(slot.date, existing)
@@ -187,9 +188,8 @@ export const AppointmentSearchPage = () => {
   const groupedSlots = groupSlotsByDate(slots)
 
   return (
-    <main
-      className="min-h-screen bg-background text-foreground"
-      id="main-content"
+    <div
+      className="text-foreground"
     >
       <a
         href="#search-form"
@@ -387,6 +387,6 @@ export const AppointmentSearchPage = () => {
           </div>
         </div>
       ) : null}
-    </main>
+    </div>
   )
 }

@@ -58,12 +58,12 @@ function App() {
           <Route path="/dashboard/staff" element={<AppLayout><StaffDashboardPage /></AppLayout>} />
           <Route path="/dashboard/admin" element={<AppLayout><PatientDashboardPage /></AppLayout>} />
           <Route path="/dashboard" element={<DashboardRedirect />} />
-          <Route path="/booking/history" element={<AppointmentHistoryPage />} />
-          <Route path="/booking/search" element={<AppointmentSearchPage />} />
+          <Route path="/booking/history" element={<AppLayout><AppointmentHistoryPage /></AppLayout>} />
+          <Route path="/booking/search" element={<AppLayout><AppointmentSearchPage /></AppLayout>} />
           <Route path="/booking/walk-in" element={<WalkInBookingPage />} />
           <Route path="/queue/same-day" element={<SameDayQueuePage />} />
-          <Route path="/booking/appointments/:appointmentId" element={<AppointmentDetailPage />} />
-          <Route path="/booking/confirm" element={<BookingConfirmationPage />} />
+          <Route path="/booking/appointments/:appointmentId" element={<AppLayout><AppointmentDetailPage /></AppLayout>} />
+          <Route path="/booking/confirm" element={<AppLayout><BookingConfirmationPage /></AppLayout>} />
           <Route path="/intake" element={<IntakePage />} />
           <Route path="/intake/ai" element={<AiIntakePage />} />
           <Route path="/intake/manual" element={<ManualIntakePage />} />

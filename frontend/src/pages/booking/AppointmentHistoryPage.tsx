@@ -93,7 +93,7 @@ export const AppointmentHistoryPage = ({ appointments = MOCK_APPOINTMENTS }: App
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground" id="main-content">
+    <div className="text-foreground">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <nav className="mb-4 flex items-center gap-2 text-sm text-muted-foreground" aria-label="Breadcrumb">
           <Link to="/dashboard/patient" className="transition-colors hover:text-foreground">
@@ -277,7 +277,7 @@ export const AppointmentHistoryPage = ({ appointments = MOCK_APPOINTMENTS }: App
           </>
         )}
       </div>
-    </main>
+    </div>
   )
 }
 

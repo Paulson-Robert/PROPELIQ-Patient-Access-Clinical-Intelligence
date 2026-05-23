@@ -22,6 +22,29 @@ public sealed class AppointmentsController : ControllerBase
     }
 
     // -------------------------------------------------------------------------
+    // GET /api/appointments/{appointmentId}
+    // Returns full appointment detail for the authenticated patient owner.
+    // -------------------------------------------------------------------------
+    [HttpGet("{appointmentId:guid}")]
+    public async Task<ActionResult<AppointmentDetailDto>> GetAppointment(
+        [FromRoute] Guid appointmentId,
+        CancellationToken cancellationToken)
+    {
+        var patientUserId = GetCurrentUserId();
+        if (patientUserId is null)
+            return Unauthorized();
+
+        var result = await _mediator
+            .Send(new GetAppointmentQuery(appointmentId, patientUserId.Value), cancellationToken)
+            .ConfigureAwait(false);
+
+        if (result is null)
+            return NotFound(new { code = "NOT_FOUND", message = "Appointment not found." });
+
+        return Ok(result);
+    }
+
+    // -------------------------------------------------------------------------
     // GET /api/appointments/slots?provider=&specialty=&from=&to=
     // AC-01, AC-02: Search available slots by provider / specialty
     // -------------------------------------------------------------------------
