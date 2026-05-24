@@ -188,6 +188,11 @@ public sealed class AiIntakeService : IAiIntakeService
 /// </summary>
 public sealed class AiIntakePersistenceService : IAiIntakePersistenceService
 {
+    private static readonly JsonSerializerOptions PersistenceJsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
     private readonly ApplicationDbContext _db;
     private readonly ILogger<AiIntakePersistenceService> _logger;
 
@@ -200,59 +205,73 @@ public sealed class AiIntakePersistenceService : IAiIntakePersistenceService
     }
 
     /// <inheritdoc/>
-    public async Task PersistAsync(
-        Guid patientUserId,
+    public async Task<AiIntakeSubmissionResult> PersistAsync(
+        Guid actorUserId,
+        string actorRole,
         Guid appointmentId,
         AiIntakeSummary summary,
         CancellationToken cancellationToken = default)
     {
-        var profile = await _db.PatientProfiles
-            .FirstOrDefaultAsync(p => p.UserId == patientUserId, cancellationToken)
+        var owner = await ResolveOwnerAsync(actorUserId, actorRole, appointmentId, cancellationToken)
             .ConfigureAwait(false);
 
-        if (profile is null)
+        if (!owner.Success || owner.Profile is null)
         {
-            _logger.LogError(
-                "Cannot persist intake: PatientProfile not found for UserId {UserId}.",
-                patientUserId);
-            throw new InvalidOperationException(
-                $"Patient profile not found for user {patientUserId}.");
+            _logger.LogWarning(
+                "Cannot persist AI intake: {FailureCode} for ActorUserId {ActorUserId}, AppointmentId {AppointmentId}.",
+                owner.FailureCode,
+                actorUserId,
+                appointmentId);
+
+            return new AiIntakeSubmissionResult(
+                Success: false,
+                IntakeId: null,
+                FailureReason: owner.FailureReason,
+                FailureCode: owner.FailureCode);
         }
 
         var existing = await _db.IntakeRecords
+            .OrderByDescending(r => r.LastModifiedAt)
             .FirstOrDefaultAsync(
-                r => r.AppointmentId == appointmentId && r.PatientProfileId == profile.PatientProfileId,
+                r => r.AppointmentId == appointmentId
+                     && r.PatientProfileId == owner.Profile.PatientProfileId
+                     && r.IntakeMode == IntakeMode.AI
+                     && r.CompletedAt == null,
                 cancellationToken)
             .ConfigureAwait(false);
 
         var now = DateTime.UtcNow;
+        var reasonForVisit = summary.ReasonForVisit.Trim();
 
         if (existing is not null)
         {
-            existing.MedicalHistory = summary.ChronicConditions;
-            existing.Medications = summary.CurrentMedications;
-            existing.Allergies = summary.Allergies;
-            existing.CurrentSymptoms = summary.SurgicalHistory;
-            existing.ReasonForVisit = summary.ReasonForVisit;
+            existing.IntakeMode = IntakeMode.AI;
+            existing.MedicalHistory = SerializeFreeText(summary.ChronicConditions);
+            existing.Medications = SerializeFreeText(summary.CurrentMedications);
+            existing.Allergies = SerializeFreeText(summary.Allergies);
+            existing.CurrentSymptoms = SerializeFreeText(summary.SurgicalHistory);
+            existing.ReasonForVisit = reasonForVisit;
             existing.CompletedAt = now;
             existing.LastModifiedAt = now;
         }
         else
         {
-            _db.IntakeRecords.Add(new IntakeRecord
+            existing = new IntakeRecord
             {
                 IntakeId = Guid.NewGuid(),
-                PatientProfileId = profile.PatientProfileId,
+                PatientProfileId = owner.Profile.PatientProfileId,
                 AppointmentId = appointmentId,
                 IntakeMode = IntakeMode.AI,
-                MedicalHistory = summary.ChronicConditions,
-                Medications = summary.CurrentMedications,
-                Allergies = summary.Allergies,
-                CurrentSymptoms = summary.SurgicalHistory,
-                ReasonForVisit = summary.ReasonForVisit,
+                MedicalHistory = SerializeFreeText(summary.ChronicConditions),
+                Medications = SerializeFreeText(summary.CurrentMedications),
+                Allergies = SerializeFreeText(summary.Allergies),
+                CurrentSymptoms = SerializeFreeText(summary.SurgicalHistory),
+                ReasonForVisit = reasonForVisit,
                 CompletedAt = now,
                 LastModifiedAt = now,
-            });
+            };
+
+            _db.IntakeRecords.Add(existing);
         }
 
         await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -260,5 +279,79 @@ public sealed class AiIntakePersistenceService : IAiIntakePersistenceService
         _logger.LogInformation(
             "AI intake persisted for AppointmentId {AppointmentId}.",
             appointmentId);
+
+        return new AiIntakeSubmissionResult(
+            Success: true,
+            IntakeId: existing.IntakeId,
+            FailureReason: null,
+            FailureCode: null);
+    }
+
+    private static string? SerializeFreeText(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        return JsonSerializer.Serialize(new { text = value.Trim() }, PersistenceJsonOptions);
+    }
+
+    private async Task<AiIntakeOwnerResolution> ResolveOwnerAsync(
+        Guid actorUserId,
+        string actorRole,
+        Guid appointmentId,
+        CancellationToken ct)
+    {
+        if (actorUserId == Guid.Empty || appointmentId == Guid.Empty || string.IsNullOrWhiteSpace(actorRole))
+        {
+            return AiIntakeOwnerResolution.Failed(
+                "INVALID_REQUEST",
+                "ActorUserId, ActorRole, and AppointmentId are required.");
+        }
+
+        var isStaffScoped = IsStaffScopedRole(actorRole);
+
+        var patientUserId = await _db.Appointments
+            .AsNoTracking()
+            .Where(a => a.AppointmentId == appointmentId && (isStaffScoped || a.PatientId == actorUserId))
+            .Select(a => (Guid?)a.PatientId)
+            .FirstOrDefaultAsync(ct)
+            .ConfigureAwait(false);
+
+        if (patientUserId is null)
+        {
+            return AiIntakeOwnerResolution.Failed(
+                "APPOINTMENT_NOT_FOUND",
+                "Appointment was not found for this intake.");
+        }
+
+        var profile = await _db.PatientProfiles
+            .FirstOrDefaultAsync(p => p.UserId == patientUserId.Value, ct)
+            .ConfigureAwait(false);
+
+        if (profile is null)
+        {
+            return AiIntakeOwnerResolution.Failed(
+                "PATIENT_NOT_FOUND",
+                "Patient profile not found.");
+        }
+
+        return AiIntakeOwnerResolution.Resolved(profile);
+    }
+
+    private static bool IsStaffScopedRole(string actorRole)
+        => actorRole.Equals("Staff", StringComparison.OrdinalIgnoreCase)
+           || actorRole.Equals("Admin", StringComparison.OrdinalIgnoreCase);
+
+    private sealed record AiIntakeOwnerResolution(
+        bool Success,
+        PatientProfile? Profile,
+        string? FailureCode,
+        string? FailureReason)
+    {
+        public static AiIntakeOwnerResolution Resolved(PatientProfile profile)
+            => new(true, profile, null, null);
+
+        public static AiIntakeOwnerResolution Failed(string code, string reason)
+            => new(false, null, code, reason);
     }
 }

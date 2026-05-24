@@ -5,16 +5,19 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { DocumentListPage } from '../../pages/documents/DocumentListPage'
 import { DocumentUploadPage } from '../../pages/documents/DocumentUploadPage'
 import { bookingApi } from '../../services/bookingApi'
+import { AuthProvider } from '../../hooks/useAuth'
 
 describe('document upload flow', () => {
   it('retains uploaded documents and lists them in the documents view', async () => {
     render(
       <StrictMode>
         <MemoryRouter initialEntries={['/documents/upload']}>
-          <Routes>
-            <Route path="/documents/upload" element={<DocumentUploadPage />} />
-            <Route path="/documents" element={<DocumentListPage />} />
-          </Routes>
+          <AuthProvider>
+            <Routes>
+              <Route path="/documents/upload" element={<DocumentUploadPage />} />
+              <Route path="/documents" element={<DocumentListPage />} />
+            </Routes>
+          </AuthProvider>
         </MemoryRouter>
       </StrictMode>,
     )
@@ -50,9 +53,11 @@ describe('document upload flow', () => {
     const renderList = () =>
       render(
         <MemoryRouter initialEntries={['/documents']}>
-          <Routes>
-            <Route path="/documents" element={<DocumentListPage />} />
-          </Routes>
+          <AuthProvider>
+            <Routes>
+              <Route path="/documents" element={<DocumentListPage />} />
+            </Routes>
+          </AuthProvider>
         </MemoryRouter>,
       )
 

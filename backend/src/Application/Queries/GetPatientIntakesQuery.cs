@@ -14,7 +14,8 @@ public sealed record PatientIntakeDto(
     DateTime LastModifiedAt);
 
 /// <summary>
-/// Returns all intake records for the authenticated patient, ordered by last-modified descending.
+/// Returns intake records visible to the authenticated actor, ordered by last-modified descending.
 /// </summary>
 public sealed record GetPatientIntakesQuery(
-    Guid PatientUserId) : IRequest<IReadOnlyList<PatientIntakeDto>>;
+    Guid ActorUserId,
+    string ActorRole) : IRequest<IReadOnlyList<PatientIntakeDto>>;

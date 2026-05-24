@@ -7,6 +7,7 @@ import {
   type DeleteMode,
 } from '../../components/documents/DeleteConfirmDialog'
 import { bookingApi, type PatientDocumentRecord } from '../../services/bookingApi'
+import { useAuth } from '../../hooks/useAuth'
 
 // --- Types ---
 
@@ -73,6 +74,7 @@ const STATUS_CONFIG: Record<DocumentStatus, { label: string; className: string }
 // --- Component ---
 
 export const DocumentListPage = () => {
+  const { user } = useAuth()
   const [documents, setDocuments] = useState<ClinicalDocument[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -82,6 +84,7 @@ export const DocumentListPage = () => {
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const pendingDocument = documents.find((d) => d.id === pendingDeleteId)
+  const dashboardPath = user?.role === 'staff' ? '/dashboard/staff' : '/dashboard/patient'
 
   useEffect(() => {
     let cancelled = false
@@ -169,7 +172,7 @@ export const DocumentListPage = () => {
           <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <Link
-                to="/dashboard/patient"
+                to={dashboardPath}
                 className="inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 aria-label="Back to dashboard"
               >

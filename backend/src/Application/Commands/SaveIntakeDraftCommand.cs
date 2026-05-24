@@ -11,10 +11,11 @@ namespace Application.Commands;
 /// allows the client to auto-save a single step without overwriting
 /// data from steps not yet sent.
 ///
-/// PatientUserId and AppointmentId are required for record ownership.
+/// ActorUserId, ActorRole, and AppointmentId are required for record ownership.
 /// </summary>
 public sealed record SaveIntakeDraftCommand(
-    Guid PatientUserId,
+    Guid ActorUserId,
+    string ActorRole,
     Guid AppointmentId,
     string? ChronicConditions,
     string? PastSurgeries,
@@ -40,17 +41,21 @@ internal sealed class SaveIntakeDraftCommandHandler
         SaveIntakeDraftCommand request,
         CancellationToken cancellationToken)
     {
-        if (request.PatientUserId == Guid.Empty || request.AppointmentId == Guid.Empty)
+        if (request.ActorUserId == Guid.Empty ||
+            string.IsNullOrWhiteSpace(request.ActorRole) ||
+            request.AppointmentId == Guid.Empty)
         {
             return Task.FromResult(new IntakeDraftResult(
                 Success: false,
                 IntakeId: null,
-                FailureReason: "PatientUserId and AppointmentId are required."));
+                FailureReason: "ActorUserId, ActorRole, and AppointmentId are required.",
+                FailureCode: "INVALID_REQUEST"));
         }
 
         return _intake.SaveDraftAsync(
             new SaveIntakeDraftRequest(
-                request.PatientUserId,
+                request.ActorUserId,
+                request.ActorRole,
                 request.AppointmentId,
                 request.ChronicConditions,
                 request.PastSurgeries,

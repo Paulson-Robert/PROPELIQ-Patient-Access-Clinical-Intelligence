@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { DropZone } from '../../components/documents/DropZone'
 import { UploadProgress, type UploadItem } from '../../components/documents/UploadProgress'
 import { bookingApi } from '../../services/bookingApi'
+import { useAuth } from '../../hooks/useAuth'
 
 const generateId = (): string =>
   `upload-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -17,9 +18,11 @@ const getErrorMessage = (error: unknown): string => {
 }
 
 export const DocumentUploadPage = () => {
+  const { user } = useAuth()
   const [items, setItems] = useState<UploadItem[]>([])
   const mountedRef = useRef(true)
   const startTimeoutsRef = useRef<number[]>([])
+  const dashboardPath = user?.role === 'staff' ? '/dashboard/staff' : '/dashboard/patient'
 
   useEffect(() => {
     mountedRef.current = true
@@ -112,7 +115,7 @@ export const DocumentUploadPage = () => {
         <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link
-              to="/dashboard/patient"
+              to={dashboardPath}
               className="inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               aria-label="Back to dashboard"
             >

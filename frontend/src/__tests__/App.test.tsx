@@ -130,4 +130,30 @@ describe('App', () => {
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Reset password' })).toBeDisabled()
   })
+
+  it('renders intake history inside the app navigation shell', async () => {
+    render(
+      <MemoryRouter initialEntries={['/intake/history']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(
+      await screen.findByRole('heading', { name: 'Intake history' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Main navigation' })).toBeInTheDocument()
+  })
+
+  it('renders documents inside the app navigation shell', async () => {
+    render(
+      <MemoryRouter initialEntries={['/documents']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(
+      await screen.findByRole('heading', { name: 'Documents' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Main navigation' })).toBeInTheDocument()
+  })
 })

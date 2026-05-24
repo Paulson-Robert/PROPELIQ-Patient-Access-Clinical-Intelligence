@@ -1,6 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { RiskTierBadge } from '../clinical/RiskTierBadge'
 import type { QueueEntry, QueueStatus } from '../../services/queueApi'
 
@@ -100,6 +101,13 @@ export const QueueItem = ({ entry, isMarkingArrived, onMarkArrived }: QueueItemP
       {/* Actions */}
       <td className="px-3 py-3">
         <div className="flex items-center gap-2">
+          <Link
+            to={`/intake/manual?appointmentId=${entry.id}`}
+            className="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
+            aria-label={`Open intake for ${entry.patientName}`}
+          >
+            Intake
+          </Link>
           {entry.status === 'Arrived' && entry.arrivalTimestamp ? (
             <span className="text-xs text-muted-foreground" aria-label="Arrived at">
               Arrived {formatArrivalTime(entry.arrivalTimestamp)}

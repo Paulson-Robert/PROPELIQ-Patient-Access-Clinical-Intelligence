@@ -253,7 +253,7 @@ public sealed class PatientAggregationService : IPatientAggregationService
             items.Add(new
             {
                 field = "medications",
-                value = intakeMedicationsJson,
+                value = ExtractIntakeFreeText(intakeMedicationsJson),
                 source = IntakeSourceLabel,
                 confidence = 1.0m,
                 isVerified = false,
@@ -287,7 +287,7 @@ public sealed class PatientAggregationService : IPatientAggregationService
             items.Add(new
             {
                 field = "allergies",
-                value = intakeAllergiesJson,
+                value = ExtractIntakeFreeText(intakeAllergiesJson),
                 source = IntakeSourceLabel,
                 confidence = 1.0m,
                 isVerified = false,
@@ -308,4 +308,29 @@ public sealed class PatientAggregationService : IPatientAggregationService
             // because ConflictType does not have Vital/Procedure variants in this domain version.
             _ => ConflictType.Diagnosis,
         };
+
+    private static string ExtractIntakeFreeText(string json)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(json);
+            var root = document.RootElement;
+
+            if (root.ValueKind == JsonValueKind.String)
+                return root.GetString() ?? string.Empty;
+
+            if (root.ValueKind == JsonValueKind.Object &&
+                root.TryGetProperty("text", out var text) &&
+                text.ValueKind == JsonValueKind.String)
+            {
+                return text.GetString() ?? string.Empty;
+            }
+        }
+        catch
+        {
+            // Legacy rows may contain plain text from earlier builds.
+        }
+
+        return json;
+    }
 }

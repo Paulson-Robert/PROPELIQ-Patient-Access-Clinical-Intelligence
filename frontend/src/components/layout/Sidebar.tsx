@@ -17,9 +17,9 @@ export const Sidebar = ({ role }: SidebarProps) => {
   const items = getNavItemsForRole(role)
 
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-col md:shrink-0">
+    <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:flex-col md:shrink-0">
       <nav
-        className="flex flex-1 flex-col gap-1 overflow-y-auto border-r border-sidebar-border bg-sidebar px-3 py-4"
+        className="flex h-full min-h-0 flex-col gap-1 overflow-y-auto border-r border-sidebar-border bg-sidebar px-3 py-4"
         aria-label="Main navigation"
       >
         <div className="mb-4 px-3">

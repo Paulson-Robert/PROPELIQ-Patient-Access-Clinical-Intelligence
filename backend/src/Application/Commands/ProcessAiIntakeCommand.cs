@@ -23,7 +23,8 @@ namespace Application.Commands;
 /// - Token limit reached: oldest user turns are trimmed and the call is retried once.
 /// </summary>
 public sealed record ProcessAiIntakeCommand(
-    Guid PatientUserId,
+    Guid ActorUserId,
+    string ActorRole,
     Guid AppointmentId,
     IReadOnlyList<AiIntakeTurn> ConversationHistory) : IRequest<AiIntakeResult>;
 
@@ -110,11 +111,23 @@ internal sealed class ProcessAiIntakeCommandHandler
         var summary = TryExtractSummary(responseText);
         if (summary is not null)
         {
-            await _persistence.PersistAsync(
-                request.PatientUserId,
+            var persistenceResult = await _persistence.PersistAsync(
+                request.ActorUserId,
+                request.ActorRole,
                 request.AppointmentId,
                 summary,
                 cancellationToken).ConfigureAwait(false);
+
+            if (!persistenceResult.Success)
+            {
+                return new AiIntakeResult(
+                    Success: false,
+                    NextMessage: null,
+                    IsComplete: false,
+                    Summary: null,
+                    FailureReason: persistenceResult.FailureReason,
+                    SuggestManualFallback: true);
+            }
 
             return new AiIntakeResult(
                 Success: true,

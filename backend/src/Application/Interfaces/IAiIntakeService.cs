@@ -39,6 +39,15 @@ public sealed record AiIntakeResult(
     bool SuggestManualFallback);
 
 /// <summary>
+/// Result returned after a completed AI-assisted intake summary is persisted.
+/// </summary>
+public sealed record AiIntakeSubmissionResult(
+    bool Success,
+    Guid? IntakeId,
+    string? FailureReason,
+    string? FailureCode);
+
+/// <summary>
 /// Sends a conversational turn to the configured AI provider (GPT-4o or compatible).
 /// Retries once on transient failure before returning a failure result.
 /// </summary>
@@ -70,8 +79,9 @@ public interface IAiIntakePersistenceService
     /// <summary>
     /// Creates or updates the <c>IntakeRecord</c> for the given appointment, marking it complete (AC-04).
     /// </summary>
-    Task PersistAsync(
-        Guid patientUserId,
+    Task<AiIntakeSubmissionResult> PersistAsync(
+        Guid actorUserId,
+        string actorRole,
         Guid appointmentId,
         AiIntakeSummary summary,
         CancellationToken cancellationToken = default);

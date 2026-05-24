@@ -8,7 +8,8 @@ namespace Application.Queries;
 /// Returns <c>null</c> when no draft exists, allowing the client to start fresh.
 /// </summary>
 public sealed record GetIntakeDraftQuery(
-    Guid PatientUserId,
+    Guid ActorUserId,
+    string ActorRole,
     Guid AppointmentId) : IRequest<IntakeDraftDto?>;
 
 internal sealed class GetIntakeDraftQueryHandler
@@ -25,7 +26,8 @@ internal sealed class GetIntakeDraftQueryHandler
         GetIntakeDraftQuery request,
         CancellationToken cancellationToken)
         => _intake.GetDraftAsync(
-            request.PatientUserId,
+            request.ActorUserId,
+            request.ActorRole,
             request.AppointmentId,
             cancellationToken);
 }
