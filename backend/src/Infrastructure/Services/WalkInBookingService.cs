@@ -22,9 +22,12 @@ public sealed class WalkInBookingService : IWalkInBookingService
         CreateWalkInRequest request,
         CancellationToken cancellationToken = default)
     {
-        var slot = await _db.AvailabilitySlots
-            .FirstOrDefaultAsync(s => s.SlotId == request.SlotId, cancellationToken)
-            .ConfigureAwait(false);
+        var now = DateTime.UtcNow;
+        var slot = request.SlotId == Guid.Empty
+            ? CreateAdHocWalkInSlot(request.StaffUserId, now)
+            : await _db.AvailabilitySlots
+                .FirstOrDefaultAsync(s => s.SlotId == request.SlotId, cancellationToken)
+                .ConfigureAwait(false);
 
         if (slot is null)
         {
@@ -36,7 +39,6 @@ public sealed class WalkInBookingService : IWalkInBookingService
             throw new InvalidOperationException("Selected slot is no longer available.");
         }
 
-        var now = DateTime.UtcNow;
         var patientUserId = request.ExistingPatientUserId;
         var temporaryRecord = false;
 
@@ -52,7 +54,7 @@ public sealed class WalkInBookingService : IWalkInBookingService
             AppointmentId = Guid.NewGuid(),
             PatientId = patientUserId.Value,
             ProviderId = slot.ProviderId,
-            SlotId = request.SlotId,
+            SlotId = slot.SlotId,
             Status = AppointmentStatus.Scheduled,
             BookingType = BookingType.WalkIn,
             CreatedByUserId = request.StaffUserId,
@@ -64,7 +66,7 @@ public sealed class WalkInBookingService : IWalkInBookingService
         {
             QueueId = Guid.NewGuid(),
             AppointmentId = appointment.AppointmentId,
-            PreferredSlotId = request.SlotId,
+            PreferredSlotId = slot.SlotId,
             RequestedAt = now,
             Status = QueueStatus.Waiting,
         };
@@ -73,6 +75,11 @@ public sealed class WalkInBookingService : IWalkInBookingService
         slot.IsLocked = false;
         slot.LockExpiry = null;
         slot.Version++;
+
+        if (request.SlotId == Guid.Empty)
+        {
+            _db.AvailabilitySlots.Add(slot);
+        }
 
         _db.Appointments.Add(appointment);
         _db.PreferredSlotQueues.Add(queueEntry);
@@ -87,6 +94,23 @@ public sealed class WalkInBookingService : IWalkInBookingService
             nameof(AppointmentStatus.Scheduled),
             appointment.CreatedAt,
             temporaryRecord);
+    }
+
+    private static AvailabilitySlot CreateAdHocWalkInSlot(Guid staffUserId, DateTime now)
+    {
+        return new AvailabilitySlot
+        {
+            SlotId = Guid.NewGuid(),
+            ProviderId = staffUserId,
+            ProviderName = "Walk-in provider",
+            Specialty = "Walk-in",
+            StartTime = now,
+            EndTime = now.AddMinutes(20),
+            IsAvailable = true,
+            IsLocked = false,
+            LockExpiry = null,
+            Version = 0,
+        };
     }
 
     private async Task<Guid> CreatePatientForWalkInAsync(

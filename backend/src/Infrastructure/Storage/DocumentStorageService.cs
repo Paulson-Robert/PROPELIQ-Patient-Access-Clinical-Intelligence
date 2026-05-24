@@ -95,9 +95,7 @@ public sealed class DocumentStorageService : IDocumentStorageService
         // -----------------------------------------------------------------------
         // Resolve PatientProfile from UserId (AC-03: metadata association)
         // -----------------------------------------------------------------------
-        var profile = await _db.PatientProfiles
-            .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.UserId == request.PatientUserId, cancellationToken)
+        var profile = await ResolveOrCreatePatientProfileAsync(request.PatientUserId, cancellationToken)
             .ConfigureAwait(false);
 
         if (profile is null)
@@ -116,12 +114,13 @@ public sealed class DocumentStorageService : IDocumentStorageService
         // -----------------------------------------------------------------------
         // Persist file (OWASP A05: UUID-keyed path, no original filename in path)
         // -----------------------------------------------------------------------
+        var basePath = _options.EffectiveBasePath;
         var storageKey = Guid.NewGuid().ToString("N");
-        var storagePath = Path.Combine(_options.BasePath, storageKey + extension);
+        var storagePath = Path.Combine(basePath, storageKey + extension);
 
         try
         {
-            Directory.CreateDirectory(_options.BasePath);
+            Directory.CreateDirectory(basePath);
             await WriteFileAsync(request.FileStream, storagePath, cancellationToken)
                 .ConfigureAwait(false);
         }
@@ -145,6 +144,7 @@ public sealed class DocumentStorageService : IDocumentStorageService
         //        picks up this record and processes it asynchronously.
         // -----------------------------------------------------------------------
         var now = DateTime.UtcNow;
+        var completeImmediately = _options.CompleteUploadsImmediately;
         var document = new ClinicalDocument
         {
             DocumentId = Guid.NewGuid(),
@@ -153,10 +153,16 @@ public sealed class DocumentStorageService : IDocumentStorageService
             FileFormat = documentFormat,
             FileSizeBytes = request.FileSizeBytes,
             StoragePath = storagePath,
-            MalwareScanStatus = MalwareScanStatus.Pending,  // AC-04: triggers scan pipeline
-            ProcessingStatus = DocumentProcessingStatus.Scanning,
+            MalwareScanStatus = completeImmediately
+                ? MalwareScanStatus.Clean
+                : MalwareScanStatus.Pending,
+            ProcessingStatus = completeImmediately
+                ? DocumentProcessingStatus.Completed
+                : DocumentProcessingStatus.Scanning,
             UploadedAt = now,
             ScanningStartedAt = now,
+            ProcessingStartedAt = completeImmediately ? now : null,
+            ProcessedAt = completeImmediately ? now : null,
         };
 
         try
@@ -185,8 +191,11 @@ public sealed class DocumentStorageService : IDocumentStorageService
             "DocumentStorage: stored DocumentId {DocumentId} for PatientProfileId {PatientProfileId}.",
             document.DocumentId, profile.PatientProfileId);
 
-        // US_033: enqueue malware scan immediately after upload (AC-01).
-        _jobClient.Enqueue<MalwareScanJob>(job => job.ExecuteAsync(document.DocumentId));
+        if (!completeImmediately)
+        {
+            // US_033: enqueue malware scan immediately after upload (AC-01).
+            _jobClient.Enqueue<MalwareScanJob>(job => job.ExecuteAsync(document.DocumentId));
+        }
 
         _logger.LogInformation(
             "DocumentStorage: stored DocumentId {DocumentId} for PatientProfileId {PatientProfileId}.",
@@ -202,6 +211,65 @@ public sealed class DocumentStorageService : IDocumentStorageService
     // ---------------------------------------------------------------------------
     // Helpers
     // ---------------------------------------------------------------------------
+
+    private async Task<PatientProfile?> ResolveOrCreatePatientProfileAsync(
+        Guid patientUserId,
+        CancellationToken cancellationToken)
+    {
+        var existingProfile = await _db.PatientProfiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.UserId == patientUserId, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (existingProfile is not null)
+            return existingProfile;
+
+        var patientUser = await _db.Users
+            .AsNoTracking()
+            .Where(u => u.UserId == patientUserId && u.Role == UserRole.Patient && u.IsActive)
+            .Select(u => new { u.UserId, u.Email, u.FullName })
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        if (patientUser is null)
+            return null;
+
+        var (firstName, lastName) = DeriveProfileName(patientUser.FullName, patientUser.Email);
+        var profile = new PatientProfile
+        {
+            PatientProfileId = Guid.NewGuid(),
+            UserId = patientUser.UserId,
+            FirstName = firstName,
+            LastName = lastName,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        _db.PatientProfiles.Add(profile);
+
+        try
+        {
+            await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            _logger.LogInformation(
+                "DocumentStorage: created missing PatientProfile {PatientProfileId} for UserId {UserId}.",
+                profile.PatientProfileId,
+                patientUser.UserId);
+
+            return profile;
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "DocumentStorage: could not create PatientProfile for UserId {UserId}; reloading existing profile.",
+                patientUser.UserId);
+
+            _db.Entry(profile).State = EntityState.Detached;
+            return await _db.PatientProfiles
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.UserId == patientUserId, cancellationToken)
+                .ConfigureAwait(false);
+        }
+    }
 
     /// <summary>Writes the stream to <paramref name="destinationPath"/> with a 4 KB buffer.</summary>
     private static async Task WriteFileAsync(
@@ -242,5 +310,38 @@ public sealed class DocumentStorageService : IDocumentStorageService
         {
             _logger.LogWarning(ex, "DocumentStorage: could not delete orphaned file '{Path}'.", path);
         }
+    }
+
+    private static (string FirstName, string LastName) DeriveProfileName(
+        string? fullName,
+        string email)
+    {
+        var source = string.IsNullOrWhiteSpace(fullName)
+            ? email.Split('@')[0]
+                .Replace('.', ' ')
+                .Replace('_', ' ')
+                .Replace('-', ' ')
+            : fullName;
+
+        var parts = source
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        if (parts.Length == 0)
+            return ("Patient", "Patient");
+
+        if (parts.Length == 1)
+            return (ToTitleCase(parts[0]), "Patient");
+
+        return (ToTitleCase(parts[0]), ToTitleCase(parts[^1]));
+    }
+
+    private static string ToTitleCase(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "Patient";
+
+        return value.Length == 1
+            ? value.ToUpperInvariant()
+            : char.ToUpperInvariant(value[0]) + value[1..].ToLowerInvariant();
     }
 }

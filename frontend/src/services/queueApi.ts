@@ -1,3 +1,5 @@
+import { authHeaders } from './authTokenStore'
+
 export type QueueStatus = 'Scheduled' | 'Waiting' | 'Arrived' | 'Cancelled' | 'Completed'
 
 export type RiskLevel = 'High' | 'Medium' | 'Low'
@@ -56,7 +58,7 @@ const wait = (ms = 250): Promise<void> =>
 const postJson = async <TResponse>(path: string, body: unknown): Promise<TResponse> => {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     credentials: 'include',
     body: JSON.stringify(body),
   })
@@ -71,6 +73,7 @@ const postJson = async <TResponse>(path: string, body: unknown): Promise<TRespon
 
 const getJson = async <TResponse>(path: string): Promise<TResponse> => {
   const response = await fetch(`${API_BASE_URL}${path}`, {
+    headers: authHeaders(),
     credentials: 'include',
   })
 

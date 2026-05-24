@@ -1,5 +1,5 @@
-export type SocialProvider = 'google' | 'microsoft'
 export type UserRole = 'patient' | 'staff' | 'admin'
+export type RegistrationRole = Extract<UserRole, 'patient' | 'staff'>
 export type MfaMethod = 'totp' | 'sms'
 export type MfaChallengeState = 'verified' | 'verify' | 'setup'
 export type MfaVerificationStatus = 'success' | 'invalid' | 'expired' | 'locked'
@@ -18,6 +18,7 @@ export interface LoginPayload {
 export interface RegisterPayload {
   email: string
   password: string
+  role: RegistrationRole
 }
 
 export interface RequestPasswordResetCodePayload {
@@ -64,10 +65,6 @@ export interface MfaVerificationResponse {
 export interface MfaCodeRequest {
   email: string
   method: MfaMethod
-}
-
-export interface SocialLoginResponse {
-  redirectUrl: string
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
@@ -251,18 +248,10 @@ const mockAuthApi = {
 
     return {
       user: {
-        email: payload.email,
-        role: mockRoleFromEmail(payload.email),
+        email: normalizedEmail,
+        role: payload.role,
       },
       accessToken: 'mock-access-token',
-    }
-  },
-
-  async startSocialLogin(provider: SocialProvider): Promise<SocialLoginResponse> {
-    await wait(200)
-
-    return {
-      redirectUrl: `/dashboard/patient?provider=${provider}`,
     }
   },
 
@@ -402,21 +391,6 @@ export const authApi = {
         email: response.user.email,
         role: response.user.role as UserRole,
       },
-    }
-  },
-
-  async startSocialLogin(provider: SocialProvider): Promise<SocialLoginResponse> {
-    if (USE_MOCK_AUTH || !API_BASE_URL) {
-      return mockAuthApi.startSocialLogin(provider)
-    }
-
-    const response = await postJson<{ redirectUrl: string }>(
-      '/api/auth/social/start',
-      { provider },
-    )
-
-    return {
-      redirectUrl: response.redirectUrl,
     }
   },
 

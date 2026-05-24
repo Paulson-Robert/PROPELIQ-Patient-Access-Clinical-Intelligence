@@ -16,7 +16,7 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
-  it('renders social sign-in options', async () => {
+  it('does not render social sign-in options', async () => {
     render(
       <MemoryRouter initialEntries={['/auth/login']}>
         <App />
@@ -24,7 +24,39 @@ describe('App', () => {
     )
 
     expect(
-      await screen.findByRole('button', { name: 'Continue with Google' }),
+      await screen.findByRole('heading', { level: 2, name: 'Welcome back' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Continue with Google' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Continue with Microsoft' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('registers staff users into the staff dashboard', async () => {
+    render(
+      <MemoryRouter initialEntries={['/auth/login']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Create account' }))
+    fireEvent.change(screen.getByLabelText('Email address'), {
+      target: { value: 'new.user@example.com' },
+    })
+    fireEvent.click(screen.getByLabelText('Staff'))
+    fireEvent.change(screen.getByLabelText('Password'), {
+      target: { value: 'Password123!' },
+    })
+    fireEvent.change(screen.getByLabelText('Confirm password'), {
+      target: { value: 'Password123!' },
+    })
+    fireEvent.click(screen.getByLabelText(/I agree/i))
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
+
+    expect(
+      await screen.findByRole('heading', { name: /Good morning/i }),
     ).toBeInTheDocument()
   })
 
@@ -68,7 +100,7 @@ describe('App', () => {
     )
 
     expect(
-      await screen.findByText('Too many failed attempts — please log in again.'),
+      await screen.findByText('Too many failed attempts - please log in again.'),
     ).toBeInTheDocument()
   })
 

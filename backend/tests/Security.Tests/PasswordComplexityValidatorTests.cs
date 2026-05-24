@@ -28,4 +28,31 @@ public sealed class PasswordComplexityValidatorTests
 
         Assert.True(result.IsValid);
     }
+
+    [Theory]
+    [InlineData("patient")]
+    [InlineData("staff")]
+    [InlineData(null)]
+    public async Task AcceptsSelfRegistrationRoles(string? role)
+    {
+        var result = await _validator.ValidateAsync(new RegisterPatientCommand(
+            "user@example.com",
+            "StrongPass1!",
+            Role: role));
+
+        Assert.True(result.IsValid);
+    }
+
+    [Theory]
+    [InlineData("admin")]
+    [InlineData("clinician")]
+    public async Task RejectsUnsupportedSelfRegistrationRoles(string role)
+    {
+        var result = await _validator.ValidateAsync(new RegisterPatientCommand(
+            "user@example.com",
+            "StrongPass1!",
+            Role: role));
+
+        Assert.False(result.IsValid);
+    }
 }

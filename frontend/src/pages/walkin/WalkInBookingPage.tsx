@@ -53,6 +53,7 @@ export const WalkInBookingPage = () => {
     try {
       const result = await bookingApi.submitWalkIn({
         patientId: mode === 'existing' ? selectedPatient?.id : undefined,
+        patientName: mode === 'existing' ? selectedPatient?.name : undefined,
         guestName: mode === 'guest' ? guestName.trim() : undefined,
         guestPhone: mode === 'guest' ? guestPhone.trim() || undefined : undefined,
         guestEmail: mode === 'guest' ? guestEmail.trim() || undefined : undefined,

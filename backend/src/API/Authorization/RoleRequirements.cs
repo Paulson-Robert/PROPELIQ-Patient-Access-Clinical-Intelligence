@@ -16,16 +16,16 @@ public static class RoleRequirements
             options.AddPolicy(PatientPolicy, policy =>
                 policy.RequireAssertion(context =>
                     HasSingleRole(context.User, out var role) &&
-                    (role == "Patient" || role == "Admin")));
+                    (HasRole(role, "Patient") || HasRole(role, "Admin"))));
 
             options.AddPolicy(StaffPolicy, policy =>
                 policy.RequireAssertion(context =>
                     HasSingleRole(context.User, out var role) &&
-                    (role == "Staff" || role == "Admin")));
+                    (HasRole(role, "Staff") || HasRole(role, "Admin"))));
 
             options.AddPolicy(AdminPolicy, policy =>
                 policy.RequireAssertion(context =>
-                    HasSingleRole(context.User, out var role) && role == "Admin"));
+                    HasSingleRole(context.User, out var role) && HasRole(role, "Admin")));
         });
 
         return services;
@@ -42,4 +42,7 @@ public static class RoleRequirements
         role = roles.Length == 1 ? roles[0] : null;
         return role is not null;
     }
+
+    private static bool HasRole(string? actual, string expected) =>
+        string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase);
 }
