@@ -39,21 +39,20 @@ public sealed class GetPlatformMetricsQueryHandler
     {
         var (fromUtc, toUtc) = ResolveWindow(request.Range);
 
-        var summaryTask = BuildSummaryAsync(fromUtc, toUtc, cancellationToken);
-        var volumeTask = BuildDailyVolumeAsync(fromUtc, toUtc, cancellationToken);
-        var statusTask = BuildStatusBreakdownAsync(fromUtc, toUtc, cancellationToken);
-        var confidenceTask = BuildConfidenceTrendAsync(fromUtc, toUtc, cancellationToken);
+        // DbContext is not thread-safe: run each query sequentially to avoid
+        // "A second operation was started on this context" concurrency errors.
+        var summary = await BuildSummaryAsync(fromUtc, toUtc, cancellationToken).ConfigureAwait(false);
+        var rawVolume = await BuildDailyVolumeAsync(fromUtc, toUtc, cancellationToken).ConfigureAwait(false);
+        var statusBreakdown = await BuildStatusBreakdownAsync(fromUtc, toUtc, cancellationToken).ConfigureAwait(false);
+        var rawConfidence = await BuildConfidenceTrendAsync(fromUtc, toUtc, cancellationToken).ConfigureAwait(false);
 
-        await Task.WhenAll(summaryTask, volumeTask, statusTask, confidenceTask)
-            .ConfigureAwait(false);
-
-        var volumePoints = ApplyGroupBy(await volumeTask, request.GroupBy);
-        var confidenceGrouped = ApplyConfidenceGroupBy(await confidenceTask, request.GroupBy);
+        var volumePoints = ApplyGroupBy(rawVolume, request.GroupBy);
+        var confidenceGrouped = ApplyConfidenceGroupBy(rawConfidence, request.GroupBy);
 
         return new PlatformMetricsResult(
-            await summaryTask,
+            summary,
             volumePoints,
-            await statusTask,
+            statusBreakdown,
             confidenceGrouped);
     }
 

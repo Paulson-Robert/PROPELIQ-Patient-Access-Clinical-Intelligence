@@ -1,3 +1,5 @@
+import { authHeaders } from './authTokenStore'
+
 export type DateRange = '7d' | '30d' | '90d' | 'ytd'
 
 export interface MetricsSummary {
@@ -64,7 +66,7 @@ const wait = (ms = 250): Promise<void> =>
 const getJson = async <TResponse>(path: string): Promise<TResponse> => {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     credentials: 'include',
   })
 
@@ -146,12 +148,82 @@ const getMockData = (range: DateRange): MetricsData => {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Backend ↔ Frontend shape adapters
+// ---------------------------------------------------------------------------
+
+interface BackendMetricsSummary {
+  totalAppointments: number
+  avgWaitTimeMinutes: number
+  noShowRatePercent: number
+  activeUsers: number
+}
+
+interface BackendTrendPoint {
+  period: string
+  count: number
+}
+
+interface BackendStatusBreakdown {
+  status: string
+  count: number
+}
+
+interface BackendConfidenceTrendPoint {
+  period: string
+  avgConfidencePercent: number
+}
+
+interface BackendMetricsResult {
+  summary: BackendMetricsSummary
+  dailyVolume: BackendTrendPoint[]
+  statusBreakdown: BackendStatusBreakdown[]
+  confidenceTrend: BackendConfidenceTrendPoint[]
+}
+
+const mapMetrics = (raw: BackendMetricsResult): MetricsData => ({
+  summary: {
+    totalAppointments: raw.summary.totalAppointments,
+    totalAppointmentsTrend: '',
+    totalAppointmentsTrendUp: true,
+    avgWaitTimeMin: Math.round(raw.summary.avgWaitTimeMinutes),
+    avgWaitTimeTrend: '',
+    avgWaitTimeTrendUp: true,
+    noShowRate: Math.round(raw.summary.noShowRatePercent * 10) / 10,
+    noShowRateTrend: '',
+    noShowRateTrendUp: false,
+    activeUsers: raw.summary.activeUsers,
+    activeUsersTrend: '',
+    activeUsersTrendUp: true,
+  },
+  dailyVolume: raw.dailyVolume.map((p) => ({ date: p.period, count: p.count })),
+  statusBreakdown: raw.statusBreakdown,
+  confidenceTrend: raw.confidenceTrend.map((p) => ({
+    date: p.period,
+    score: Math.round(p.avgConfidencePercent),
+  })),
+})
+
 export const metricsApi = {
   getMetrics: async (params: MetricsParams): Promise<MetricsData> => {
     if (USE_MOCK) {
       await wait()
       return getMockData(params.range)
     }
-    return getJson<MetricsData>(`/api/metrics?range=${params.range}`)
+
+    // Map frontend DateRange keys to backend MetricsDateRange enum names
+    const RANGE_MAP: Record<DateRange, string> = {
+      '7d': 'Last7Days',
+      '30d': 'Last30Days',
+      '90d': 'Last90Days',
+      ytd: 'YearToDate',
+    }
+    const qs = new URLSearchParams({
+      range: RANGE_MAP[params.range],
+      groupBy: 'Day',
+    })
+
+    const raw = await getJson<BackendMetricsResult>(`/api/admin/metrics?${qs.toString()}`)
+    return mapMetrics(raw)
   },
 }
