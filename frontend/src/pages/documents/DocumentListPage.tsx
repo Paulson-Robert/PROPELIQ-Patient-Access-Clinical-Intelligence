@@ -1,13 +1,23 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Clock, FileText, Loader2, Plus, Trash2 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { ArrowLeft, Clock, FileText, Loader2, Plus, Trash2, Users } from 'lucide-react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 import {
   DeleteConfirmDialog,
   type DeleteMode,
 } from '../../components/documents/DeleteConfirmDialog'
-import { bookingApi, type PatientDocumentRecord } from '../../services/bookingApi'
+import { PatientSearchInput } from '../../components/walkin/PatientSearchInput'
+import {
+  bookingApi,
+  type PatientDocumentRecord,
+  type PatientSearchResult,
+} from '../../services/bookingApi'
 import { useAuth } from '../../hooks/useAuth'
+import {
+  documentPathForPatient,
+  patientFromSearchParams,
+  patientToSearchParams,
+} from './documentPatientContext'
 
 // --- Types ---
 
@@ -75,8 +85,13 @@ const STATUS_CONFIG: Record<DocumentStatus, { label: string; className: string }
 
 export const DocumentListPage = () => {
   const { user } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const queryPatient = patientFromSearchParams(searchParams)
+  const isStaff = user?.role === 'staff'
   const [documents, setDocuments] = useState<ClinicalDocument[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [selectedPatient, setSelectedPatient] = useState<PatientSearchResult | null>(queryPatient)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogMode, setDialogMode] = useState<DeleteMode>('single')
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
@@ -85,20 +100,45 @@ export const DocumentListPage = () => {
 
   const pendingDocument = documents.find((d) => d.id === pendingDeleteId)
   const dashboardPath = user?.role === 'staff' ? '/dashboard/staff' : '/dashboard/patient'
+  const uploadPath = isStaff
+    ? documentPathForPatient('/documents/upload', selectedPatient)
+    : '/documents/upload'
+
+  useEffect(() => {
+    if (!isStaff) return
+    setSelectedPatient(queryPatient)
+  }, [isStaff, queryPatient?.email, queryPatient?.id, queryPatient?.name, queryPatient?.phone])
 
   useEffect(() => {
     let cancelled = false
 
     const fetchDocuments = async () => {
+      if (isStaff && !selectedPatient?.id) {
+        setDocuments([])
+        setLoadError(null)
+        setLoading(false)
+        return
+      }
+
       try {
         setLoading(true)
-        const records = await bookingApi.getMyDocuments()
+        setLoadError(null)
+        let records: PatientDocumentRecord[]
+        if (isStaff) {
+          const patientId = selectedPatient?.id
+          if (!patientId) return
+          records = await bookingApi.getPatientDocuments(patientId)
+        } else {
+          records = await bookingApi.getMyDocuments()
+        }
+
         if (!cancelled) {
           setDocuments(records.map(mapApiDocToLocal))
         }
       } catch {
         if (!cancelled) {
           setDocuments([])
+          setLoadError('Documents could not be loaded. Please try again.')
         }
       } finally {
         if (!cancelled) {
@@ -109,7 +149,12 @@ export const DocumentListPage = () => {
 
     void fetchDocuments()
     return () => { cancelled = true }
-  }, [])
+  }, [isStaff, selectedPatient?.id])
+
+  const handleSelectPatient = (patient: PatientSearchResult) => {
+    setSelectedPatient(patient)
+    setSearchParams(patientToSearchParams(patient), { replace: true })
+  }
 
   // AC-02: open delete dialog for a single document
   const openDeleteSingle = (id: string) => {
@@ -132,11 +177,17 @@ export const DocumentListPage = () => {
     setDeleting(true)
 
     try {
+      const patientUserId = isStaff ? selectedPatient?.id : undefined
+      if (isStaff && !patientUserId) {
+        setDeleteError('Select a patient before deleting documents.')
+        return
+      }
+
       if (dialogMode === 'all') {
-        await bookingApi.deleteAllDocuments()
+        await bookingApi.deleteAllDocuments(patientUserId)
         setDocuments([])
       } else if (pendingDeleteId !== null) {
-        await bookingApi.deleteDocument(pendingDeleteId)
+        await bookingApi.deleteDocument(pendingDeleteId, patientUserId)
         setDocuments((prev) => prev.filter((d) => d.id !== pendingDeleteId))
       }
 
@@ -195,21 +246,68 @@ export const DocumentListPage = () => {
                 </button>
               )}
 
-              <Link
-                to="/documents/upload"
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <Plus className="h-4 w-4" aria-hidden="true" />
-                Upload
-              </Link>
+              {isStaff && !selectedPatient ? (
+                <button
+                  type="button"
+                  disabled
+                  className="inline-flex cursor-not-allowed items-center gap-2 rounded-md bg-primary/50 px-3 py-2 text-sm font-medium text-primary-foreground"
+                >
+                  <Plus className="h-4 w-4" aria-hidden="true" />
+                  Upload
+                </button>
+              ) : (
+                <Link
+                  to={uploadPath}
+                  className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <Plus className="h-4 w-4" aria-hidden="true" />
+                  Upload
+                </Link>
+              )}
             </div>
           </header>
 
-          {/* Empty state — shown after all documents are deleted (edge case: last document) */}
-          {loading ? (
+          {/* Staff patient context and document content */}
+          {isStaff ? (
+            <div className="mb-6">
+              <PatientSearchInput
+                selectedPatient={selectedPatient}
+                onSelectPatient={handleSelectPatient}
+                title="Select patient"
+                description="Search for the patient whose documents you want to review"
+                emptyMessage="No matching patients found."
+              />
+              {selectedPatient ? (
+                <p className="mt-3 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                  Viewing documents for{' '}
+                  <span className="font-medium text-foreground">{selectedPatient.name}</span>
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          {isStaff && !selectedPatient ? (
+            <section
+              className="flex flex-col items-center rounded-xl border border-dashed border-border bg-muted/30 py-16 text-center"
+              aria-label="Select patient"
+            >
+              <Users className="mb-3 h-10 w-10 text-muted-foreground" aria-hidden="true" />
+              <p className="text-base font-medium text-foreground">Select a patient</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Choose a patient to view or upload clinical documents.
+              </p>
+            </section>
+          ) : loading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <span className="ml-3 text-sm text-muted-foreground">Loading documents…</span>
+            </div>
+          ) : loadError ? (
+            <div
+              className="rounded-md border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"
+              role="alert"
+            >
+              {loadError}
             </div>
           ) : documents.length === 0 ? (
             <section
@@ -217,12 +315,14 @@ export const DocumentListPage = () => {
               aria-label="No documents"
             >
               <FileText className="mb-3 h-10 w-10 text-muted-foreground" aria-hidden="true" />
-              <p className="text-base font-medium text-foreground">No documents uploaded yet</p>
+              <p className="text-base font-medium text-foreground">
+                {isStaff ? 'No documents uploaded for this patient' : 'No documents uploaded yet'}
+              </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Upload clinical documents to get started
               </p>
               <Link
-                to="/documents/upload"
+                to={uploadPath}
                 className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <Plus className="h-4 w-4" aria-hidden="true" />

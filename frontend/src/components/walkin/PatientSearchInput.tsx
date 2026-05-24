@@ -4,6 +4,9 @@ import { bookingApi, type PatientSearchResult } from '../../services/bookingApi'
 interface PatientSearchInputProps {
   selectedPatient: PatientSearchResult | null
   onSelectPatient: (patient: PatientSearchResult) => void
+  title?: string
+  description?: string
+  emptyMessage?: string
 }
 
 const formatPatientMeta = (patient: PatientSearchResult): string => {
@@ -20,6 +23,9 @@ const formatPatientMeta = (patient: PatientSearchResult): string => {
 export const PatientSearchInput = ({
   selectedPatient,
   onSelectPatient,
+  title = 'Find patient',
+  description = 'Search by name, phone, or email',
+  emptyMessage = 'No matching patients found. You can continue with guest walk-in.',
 }: PatientSearchInputProps) => {
   const inputId = useId()
   const [query, setQuery] = useState('')
@@ -64,8 +70,8 @@ export const PatientSearchInput = ({
 
   return (
     <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
-      <h2 className="text-lg font-semibold tracking-tight">Find patient</h2>
-      <p className="mt-1 text-sm text-muted-foreground">Search by name, phone, or email</p>
+      <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
 
       <div className="mt-4 space-y-2">
         <label htmlFor={inputId} className="text-sm font-medium text-foreground">
@@ -99,7 +105,7 @@ export const PatientSearchInput = ({
 
       {!isLoading && query.trim().length >= 2 && results.length === 0 && !searchError ? (
         <p className="mt-3 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-          No matching patients found. You can continue with guest walk-in.
+          {emptyMessage}
         </p>
       ) : null}
 

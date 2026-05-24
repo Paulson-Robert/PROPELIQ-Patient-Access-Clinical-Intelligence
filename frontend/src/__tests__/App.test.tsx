@@ -156,4 +156,23 @@ describe('App', () => {
     ).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Main navigation' })).toBeInTheDocument()
   })
+
+  it.each([
+    ['/queue/same-day', 'Same-day queue'],
+    ['/booking/walk-in', 'Walk-in booking'],
+    ['/clinical/patient/pat-001', 'Patient view'],
+    ['/clinical/patient/pat-001/codes', /Code mapping/i],
+  ])('renders %s inside the app navigation shell', async (path, headingName) => {
+    render(
+      <MemoryRouter initialEntries={[path]}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(
+      await screen.findByRole('heading', { name: headingName }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Main navigation' })).toBeInTheDocument()
+    expect(document.querySelectorAll('#main-content')).toHaveLength(1)
+  })
 })

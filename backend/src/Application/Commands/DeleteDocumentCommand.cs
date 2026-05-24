@@ -10,10 +10,10 @@ namespace Application.Commands;
 /// Application layer remains free of infrastructure dependencies.
 /// Validation rules applied before the service is invoked:
 /// - <see cref="DocumentId"/> must be a non-empty GUID.
-/// - <see cref="RequestingPatientUserId"/> must be a non-empty GUID.
+/// - <see cref="RequestingPatientUserId"/> must be a non-empty GUID for the target patient.
 ///
 /// The service layer (<see cref="IDocumentDeletionService"/>) handles:
-/// - Authorisation: document must belong to the requesting patient.
+/// - Authorisation: document must belong to the target patient.
 /// - In-progress processing cancellation (edge case).
 /// - Cascaded removal of ExtractedDataRecords, DataConflicts, MedicalCodeMappings.
 /// - Physical file deletion.
@@ -23,7 +23,9 @@ namespace Application.Commands;
 public sealed record DeleteDocumentCommand(
     Guid DocumentId,
     Guid RequestingPatientUserId,
-    string? IpAddress = null) : IRequest<DeleteDocumentResult>;
+    string? IpAddress = null,
+    Guid? ActorUserId = null,
+    string ActorRole = "patient") : IRequest<DeleteDocumentResult>;
 
 internal sealed class DeleteDocumentCommandHandler
     : IRequestHandler<DeleteDocumentCommand, DeleteDocumentResult>
@@ -59,7 +61,9 @@ internal sealed class DeleteDocumentCommandHandler
             new DeleteDocumentRequest(
                 request.DocumentId,
                 request.RequestingPatientUserId,
-                request.IpAddress),
+                request.IpAddress,
+                request.ActorUserId,
+                request.ActorRole),
             cancellationToken);
     }
 }

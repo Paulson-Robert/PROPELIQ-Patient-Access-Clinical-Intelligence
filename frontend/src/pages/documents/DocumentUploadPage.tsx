@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowLeft, FolderOpen } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { DropZone } from '../../components/documents/DropZone'
 import { UploadProgress, type UploadItem } from '../../components/documents/UploadProgress'
-import { bookingApi } from '../../services/bookingApi'
+import { PatientSearchInput } from '../../components/walkin/PatientSearchInput'
+import { bookingApi, type PatientSearchResult } from '../../services/bookingApi'
 import { useAuth } from '../../hooks/useAuth'
+import {
+  documentPathForPatient,
+  patientFromSearchParams,
+  patientToSearchParams,
+} from './documentPatientContext'
 
 const generateId = (): string =>
   `upload-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -19,10 +25,16 @@ const getErrorMessage = (error: unknown): string => {
 
 export const DocumentUploadPage = () => {
   const { user } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const queryPatient = patientFromSearchParams(searchParams)
+  const isStaff = user?.role === 'staff'
   const [items, setItems] = useState<UploadItem[]>([])
+  const [selectedPatient, setSelectedPatient] = useState<PatientSearchResult | null>(queryPatient)
   const mountedRef = useRef(true)
   const startTimeoutsRef = useRef<number[]>([])
   const dashboardPath = user?.role === 'staff' ? '/dashboard/staff' : '/dashboard/patient'
+  const documentsPath = isStaff ? documentPathForPatient('/documents', selectedPatient) : '/documents'
+  const canUpload = !isStaff || selectedPatient !== null
 
   useEffect(() => {
     mountedRef.current = true
@@ -34,6 +46,15 @@ export const DocumentUploadPage = () => {
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (!isStaff) return
+    setSelectedPatient(queryPatient)
+  }, [isStaff, queryPatient?.email, queryPatient?.id, queryPatient?.name, queryPatient?.phone])
+
+  useEffect(() => {
+    setItems([])
+  }, [selectedPatient?.id])
 
   const updateProgress = useCallback((id: string, progress: number) => {
     if (!mountedRef.current) return
@@ -48,9 +69,13 @@ export const DocumentUploadPage = () => {
   }, [])
 
   const uploadFile = useCallback(
-    async (id: string, file: File) => {
+    async (id: string, file: File, patientUserId?: string) => {
       try {
-        await bookingApi.uploadDocument(file, (progress) => updateProgress(id, progress))
+        await bookingApi.uploadDocument(
+          file,
+          (progress) => updateProgress(id, progress),
+          patientUserId,
+        )
 
         if (!mountedRef.current) return
 
@@ -82,6 +107,9 @@ export const DocumentUploadPage = () => {
 
   const handleFilesAccepted = useCallback(
     (files: File[]) => {
+      const patientUserId = isStaff ? selectedPatient?.id : undefined
+      if (isStaff && !patientUserId) return
+
       const newItems: UploadItem[] = files.map((file) => ({
         id: generateId(),
         file,
@@ -94,12 +122,20 @@ export const DocumentUploadPage = () => {
       for (const item of newItems) {
         const timeoutId = window.setTimeout(() => {
           startTimeoutsRef.current = startTimeoutsRef.current.filter((id) => id !== timeoutId)
-          void uploadFile(item.id, item.file)
+          void uploadFile(item.id, item.file, patientUserId)
         }, 0)
         startTimeoutsRef.current.push(timeoutId)
       }
     },
-    [uploadFile],
+    [isStaff, selectedPatient?.id, uploadFile],
+  )
+
+  const handleSelectPatient = useCallback(
+    (patient: PatientSearchResult) => {
+      setSelectedPatient(patient)
+      setSearchParams(patientToSearchParams(patient), { replace: true })
+    },
+    [setSearchParams],
   )
 
   return (
@@ -125,7 +161,7 @@ export const DocumentUploadPage = () => {
           </div>
 
           <Link
-            to="/documents"
+            to={documentsPath}
             className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <FolderOpen className="h-4 w-4" aria-hidden="true" />
@@ -133,8 +169,30 @@ export const DocumentUploadPage = () => {
           </Link>
         </header>
 
+        {isStaff ? (
+          <div className="mb-6">
+            <PatientSearchInput
+              selectedPatient={selectedPatient}
+              onSelectPatient={handleSelectPatient}
+              title="Select patient"
+              description="Search for the patient whose documents you want to upload"
+              emptyMessage="No matching patients found."
+            />
+            {selectedPatient ? (
+              <p className="mt-3 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                Uploading for <span className="font-medium text-foreground">{selectedPatient.name}</span>
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
         <section id="upload-zone" aria-label="Document upload area">
-          <DropZone onFilesAccepted={handleFilesAccepted} />
+          <DropZone onFilesAccepted={handleFilesAccepted} disabled={!canUpload} />
+          {isStaff && !selectedPatient ? (
+            <p className="mt-3 text-center text-sm text-muted-foreground" role="status">
+              Select a patient before uploading documents.
+            </p>
+          ) : null}
         </section>
 
         {items.length > 0 ? (
