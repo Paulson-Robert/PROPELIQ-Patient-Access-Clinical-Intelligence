@@ -64,7 +64,9 @@ export const AppointmentSearchPage = () => {
 
   const [provider, setProvider] = useState(() => searchParams.get('provider') ?? '')
   const [specialty, setSpecialty] = useState(() => searchParams.get('specialty') ?? '')
-  const [from, setFrom] = useState(() => searchParams.get('from') ?? '')
+  const [from, setFrom] = useState(
+    () => searchParams.get('from') ?? new Date().toISOString().substring(0, 10),
+  )
   const [to, setTo] = useState(() => searchParams.get('to') ?? '')
 
   const [searchState, setSearchState] = useState<SearchState>('idle')
