@@ -35,6 +35,28 @@ internal static class SeedDataConstants
     public static readonly Guid SlotFourId = new("55555555-5555-5555-5555-555555555554");
     public static readonly Guid SlotFiveId = new("55555555-5555-5555-5555-555555555555");
 
+    // Rolling future slots — 20 slots spread across 10 weeks for multi-month booking tests
+    public static readonly Guid FutureSlotOneId       = new("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+    public static readonly Guid FutureSlotTwoId       = new("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+    public static readonly Guid FutureSlotThreeId     = new("cccccccc-cccc-cccc-cccc-cccccccccccc");
+    public static readonly Guid FutureSlotFourId      = new("dddddddd-dddd-dddd-dddd-dddddddddddd");
+    public static readonly Guid FutureSlotFiveId      = new("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee");
+    public static readonly Guid FutureSlotSixId       = new("ffffffff-ffff-ffff-ffff-ffffffffffff");
+    public static readonly Guid FutureSlotSevenId     = new("10000000-0000-0000-0000-000000000007");
+    public static readonly Guid FutureSlotEightId     = new("10000000-0000-0000-0000-000000000008");
+    public static readonly Guid FutureSlotNineId      = new("10000000-0000-0000-0000-000000000009");
+    public static readonly Guid FutureSlotTenId       = new("10000000-0000-0000-0000-000000000010");
+    public static readonly Guid FutureSlotElevenId    = new("10000000-0000-0000-0000-000000000011");
+    public static readonly Guid FutureSlotTwelveId    = new("10000000-0000-0000-0000-000000000012");
+    public static readonly Guid FutureSlotThirteenId  = new("10000000-0000-0000-0000-000000000013");
+    public static readonly Guid FutureSlotFourteenId  = new("10000000-0000-0000-0000-000000000014");
+    public static readonly Guid FutureSlotFifteenId   = new("10000000-0000-0000-0000-000000000015");
+    public static readonly Guid FutureSlotSixteenId   = new("10000000-0000-0000-0000-000000000016");
+    public static readonly Guid FutureSlotSeventeenId = new("10000000-0000-0000-0000-000000000017");
+    public static readonly Guid FutureSlotEighteenId  = new("10000000-0000-0000-0000-000000000018");
+    public static readonly Guid FutureSlotNineteenId  = new("10000000-0000-0000-0000-000000000019");
+    public static readonly Guid FutureSlotTwentyId    = new("10000000-0000-0000-0000-000000000020");
+
     public static readonly Guid AppointmentOneId = new("66666666-6666-6666-6666-666666666661");
     public static readonly Guid AppointmentTwoId = new("66666666-6666-6666-6666-666666666662");
 

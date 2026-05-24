@@ -1,0 +1,139 @@
+- generic [ref=e2]:
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "Notification history, no items" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - paragraph [ref=e10]
+  - generic [ref=e11]:
+    - complementary [ref=e12]:
+      - navigation "Main navigation" [ref=e13]:
+        - generic [ref=e14]: PropelIQ
+        - list [ref=e15]:
+          - listitem [ref=e16]:
+            - link "Dashboard" [ref=e17] [cursor=pointer]:
+              - /url: /dashboard/patient
+              - img [ref=e18]
+              - generic [ref=e23]: Dashboard
+          - listitem [ref=e24]:
+            - link "Appointments" [ref=e25] [cursor=pointer]:
+              - /url: /booking/history
+              - img [ref=e26]
+              - generic [ref=e28]: Appointments
+          - listitem [ref=e29]:
+            - link "Book" [ref=e30] [cursor=pointer]:
+              - /url: /booking/search
+              - img [ref=e31]
+              - generic [ref=e33]: Book
+          - listitem [ref=e34]:
+            - link "Intake" [ref=e35] [cursor=pointer]:
+              - /url: /intake
+              - img [ref=e36]
+              - generic [ref=e39]: Intake
+          - listitem [ref=e40]:
+            - link "Documents" [ref=e41] [cursor=pointer]:
+              - /url: /documents
+              - img [ref=e42]
+              - generic [ref=e45]: Documents
+        - button "Log out" [ref=e47] [cursor=pointer]:
+          - img [ref=e48]
+          - generic [ref=e51]: Log out
+    - generic [ref=e52]:
+      - banner [ref=e53]:
+        - button "Notifications" [ref=e55] [cursor=pointer]:
+          - img [ref=e56]
+      - main [ref=e59]:
+        - generic [ref=e60]:
+          - heading "Welcome back, there" [level=2] [ref=e61]
+          - paragraph [ref=e62]: Here's an overview of your health activities.
+        - generic [ref=e63]:
+          - link "Book appointment Find available slots" [ref=e64] [cursor=pointer]:
+            - /url: /booking/search
+            - generic [ref=e65]:
+              - img [ref=e67]
+              - generic [ref=e69]:
+                - generic [ref=e70]: Book appointment
+                - generic [ref=e71]: Find available slots
+          - link "Start intake Complete pre-visit form" [ref=e72] [cursor=pointer]:
+            - /url: /intake
+            - generic [ref=e73]:
+              - img [ref=e75]
+              - generic [ref=e77]:
+                - generic [ref=e78]: Start intake
+                - generic [ref=e79]: Complete pre-visit form
+          - link "Upload documents Add clinical records" [ref=e80] [cursor=pointer]:
+            - /url: /documents/upload
+            - generic [ref=e81]:
+              - img [ref=e83]
+              - generic [ref=e86]:
+                - generic [ref=e87]: Upload documents
+                - generic [ref=e88]: Add clinical records
+        - generic [ref=e89]:
+          - generic [ref=e90]:
+            - generic [ref=e91]:
+              - heading "Upcoming appointments" [level=3] [ref=e92]
+              - link "View all" [ref=e93] [cursor=pointer]:
+                - /url: /booking/history
+            - generic [ref=e94]:
+              - link "Dr. Sarah Chen Internal Medicine Jan 27, 2025 09:00 AM · 30 min Scheduled" [ref=e95] [cursor=pointer]:
+                - /url: /booking/appointments/1
+                - generic [ref=e96]: SC
+                - generic [ref=e97]:
+                  - generic [ref=e98]: Dr. Sarah Chen
+                  - generic [ref=e99]: Internal Medicine
+                - generic [ref=e100]:
+                  - generic [ref=e101]: Jan 27, 2025
+                  - generic [ref=e102]: 09:00 AM · 30 min
+                - generic [ref=e103]: Scheduled
+              - link "Dr. Lisa Nakamura Family Medicine Jan 29, 2025 02:00 PM · 30 min Scheduled" [ref=e104] [cursor=pointer]:
+                - /url: /booking/appointments/2
+                - generic [ref=e105]: LN
+                - generic [ref=e106]:
+                  - generic [ref=e107]: Dr. Lisa Nakamura
+                  - generic [ref=e108]: Family Medicine
+                - generic [ref=e109]:
+                  - generic [ref=e110]: Jan 29, 2025
+                  - generic [ref=e111]: 02:00 PM · 30 min
+                - generic [ref=e112]: Scheduled
+            - link "Book new appointment" [ref=e114] [cursor=pointer]:
+              - /url: /booking/search
+          - generic [ref=e115]:
+            - generic [ref=e116]:
+              - heading "Recent documents" [level=3] [ref=e117]
+              - link "View all" [ref=e118] [cursor=pointer]:
+                - /url: /documents
+            - generic [ref=e119]:
+              - generic [ref=e120]:
+                - img [ref=e121]
+                - generic [ref=e124]:
+                  - generic [ref=e125]: CBC-Results-2025-01.pdf
+                  - generic [ref=e126]: Uploaded Jan 25 · 2.4 MB
+                - generic [ref=e127]:
+                  - img [ref=e128]
+                  - text: Completed
+              - generic [ref=e131]:
+                - img [ref=e132]
+                - generic [ref=e135]:
+                  - generic [ref=e136]: Chest-Xray-Anterior.dicom
+                  - generic [ref=e137]: Uploaded Jan 25 · 18.7 MB
+                - generic [ref=e138]:
+                  - img [ref=e139]
+                  - text: Processing
+        - generic [ref=e141]:
+          - generic [ref=e142]:
+            - heading "Notifications" [level=3] [ref=e143]
+            - button "Mark all read" [ref=e144] [cursor=pointer]
+          - generic [ref=e145]:
+            - generic [ref=e148]:
+              - generic [ref=e149]: Appointment reminder
+              - generic [ref=e150]: Your appointment with Dr. Sarah Chen is tomorrow at 9:00 AM.
+              - generic [ref=e151]: 2 hours ago
+            - generic [ref=e154]:
+              - generic [ref=e155]: Document processed
+              - generic [ref=e156]: CBC-Results-2025-01.pdf has been processed successfully.
+              - generic [ref=e157]: Yesterday
+            - generic [ref=e160]:
+              - generic [ref=e161]: Calendar synced
+              - generic [ref=e162]: Google Calendar sync completed. 2 appointments added.
+              - generic [ref=e163]: 2 days ago

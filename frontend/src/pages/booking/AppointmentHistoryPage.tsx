@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Loader2 } from 'lucide-react'
 import { StatusBadge, type AppointmentStatus } from '../../components/booking/StatusBadge'
+import { bookingApi, type AppointmentRecord } from '../../services/bookingApi'
 
 interface AppointmentHistoryItem {
   id: string
@@ -11,26 +13,26 @@ interface AppointmentHistoryItem {
   status: AppointmentStatus
 }
 
-interface AppointmentHistoryPageProps {
-  appointments?: AppointmentHistoryItem[]
-}
-
 const PAGE_SIZE = 10
 
-const MOCK_APPOINTMENTS: AppointmentHistoryItem[] = [
-  { id: 'appt-120', date: '2025-02-18', startTime: '11:00', providerName: 'Dr. Maya Iyer', specialty: 'Family Medicine', status: 'Confirmed' },
-  { id: 'appt-119', date: '2025-02-14', startTime: '09:30', providerName: 'Dr. Sarah Chen', specialty: 'Internal Medicine', status: 'Completed' },
-  { id: 'appt-118', date: '2025-02-10', startTime: '15:00', providerName: 'Dr. Raj Patel', specialty: 'Orthopedics', status: 'Cancelled' },
-  { id: 'appt-117', date: '2025-02-06', startTime: '08:45', providerName: 'Dr. Lisa Nakamura', specialty: 'Family Medicine', status: 'Completed' },
-  { id: 'appt-116', date: '2025-02-01', startTime: '10:15', providerName: 'Dr. Michael Okafor', specialty: 'Cardiology', status: 'No-Show' },
-  { id: 'appt-115', date: '2025-01-28', startTime: '16:30', providerName: 'Dr. Sarah Chen', specialty: 'Internal Medicine', status: 'Confirmed' },
-  { id: 'appt-114', date: '2025-01-25', startTime: '14:00', providerName: 'Dr. Emily Johansson', specialty: 'Dermatology', status: 'Completed' },
-  { id: 'appt-113', date: '2025-01-22', startTime: '09:00', providerName: 'Dr. Raj Patel', specialty: 'Orthopedics', status: 'Cancelled' },
-  { id: 'appt-112', date: '2025-01-18', startTime: '13:15', providerName: 'Dr. Sarah Chen', specialty: 'Internal Medicine', status: 'Completed' },
-  { id: 'appt-111', date: '2025-01-15', startTime: '10:30', providerName: 'Dr. Lisa Nakamura', specialty: 'Family Medicine', status: 'No-Show' },
-  { id: 'appt-110', date: '2025-01-10', startTime: '11:45', providerName: 'Dr. Michael Okafor', specialty: 'Cardiology', status: 'Confirmed' },
-  { id: 'appt-109', date: '2025-01-04', startTime: '12:30', providerName: 'Dr. Sarah Chen', specialty: 'Internal Medicine', status: 'Completed' },
-]
+const mapRecordToHistoryItem = (record: AppointmentRecord): AppointmentHistoryItem => {
+  const statusMap: Record<string, AppointmentStatus> = {
+    Scheduled: 'Confirmed',
+    Arrived: 'Confirmed',
+    Completed: 'Completed',
+    Cancelled: 'Cancelled',
+    NoShow: 'No-Show',
+  }
+
+  return {
+    id: record.id,
+    date: record.date,
+    startTime: record.startTime,
+    providerName: record.providerName,
+    specialty: record.specialty,
+    status: statusMap[record.status] ?? 'Confirmed',
+  }
+}
 
 const STATUS_FILTERS: Array<{ value: 'all' | AppointmentStatus; label: string }> = [
   { value: 'all', label: 'All statuses' },
@@ -59,11 +61,38 @@ const toDateTimeKey = (item: AppointmentHistoryItem): number => {
   return new Date(`${item.date}T${item.startTime}:00`).getTime()
 }
 
-export const AppointmentHistoryPage = ({ appointments = MOCK_APPOINTMENTS }: AppointmentHistoryPageProps) => {
+export const AppointmentHistoryPage = () => {
+  const [appointments, setAppointments] = useState<AppointmentHistoryItem[]>([])
+  const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<'all' | AppointmentStatus>('all')
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
   const [page, setPage] = useState(1)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const fetchAppointments = async () => {
+      try {
+        setLoading(true)
+        const records = await bookingApi.getMyAppointments()
+        if (!cancelled) {
+          setAppointments(records.map(mapRecordToHistoryItem))
+        }
+      } catch {
+        if (!cancelled) {
+          setAppointments([])
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    void fetchAppointments()
+    return () => { cancelled = true }
+  }, [])
 
   const filteredAppointments = useMemo(() => {
     const sorted = [...appointments].sort((a, b) => toDateTimeKey(b) - toDateTimeKey(a))
@@ -93,7 +122,7 @@ export const AppointmentHistoryPage = ({ appointments = MOCK_APPOINTMENTS }: App
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground" id="main-content">
+    <div className="text-foreground">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <nav className="mb-4 flex items-center gap-2 text-sm text-muted-foreground" aria-label="Breadcrumb">
           <Link to="/dashboard/patient" className="transition-colors hover:text-foreground">
@@ -115,6 +144,13 @@ export const AppointmentHistoryPage = ({ appointments = MOCK_APPOINTMENTS }: App
           </Link>
         </header>
 
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-3 text-sm text-muted-foreground">Loading appointments…</span>
+          </div>
+        ) : (
+        <>
         <section className="mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-muted/40 p-4" aria-label="Appointment history filters">
           <div className="flex min-w-44 flex-1 flex-col gap-1">
             <label htmlFor="history-status" className="text-xs font-medium text-muted-foreground">
@@ -276,8 +312,10 @@ export const AppointmentHistoryPage = ({ appointments = MOCK_APPOINTMENTS }: App
             </footer>
           </>
         )}
+        </>
+        )}
       </div>
-    </main>
+    </div>
   )
 }
 

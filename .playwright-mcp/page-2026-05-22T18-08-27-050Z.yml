@@ -1,0 +1,37 @@
+- generic [ref=e2]:
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "Notification history, no items" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - paragraph [ref=e10]
+  - main [ref=e11]:
+    - generic [ref=e12]:
+      - heading "PropelIQ" [level=1] [ref=e13]
+      - paragraph [ref=e14]: Patient Access & Clinical Intelligence Platform. Streamline appointments, intake, and care workflows from one secure place.
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - heading "Welcome back" [level=2] [ref=e18]
+        - tablist "Authentication mode" [ref=e19]:
+          - tab "Log in" [selected] [ref=e20] [cursor=pointer]
+          - tab "Create account" [ref=e21] [cursor=pointer]
+      - generic "Social login options" [ref=e22]:
+        - button "Continue with Google" [ref=e23] [cursor=pointer]
+        - button "Continue with Microsoft" [ref=e24] [cursor=pointer]
+      - generic [ref=e27]: or
+      - form "Log in to your account" [ref=e29]:
+        - generic [ref=e30]:
+          - text: Email address
+          - textbox "Email address" [ref=e31]:
+            - /placeholder: e.g., maria.santos@email.com
+        - generic [ref=e32]:
+          - text: Password
+          - textbox "Password" [ref=e33]:
+            - /placeholder: Enter your password
+        - generic [ref=e34]:
+          - generic [ref=e35]:
+            - checkbox "Remember me" [ref=e36]
+            - generic [ref=e37]: Remember me
+          - button "Forgot password?" [ref=e38] [cursor=pointer]
+        - button "Log in" [ref=e39] [cursor=pointer]

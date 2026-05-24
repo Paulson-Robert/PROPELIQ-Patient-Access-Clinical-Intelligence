@@ -1,0 +1,78 @@
+- generic [ref=e2]:
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "Notification history, no items" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - paragraph [ref=e10]
+  - generic [ref=e11]:
+    - complementary [ref=e12]:
+      - navigation "Main navigation" [ref=e13]:
+        - generic [ref=e14]: PropelIQ
+        - list [ref=e15]:
+          - listitem [ref=e16]:
+            - link "Dashboard" [ref=e17] [cursor=pointer]:
+              - /url: /dashboard/patient
+              - img [ref=e18]
+              - generic [ref=e23]: Dashboard
+          - listitem [ref=e24]:
+            - link "Appointments" [ref=e25] [cursor=pointer]:
+              - /url: /booking/history
+              - img [ref=e26]
+              - generic [ref=e28]: Appointments
+          - listitem [ref=e29]:
+            - link "Book" [ref=e30] [cursor=pointer]:
+              - /url: /booking/search
+              - img [ref=e31]
+              - generic [ref=e33]: Book
+          - listitem [ref=e34]:
+            - link "Intake" [ref=e35] [cursor=pointer]:
+              - /url: /intake
+              - img [ref=e36]
+              - generic [ref=e39]: Intake
+          - listitem [ref=e40]:
+            - link "Documents" [ref=e41] [cursor=pointer]:
+              - /url: /documents
+              - img [ref=e42]
+              - generic [ref=e45]: Documents
+        - button "Log out" [ref=e47] [cursor=pointer]:
+          - img [ref=e48]
+          - generic [ref=e51]: Log out
+    - generic [ref=e52]:
+      - banner [ref=e53]:
+        - button "Notifications" [ref=e55] [cursor=pointer]:
+          - img [ref=e56]
+      - main [ref=e59]:
+        - generic [ref=e60]:
+          - link "Skip to search" [ref=e61] [cursor=pointer]:
+            - /url: "#search-form"
+          - generic [ref=e62]:
+            - navigation "Breadcrumb" [ref=e63]:
+              - link "Dashboard" [ref=e64] [cursor=pointer]:
+                - /url: /dashboard/patient
+              - generic [ref=e65]: /
+              - generic [ref=e66]: Book appointment
+            - heading "Book an appointment" [level=1] [ref=e67]
+            - search "Search available appointments" [ref=e68]:
+              - generic [ref=e69]:
+                - generic [ref=e70]: Provider
+                - textbox "Provider" [ref=e71]:
+                  - /placeholder: e.g., Dr. Sarah Chen
+              - generic [ref=e72]:
+                - generic [ref=e73]: Specialty
+                - combobox "Specialty" [ref=e74]:
+                  - option "All specialties" [selected]
+                  - option "Internal Medicine"
+                  - option "Cardiology"
+                  - option "Dermatology"
+                  - option "Orthopedics"
+                  - option "Family Medicine"
+              - generic [ref=e75]:
+                - generic [ref=e76]: From
+                - textbox "From" [ref=e77]
+              - generic [ref=e78]:
+                - generic [ref=e79]: To
+                - textbox "To" [ref=e80]
+              - button "Search for available slots" [ref=e81] [cursor=pointer]: Search
+            - paragraph [ref=e83]: Enter your search criteria above and press Search.

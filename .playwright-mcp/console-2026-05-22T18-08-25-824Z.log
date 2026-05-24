@@ -1,0 +1,9 @@
+[     663ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-PJEEZAML.js?v=5a6dc86a:21550
+[     880ms] [WARNING] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition. @ http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=95646d0f:4392
+[     880ms] [WARNING] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath. @ http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=95646d0f:4392
+[  211336ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:5000/api/auth/login:0
+[  211346ms] ApiError: Email or password is incorrect.
+    at postJson (http://localhost:5173/@fs/D:/project/PropelIQ-Project/PROPELIQ-Patient-Access-Clinical-Intelligence/frontend/src/services/authApi.ts:80:11)
+    at async Object.login (http://localhost:5173/@fs/D:/project/PropelIQ-Project/PROPELIQ-Patient-Access-Clinical-Intelligence/frontend/src/services/authApi.ts:216:22)
+    at async http://localhost:5173/@fs/D:/project/PropelIQ-Project/PROPELIQ-Patient-Access-Clinical-Intelligence/frontend/src/hooks/useAuth.ts:62:26
+    at async onLoginSubmit (http://localhost:5173/@fs/D:/project/PropelIQ-Project/PROPELIQ-Patient-Access-Clinical-Intelligence/frontend/src/pages/auth/LoginPage.tsx:58:26)

@@ -127,7 +127,7 @@ export const BookingConfirmationPage = () => {
 
   if (!state && pageState === 'error') {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-background px-4" id="main-content">
+      <div className="flex items-center justify-center py-16 px-4">
         <div className="text-center">
           <p className="text-muted-foreground text-sm">No booking session found.</p>
           <button
@@ -138,14 +138,14 @@ export const BookingConfirmationPage = () => {
             Search for appointments
           </button>
         </div>
-      </main>
+      </div>
     )
   }
 
   /* Lock expired state — AC-06 */
   if (pageState === 'lock_expired') {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-background px-4" id="main-content">
+      <div className="flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 text-center shadow-sm">
           <div
             className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10 text-amber-600"
@@ -169,14 +169,14 @@ export const BookingConfirmationPage = () => {
             Search again
           </button>
         </div>
-      </main>
+      </div>
     )
   }
 
   /* Slot unavailable between search and selection — Edge Case */
   if (pageState === 'slot_unavailable') {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-background px-4" id="main-content">
+      <div className="flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 text-center shadow-sm">
           <h1 className="text-lg font-semibold text-foreground">Slot no longer available</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -190,14 +190,14 @@ export const BookingConfirmationPage = () => {
             Search again
           </button>
         </div>
-      </main>
+      </div>
     )
   }
 
   /* Error state */
   if (pageState === 'error') {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-background px-4" id="main-content">
+      <div className="flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 text-center shadow-sm">
           <h1 className="text-lg font-semibold text-foreground">Booking failed</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -211,7 +211,7 @@ export const BookingConfirmationPage = () => {
             Search again
           </button>
         </div>
-      </main>
+      </div>
     )
   }
 
@@ -222,8 +222,7 @@ export const BookingConfirmationPage = () => {
       appointment.insurancePolicyNumber ?? insurance.policyNumber.trim()
 
     return (
-      <main className="min-h-screen bg-background text-foreground" id="main-content">
-        <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 text-center">
+      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 text-center">
           <div
             className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10 text-green-600"
             aria-hidden="true"
@@ -298,6 +297,13 @@ export const BookingConfirmationPage = () => {
             </button>
             <button
               type="button"
+              onClick={() => navigate(`/booking/appointments/${appointment.id}`)}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              View appointment
+            </button>
+            <button
+              type="button"
               onClick={() => navigate('/booking/search')}
               className="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition focus:outline-none focus:ring-2 focus:ring-ring"
             >
@@ -311,8 +317,7 @@ export const BookingConfirmationPage = () => {
           >
             Return to dashboard
           </a>
-        </div>
-      </main>
+      </div>
     )
   }
 
@@ -320,8 +325,7 @@ export const BookingConfirmationPage = () => {
   const slot = state!.slot
 
   return (
-    <main className="min-h-screen bg-background text-foreground" id="main-content">
-      <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
         <nav className="mb-4 flex items-center gap-2 text-sm text-muted-foreground" aria-label="Breadcrumb">
           <button
             type="button"
@@ -405,7 +409,6 @@ export const BookingConfirmationPage = () => {
             Cancel
           </button>
         </div>
-      </div>
-    </main>
+    </div>
   )
 }
