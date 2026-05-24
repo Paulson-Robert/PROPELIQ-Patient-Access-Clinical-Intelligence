@@ -7,6 +7,7 @@ import {
   useReducer,
   type PropsWithChildren,
 } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   authApi,
   type AuthResponse,
@@ -96,6 +97,7 @@ const roleRoutes: Record<UserRole, string> = {
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [state, dispatch] = useReducer(authReducer, initialState)
+  const navigate = useNavigate()
 
   const loginWithPassword = useCallback(
     async (email: string, password: string): Promise<AuthResponse> => {
@@ -199,7 +201,8 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const logout = useCallback(() => {
     dispatch({ type: 'logout' })
     setBookingAuthToken(null)
-  }, [])
+    navigate('/auth/login', { replace: true })
+  }, [navigate])
 
   const redirectPathForRole = useCallback(
     (role: UserRole) => roleRoutes[role] ?? roleRoutes.patient,
