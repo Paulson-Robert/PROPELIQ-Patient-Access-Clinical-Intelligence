@@ -72,11 +72,30 @@ export interface AppointmentRecord {
   specialty: string
   date: string
   startTime: string
+  endTime?: string
   durationMinutes: number
-  status: 'Scheduled' | 'Cancelled'
+  status: 'Scheduled' | 'Cancelled' | 'Completed' | 'Arrived' | 'NoShow'
   patientEmail: string
   insuranceProvider?: string
   insurancePolicyNumber?: string
+}
+
+export interface PatientDocumentRecord {
+  id: string
+  fileName: string
+  fileFormat: string
+  fileSizeBytes: number
+  processingStatus: string
+  uploadedAt: string
+}
+
+export interface PatientNotificationRecord {
+  id: string
+  appointmentId: string
+  channel: string
+  notificationType: string
+  status: string
+  createdAt: string
 }
 
 export type BookingErrorCode =
@@ -103,11 +122,30 @@ const USE_MOCK_BOOKING = (import.meta.env.VITE_USE_MOCK_AUTH ?? 'true') !== 'fal
 // ---------------------------------------------------------------------------
 // Auth token store — populated by the auth layer after login.
 // bookingApi reads it so every real API call includes Authorization: Bearer.
+// Persisted in sessionStorage so the token survives page refreshes within
+// the same browser tab.
 // ---------------------------------------------------------------------------
-let _accessToken: string | null = null
+const TOKEN_STORAGE_KEY = 'propeliq_access_token'
+
+let _accessToken: string | null = (() => {
+  try {
+    return sessionStorage.getItem(TOKEN_STORAGE_KEY)
+  } catch {
+    return null
+  }
+})()
 
 export const setBookingAuthToken = (token: string | null): void => {
   _accessToken = token
+  try {
+    if (token) {
+      sessionStorage.setItem(TOKEN_STORAGE_KEY, token)
+    } else {
+      sessionStorage.removeItem(TOKEN_STORAGE_KEY)
+    }
+  } catch {
+    // sessionStorage unavailable (e.g. private browsing quota exceeded)
+  }
 }
 
 const authHeaders = (): Record<string, string> =>
@@ -264,7 +302,7 @@ const adaptConfirmationDto = (
   date: toDateString(raw.startTime),
   startTime: toTimeString(raw.startTime),
   durationMinutes: raw.durationMinutes,
-  status: raw.status === 'Cancelled' ? 'Cancelled' : 'Scheduled',
+  status: mapStatus(raw.status),
   patientEmail: raw.patientEmail,
   insuranceProvider: raw.insuranceProvider,
   insurancePolicyNumber: raw.insurancePolicyNumber,
@@ -290,11 +328,47 @@ const adaptAppointmentDetail = (raw: {
   specialty: raw.specialty,
   date: toDateString(raw.startTime),
   startTime: toTimeString(raw.startTime),
+  endTime: toTimeString(raw.endTime),
   durationMinutes: raw.durationMinutes,
-  status: raw.status === 'Cancelled' ? 'Cancelled' : 'Scheduled',
+  status: mapStatus(raw.status),
   patientEmail: raw.patientEmail,
   insuranceProvider: raw.insuranceProvider,
   insurancePolicyNumber: raw.insurancePolicyNumber,
+})
+
+const mapStatus = (status: string): AppointmentRecord['status'] => {
+  switch (status) {
+    case 'Cancelled': return 'Cancelled'
+    case 'Completed': return 'Completed'
+    case 'Arrived': return 'Arrived'
+    case 'NoShow': return 'NoShow'
+    default: return 'Scheduled'
+  }
+}
+
+const adaptPatientAppointmentDto = (raw: {
+  appointmentId: string
+  slotId: string
+  providerName: string
+  specialty: string
+  startTime: string
+  endTime: string
+  durationMinutes: number
+  status: string
+  insuranceProvider?: string
+}): AppointmentRecord => ({
+  id: raw.appointmentId,
+  slotId: raw.slotId,
+  providerName: raw.providerName,
+  providerInitials: initialsFromName(raw.providerName),
+  specialty: raw.specialty,
+  date: toDateString(raw.startTime),
+  startTime: toTimeString(raw.startTime),
+  endTime: toTimeString(raw.endTime),
+  durationMinutes: raw.durationMinutes,
+  status: mapStatus(raw.status),
+  patientEmail: '',
+  insuranceProvider: raw.insuranceProvider,
 })
 
 const MOCK_SLOTS: AvailabilitySlot[] = [
@@ -772,5 +846,79 @@ export const bookingApi = {
     }
 
     return postJson<WalkInBookingResponse>('/api/appointments/walkin', payload)
+  },
+
+  async getMyAppointments(statusFilter?: string): Promise<AppointmentRecord[]> {
+    if (USE_MOCK_BOOKING || !API_BASE_URL) {
+      await wait(250)
+      return [...MOCK_APPOINTMENTS]
+    }
+
+    const query = new URLSearchParams()
+    if (statusFilter) query.set('status', statusFilter)
+
+    const raw = await getJson<{
+      appointmentId: string
+      slotId: string
+      providerName: string
+      specialty: string
+      startTime: string
+      endTime: string
+      durationMinutes: number
+      status: string
+      insuranceProvider?: string
+    }[]>(`/api/appointments/my?${query.toString()}`)
+
+    return raw.map(adaptPatientAppointmentDto)
+  },
+
+  async getMyDocuments(): Promise<PatientDocumentRecord[]> {
+    if (USE_MOCK_BOOKING || !API_BASE_URL) {
+      await wait(200)
+      return []
+    }
+
+    const raw = await getJson<{
+      documentId: string
+      fileName: string
+      fileFormat: string
+      fileSizeBytes: number
+      processingStatus: string
+      uploadedAt: string
+    }[]>('/api/documents/my')
+
+    return raw.map((d) => ({
+      id: d.documentId,
+      fileName: d.fileName,
+      fileFormat: d.fileFormat,
+      fileSizeBytes: d.fileSizeBytes,
+      processingStatus: d.processingStatus,
+      uploadedAt: d.uploadedAt,
+    }))
+  },
+
+  async getMyNotifications(): Promise<PatientNotificationRecord[]> {
+    if (USE_MOCK_BOOKING || !API_BASE_URL) {
+      await wait(200)
+      return []
+    }
+
+    const raw = await getJson<{
+      notificationId: string
+      appointmentId: string
+      channel: string
+      notificationType: string
+      status: string
+      createdAt: string
+    }[]>('/api/notifications/my')
+
+    return raw.map((n) => ({
+      id: n.notificationId,
+      appointmentId: n.appointmentId,
+      channel: n.channel,
+      notificationType: n.notificationType,
+      status: n.status,
+      createdAt: n.createdAt,
+    }))
   },
 }

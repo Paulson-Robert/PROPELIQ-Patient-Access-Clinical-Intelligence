@@ -1,4 +1,5 @@
 using Application.Commands;
+using Application.Queries;
 using API.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -26,6 +27,25 @@ public sealed class DocumentsController : ControllerBase
     public DocumentsController(IMediator mediator)
     {
         _mediator = mediator;
+    }
+
+    // -------------------------------------------------------------------------
+    // GET /api/documents/my
+    // Returns clinical documents for the authenticated patient.
+    // -------------------------------------------------------------------------
+    [HttpGet("my")]
+    public async Task<ActionResult<IReadOnlyList<PatientDocumentDto>>> GetMyDocuments(
+        CancellationToken cancellationToken)
+    {
+        var patientUserId = GetCurrentUserId();
+        if (patientUserId is null)
+            return Unauthorized();
+
+        var result = await _mediator
+            .Send(new GetPatientDocumentsQuery(patientUserId.Value), cancellationToken)
+            .ConfigureAwait(false);
+
+        return Ok(result);
     }
 
     // -------------------------------------------------------------------------

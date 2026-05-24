@@ -23,6 +23,35 @@ import {
 } from '../services/authApi'
 import { setBookingAuthToken } from '../services/bookingApi'
 
+// ---------------------------------------------------------------------------
+// Session persistence helpers — keep user info across page refreshes
+// ---------------------------------------------------------------------------
+const USER_STORAGE_KEY = 'propeliq_auth_user'
+
+const persistUser = (user: AuthUser | null): void => {
+  try {
+    if (user) {
+      sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
+    } else {
+      sessionStorage.removeItem(USER_STORAGE_KEY)
+    }
+  } catch {
+    // sessionStorage unavailable
+  }
+}
+
+const restoreUser = (): AuthUser | null => {
+  try {
+    const raw = sessionStorage.getItem(USER_STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as AuthUser
+    if (parsed.email && parsed.role) return parsed
+    return null
+  } catch {
+    return null
+  }
+}
+
 interface AuthState {
   user: AuthUser | null
   isLoading: boolean
@@ -48,7 +77,7 @@ type AuthAction =
   | { type: 'logout' }
 
 const initialState: AuthState = {
-  user: null,
+  user: restoreUser(),
   isLoading: false,
   error: null,
 }
@@ -106,6 +135,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       try {
         const response = await authApi.login({ email, password })
         dispatch({ type: 'success', payload: response.user })
+        persistUser(response.user)
         setBookingAuthToken(response.accessToken)
         return response
       } catch (error) {
@@ -125,6 +155,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     try {
       const response = await authApi.register(payload)
       dispatch({ type: 'success', payload: response.user })
+      persistUser(response.user)
       setBookingAuthToken(response.accessToken)
       return response
     } catch (error) {
@@ -200,6 +231,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
   const logout = useCallback(() => {
     dispatch({ type: 'logout' })
+    persistUser(null)
     setBookingAuthToken(null)
     navigate('/auth/login', { replace: true })
   }, [navigate])

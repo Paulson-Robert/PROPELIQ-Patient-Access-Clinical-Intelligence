@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Calendar,
@@ -6,12 +7,157 @@ import {
   Upload,
   CheckCircle,
   Loader2,
+  AlertCircle,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import {
+  bookingApi,
+  type AppointmentRecord,
+  type PatientDocumentRecord,
+  type PatientNotificationRecord,
+} from '../../services/bookingApi'
 
 export const PatientDashboardPage = () => {
   const { user } = useAuth()
   const firstName = user?.fullName?.split(' ')[0] ?? 'there'
+
+  const [appointments, setAppointments] = useState<AppointmentRecord[]>([])
+  const [documents, setDocuments] = useState<PatientDocumentRecord[]>([])
+  const [notifications, setNotifications] = useState<PatientNotificationRecord[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchDashboardData = useCallback(async (signal?: AbortSignal) => {
+    setLoading(true)
+    setError(null)
+
+    const [apptResult, docResult, notifResult] = await Promise.allSettled([
+      bookingApi.getMyAppointments(),
+      bookingApi.getMyDocuments(),
+      bookingApi.getMyNotifications(),
+    ])
+
+    if (signal?.aborted) return
+
+    // At least appointments must succeed for the dashboard to be useful
+    if (apptResult.status === 'rejected') {
+      setError('Unable to load dashboard data. Please try again.')
+      setLoading(false)
+      return
+    }
+
+    setAppointments(apptResult.value)
+    setDocuments(docResult.status === 'fulfilled' ? docResult.value : [])
+    setNotifications(notifResult.status === 'fulfilled' ? notifResult.value : [])
+    setLoading(false)
+  }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    void fetchDashboardData(controller.signal)
+    return () => { controller.abort() }
+  }, [fetchDashboardData])
+
+  const upcomingAppointments = appointments
+    .filter((a) => a.status === 'Scheduled')
+    .sort((a, b) => `${a.date}T${a.startTime}`.localeCompare(`${b.date}T${b.startTime}`))
+    .slice(0, 5)
+
+  const recentDocuments = documents.slice(0, 5)
+  const recentNotifications = notifications.slice(0, 5)
+
+  const formatDate = (dateStr: string): string => {
+    const [year, month, day] = dateStr.split('-').map(Number)
+    const d = new Date(year, month - 1, day)
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
+
+  const formatTime = (time: string): string => {
+    const [h, m] = time.split(':').map(Number)
+    const period = h >= 12 ? 'PM' : 'AM'
+    const hour12 = h % 12 || 12
+    return `${hour12.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${period}`
+  }
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  const formatRelativeTime = (isoDate: string): string => {
+    const now = Date.now()
+    const then = new Date(isoDate).getTime()
+    const diffMs = now - then
+    const diffMins = Math.floor(diffMs / 60_000)
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins} min ago`
+    const diffHours = Math.floor(diffMins / 60)
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+    const diffDays = Math.floor(diffHours / 24)
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+    return formatDate(isoDate.substring(0, 10))
+  }
+
+  const docStatusBadge = (status: string) => {
+    if (status === 'Completed') {
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-medium text-green-700">
+          <CheckCircle className="h-3 w-3" aria-hidden="true" />
+          Completed
+        </span>
+      )
+    }
+    if (status === 'Failed') {
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-700">
+          <AlertCircle className="h-3 w-3" aria-hidden="true" />
+          Failed
+        </span>
+      )
+    }
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-700">
+        <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+        {status}
+      </span>
+    )
+  }
+
+  const notificationTitle = (type: string): string => {
+    switch (type) {
+      case 'AppointmentReminder': return 'Appointment reminder'
+      case 'BookingConfirmation': return 'Booking confirmed'
+      case 'CancellationConfirmation': return 'Appointment cancelled'
+      case 'DocumentProcessed': return 'Document processed'
+      default: return 'Notification'
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-3 text-sm text-muted-foreground">Loading dashboard…</span>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
+        <AlertCircle className="mx-auto h-8 w-8 text-destructive" />
+        <p className="mt-2 text-sm text-destructive">{error}</p>
+        <button
+          type="button"
+          onClick={() => void fetchDashboardData()}
+          className="mt-4 inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+        >
+          Retry
+        </button>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -87,50 +233,37 @@ export const PatientDashboardPage = () => {
             </Link>
           </div>
           <div className="divide-y divide-border px-5">
-            <Link
-              to="/booking/appointments/1"
-              className="flex items-center gap-4 py-3 transition-colors hover:bg-muted/50"
-            >
-              <div
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
-                aria-hidden="true"
-              >
-                SC
+            {upcomingAppointments.length === 0 ? (
+              <div className="py-6 text-center text-sm text-muted-foreground">
+                No upcoming appointments. Book one to get started.
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-foreground">Dr. Sarah Chen</div>
-                <div className="text-xs text-muted-foreground">Internal Medicine</div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm font-medium text-foreground">Jan 27, 2025</div>
-                <div className="text-xs text-muted-foreground">09:00 AM · 30 min</div>
-              </div>
-              <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                Scheduled
-              </span>
-            </Link>
-            <Link
-              to="/booking/appointments/2"
-              className="flex items-center gap-4 py-3 transition-colors hover:bg-muted/50"
-            >
-              <div
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
-                aria-hidden="true"
-              >
-                LN
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-foreground">Dr. Lisa Nakamura</div>
-                <div className="text-xs text-muted-foreground">Family Medicine</div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm font-medium text-foreground">Jan 29, 2025</div>
-                <div className="text-xs text-muted-foreground">02:00 PM · 30 min</div>
-              </div>
-              <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                Scheduled
-              </span>
-            </Link>
+            ) : (
+              upcomingAppointments.map((appt) => (
+                <Link
+                  key={appt.id}
+                  to={`/booking/appointments/${appt.id}`}
+                  className="flex items-center gap-4 py-3 transition-colors hover:bg-muted/50"
+                >
+                  <div
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
+                    aria-hidden="true"
+                  >
+                    {appt.providerInitials}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-foreground">{appt.providerName}</div>
+                    <div className="text-xs text-muted-foreground">{appt.specialty}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-medium text-foreground">{formatDate(appt.date)}</div>
+                    <div className="text-xs text-muted-foreground">{formatTime(appt.startTime)} · {appt.durationMinutes} min</div>
+                  </div>
+                  <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                    Scheduled
+                  </span>
+                </Link>
+              ))
+            )}
           </div>
           <div className="border-t border-border px-5 py-3">
             <Link
@@ -152,28 +285,24 @@ export const PatientDashboardPage = () => {
             </Link>
           </div>
           <div className="divide-y divide-border px-5">
-            <div className="flex items-center gap-4 py-3">
-              <FileText className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-foreground">CBC-Results-2025-01.pdf</div>
-                <div className="text-xs text-muted-foreground">Uploaded Jan 25 · 2.4 MB</div>
+            {recentDocuments.length === 0 ? (
+              <div className="py-6 text-center text-sm text-muted-foreground">
+                No documents uploaded yet.
               </div>
-              <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-medium text-green-700">
-                <CheckCircle className="h-3 w-3" aria-hidden="true" />
-                Completed
-              </span>
-            </div>
-            <div className="flex items-center gap-4 py-3">
-              <FileText className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-foreground">Chest-Xray-Anterior.dicom</div>
-                <div className="text-xs text-muted-foreground">Uploaded Jan 25 · 18.7 MB</div>
-              </div>
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-700">
-                <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
-                Processing
-              </span>
-            </div>
+            ) : (
+              recentDocuments.map((doc) => (
+                <div key={doc.id} className="flex items-center gap-4 py-3">
+                  <FileText className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-foreground">{doc.fileName}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Uploaded {formatRelativeTime(doc.uploadedAt)} · {formatFileSize(doc.fileSizeBytes)}
+                    </div>
+                  </div>
+                  {docStatusBadge(doc.processingStatus)}
+                </div>
+              ))
+            )}
           </div>
         </section>
       </div>
@@ -182,53 +311,33 @@ export const PatientDashboardPage = () => {
       <section className="rounded-xl border border-border bg-card shadow-sm">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <h3 className="text-base font-semibold text-foreground">Notifications</h3>
-          <button
-            type="button"
-            className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
-          >
-            Mark all read
-          </button>
         </div>
         <div className="divide-y divide-border px-5">
-          <div className="flex gap-3 py-3">
-            <span
-              className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary"
-              aria-hidden="true"
-            />
-            <div>
-              <div className="text-sm font-medium text-foreground">Appointment reminder</div>
-              <div className="text-sm text-muted-foreground">
-                Your appointment with Dr. Sarah Chen is tomorrow at 9:00 AM.
-              </div>
-              <div className="mt-1 text-xs text-muted-foreground">2 hours ago</div>
+          {recentNotifications.length === 0 ? (
+            <div className="py-6 text-center text-sm text-muted-foreground">
+              No notifications yet.
             </div>
-          </div>
-          <div className="flex gap-3 py-3">
-            <span
-              className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary"
-              aria-hidden="true"
-            />
-            <div>
-              <div className="text-sm font-medium text-foreground">Document processed</div>
-              <div className="text-sm text-muted-foreground">
-                CBC-Results-2025-01.pdf has been processed successfully.
+          ) : (
+            recentNotifications.map((notif) => (
+              <div key={notif.id} className="flex gap-3 py-3">
+                <span
+                  className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary"
+                  aria-hidden="true"
+                />
+                <div>
+                  <div className="text-sm font-medium text-foreground">
+                    {notificationTitle(notif.notificationType)}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Sent via {notif.channel.toLowerCase()} · {notif.status.toLowerCase()}
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    {formatRelativeTime(notif.createdAt)}
+                  </div>
+                </div>
               </div>
-              <div className="mt-1 text-xs text-muted-foreground">Yesterday</div>
-            </div>
-          </div>
-          <div className="flex gap-3 py-3">
-            <span
-              className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-transparent"
-              aria-hidden="true"
-            />
-            <div>
-              <div className="text-sm font-medium text-muted-foreground">Calendar synced</div>
-              <div className="text-sm text-muted-foreground">
-                Google Calendar sync completed. 2 appointments added.
-              </div>
-              <div className="mt-1 text-xs text-muted-foreground">2 days ago</div>
-            </div>
-          </div>
+            ))
+          )}
         </div>
       </section>
     </>
