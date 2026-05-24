@@ -30,6 +30,25 @@ public sealed class IntakeController : ControllerBase
     }
 
     // -------------------------------------------------------------------------
+    // GET /api/intake/my
+    // Returns all intake records for the authenticated patient.
+    // -------------------------------------------------------------------------
+    [HttpGet("my")]
+    public async Task<ActionResult<IReadOnlyList<PatientIntakeDto>>> GetMyIntakes(
+        CancellationToken cancellationToken)
+    {
+        var patientUserId = GetCurrentUserId();
+        if (patientUserId is null)
+            return Unauthorized();
+
+        var result = await _mediator
+            .Send(new GetPatientIntakesQuery(patientUserId.Value), cancellationToken)
+            .ConfigureAwait(false);
+
+        return Ok(result);
+    }
+
+    // -------------------------------------------------------------------------
     // POST /api/intake/{appointmentId}/submit
     // AC-01: Validate and persist completed manual intake
     // -------------------------------------------------------------------------

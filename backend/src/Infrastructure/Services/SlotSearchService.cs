@@ -34,6 +34,8 @@ public sealed class SlotSearchService : ISlotSearchService
             .AsNoTracking()
             .Where(s =>
                 s.IsAvailable &&
+                // Only return present and future slots — never past dates
+                s.StartTime >= now &&
                 // Treat lock as expired when LockExpiry has passed (AC-06)
                 (!s.IsLocked || s.LockExpiry == null || s.LockExpiry < now));
 

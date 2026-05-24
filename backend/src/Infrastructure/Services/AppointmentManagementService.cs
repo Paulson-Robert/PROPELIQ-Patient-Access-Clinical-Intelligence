@@ -58,69 +58,73 @@ public sealed class AppointmentManagementService : IAppointmentManagementService
             .FirstOrDefaultAsync(s => s.SlotId == appointment.SlotId, cancellationToken)
             .ConfigureAwait(false);
 
-        await using var transaction = await _db.Database
-            .BeginTransactionAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        var now = DateTime.UtcNow;
-
-        try
+        var executionStrategy = _db.Database.CreateExecutionStrategy();
+        return await executionStrategy.ExecuteAsync(async () =>
         {
-            appointment.Status = AppointmentStatus.Cancelled;
-            appointment.UpdatedAt = now;
+            await using var transaction = await _db.Database
+                .BeginTransactionAsync(cancellationToken)
+                .ConfigureAwait(false);
 
-            if (slot is not null)
+            var now = DateTime.UtcNow;
+
+            try
             {
-                slot.IsAvailable = true;
-                slot.IsLocked = false;
-                slot.LockExpiry = null;
-                slot.Version++;
-            }
+                appointment.Status = AppointmentStatus.Cancelled;
+                appointment.UpdatedAt = now;
 
-            await EnqueueCalendarNotificationIfEnabledAsync(
-                appointment.AppointmentId,
-                patientUserId,
-                NotificationType.Cancellation,
-                now,
-                cancellationToken)
-                .ConfigureAwait(false);
+                if (slot is not null)
+                {
+                    slot.IsAvailable = true;
+                    slot.IsLocked = false;
+                    slot.LockExpiry = null;
+                    slot.Version++;
+                }
 
-            await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-
-            await _publisher
-                .Publish(new SlotCancelledNotification(appointment.SlotId), cancellationToken)
-                .ConfigureAwait(false);
-
-            _logger.LogInformation(
-                "Appointment cancelled. AppointmentId={AppointmentId}, PatientUserId={PatientUserId}, FreedSlotId={FreedSlotId}.",
-                appointment.AppointmentId,
-                patientUserId,
-                appointment.SlotId);
-
-            return new AppointmentMutationResult(
-                Success: true,
-                Appointment: new AppointmentMutationDto(
+                await EnqueueCalendarNotificationIfEnabledAsync(
                     appointment.AppointmentId,
-                    appointment.SlotId,
-                    nameof(AppointmentStatus.Cancelled),
-                    appointment.UpdatedAt),
-                FailureReason: null,
-                FailureCode: null);
-        }
-        catch (DbUpdateConcurrencyException ex)
-        {
-            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-            _logger.LogWarning(ex,
-                "Cancellation concurrency conflict. AppointmentId={AppointmentId}.",
-                appointmentId);
+                    patientUserId,
+                    NotificationType.Cancellation,
+                    now,
+                    cancellationToken)
+                    .ConfigureAwait(false);
 
-            return new AppointmentMutationResult(
-                Success: false,
-                Appointment: null,
-                FailureReason: "Appointment changed during cancellation. Please refresh and try again.",
-                FailureCode: "CONFLICT");
-        }
+                await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+
+                await _publisher
+                    .Publish(new SlotCancelledNotification(appointment.SlotId), cancellationToken)
+                    .ConfigureAwait(false);
+
+                _logger.LogInformation(
+                    "Appointment cancelled. AppointmentId={AppointmentId}, PatientUserId={PatientUserId}, FreedSlotId={FreedSlotId}.",
+                    appointment.AppointmentId,
+                    patientUserId,
+                    appointment.SlotId);
+
+                return new AppointmentMutationResult(
+                    Success: true,
+                    Appointment: new AppointmentMutationDto(
+                        appointment.AppointmentId,
+                        appointment.SlotId,
+                        nameof(AppointmentStatus.Cancelled),
+                        appointment.UpdatedAt),
+                    FailureReason: null,
+                    FailureCode: null);
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                _logger.LogWarning(ex,
+                    "Cancellation concurrency conflict. AppointmentId={AppointmentId}.",
+                    appointmentId);
+
+                return new AppointmentMutationResult(
+                    Success: false,
+                    Appointment: null,
+                    FailureReason: "Appointment changed during cancellation. Please refresh and try again.",
+                    FailureCode: "CONFLICT");
+            }
+        }).ConfigureAwait(false);
     }
 
     public async Task<AppointmentMutationResult> RescheduleAsync(
@@ -191,86 +195,90 @@ public sealed class AppointmentManagementService : IAppointmentManagementService
                 FailureCode: "SLOT_UNAVAILABLE");
         }
 
-        await using var transaction = await _db.Database
-            .BeginTransactionAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        var now = DateTime.UtcNow;
-
-        try
+        var executionStrategy = _db.Database.CreateExecutionStrategy();
+        return await executionStrategy.ExecuteAsync(async () =>
         {
-            appointment.SlotId = newSlotId;
-            appointment.UpdatedAt = now;
+            await using var transaction = await _db.Database
+                .BeginTransactionAsync(cancellationToken)
+                .ConfigureAwait(false);
 
-            if (previousSlot is not null)
+            var now = DateTime.UtcNow;
+
+            try
             {
-                previousSlot.IsAvailable = true;
-                previousSlot.IsLocked = false;
-                previousSlot.LockExpiry = null;
-                previousSlot.Version++;
-            }
+                appointment.SlotId = newSlotId;
+                appointment.UpdatedAt = now;
 
-            newSlot.IsAvailable = false;
-            newSlot.IsLocked = false;
-            newSlot.LockExpiry = null;
-            newSlot.Version++;
+                if (previousSlot is not null)
+                {
+                    previousSlot.IsAvailable = true;
+                    previousSlot.IsLocked = false;
+                    previousSlot.LockExpiry = null;
+                    previousSlot.Version++;
+                }
 
-            await EnqueueCalendarNotificationIfEnabledAsync(
-                appointment.AppointmentId,
-                patientUserId,
-                NotificationType.SlotSwap,
-                now,
-                cancellationToken)
-                .ConfigureAwait(false);
+                newSlot.IsAvailable = false;
+                newSlot.IsLocked = false;
+                newSlot.LockExpiry = null;
+                newSlot.Version++;
 
-            await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-
-            _ = _slotLock.ReleaseAsync(newSlotId, lockToken, CancellationToken.None);
-
-            await _publisher
-                .Publish(new SlotCancelledNotification(previousSlotId), cancellationToken)
-                .ConfigureAwait(false);
-
-            // Recalculate risk score — new slot means new lead time and time-of-day (US_041, AC-03)
-            await _publisher
-                .Publish(new AppointmentRiskScoreRequested(appointment.AppointmentId), cancellationToken)
-                .ConfigureAwait(false);
-
-            _logger.LogInformation(
-                "Appointment rescheduled. AppointmentId={AppointmentId}, PatientUserId={PatientUserId}, PreviousSlotId={PreviousSlotId}, NewSlotId={NewSlotId}.",
-                appointment.AppointmentId,
-                patientUserId,
-                previousSlotId,
-                newSlotId);
-
-            return new AppointmentMutationResult(
-                Success: true,
-                Appointment: new AppointmentMutationDto(
+                await EnqueueCalendarNotificationIfEnabledAsync(
                     appointment.AppointmentId,
-                    appointment.SlotId,
-                    nameof(AppointmentStatus.Scheduled),
-                    appointment.UpdatedAt),
-                FailureReason: null,
-                FailureCode: null);
-        }
-        catch (DbUpdateConcurrencyException ex)
-        {
-            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-            _ = _slotLock.ReleaseAsync(newSlotId, lockToken, CancellationToken.None);
+                    patientUserId,
+                    NotificationType.SlotSwap,
+                    now,
+                    cancellationToken)
+                    .ConfigureAwait(false);
 
-            _logger.LogWarning(ex,
-                "Reschedule concurrency conflict. AppointmentId={AppointmentId}, PreviousSlotId={PreviousSlotId}, NewSlotId={NewSlotId}. Old appointment preserved.",
-                appointmentId,
-                previousSlotId,
-                newSlotId);
+                await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
-            return new AppointmentMutationResult(
-                Success: false,
-                Appointment: null,
-                FailureReason: "This slot is no longer available.",
-                FailureCode: "SLOT_UNAVAILABLE");
-        }
+                _ = _slotLock.ReleaseAsync(newSlotId, lockToken, CancellationToken.None);
+
+                await _publisher
+                    .Publish(new SlotCancelledNotification(previousSlotId), cancellationToken)
+                    .ConfigureAwait(false);
+
+                // Recalculate risk score — new slot means new lead time and time-of-day (US_041, AC-03)
+                await _publisher
+                    .Publish(new AppointmentRiskScoreRequested(appointment.AppointmentId), cancellationToken)
+                    .ConfigureAwait(false);
+
+                _logger.LogInformation(
+                    "Appointment rescheduled. AppointmentId={AppointmentId}, PatientUserId={PatientUserId}, PreviousSlotId={PreviousSlotId}, NewSlotId={NewSlotId}.",
+                    appointment.AppointmentId,
+                    patientUserId,
+                    previousSlotId,
+                    newSlotId);
+
+                return new AppointmentMutationResult(
+                    Success: true,
+                    Appointment: new AppointmentMutationDto(
+                        appointment.AppointmentId,
+                        appointment.SlotId,
+                        nameof(AppointmentStatus.Scheduled),
+                        appointment.UpdatedAt),
+                    FailureReason: null,
+                    FailureCode: null);
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                _ = _slotLock.ReleaseAsync(newSlotId, lockToken, CancellationToken.None);
+
+                _logger.LogWarning(ex,
+                    "Reschedule concurrency conflict. AppointmentId={AppointmentId}, PreviousSlotId={PreviousSlotId}, NewSlotId={NewSlotId}. Old appointment preserved.",
+                    appointmentId,
+                    previousSlotId,
+                    newSlotId);
+
+                return new AppointmentMutationResult(
+                    Success: false,
+                    Appointment: null,
+                    FailureReason: "This slot is no longer available.",
+                    FailureCode: "SLOT_UNAVAILABLE");
+            }
+        }).ConfigureAwait(false);
     }
 
     private async Task EnqueueCalendarNotificationIfEnabledAsync(

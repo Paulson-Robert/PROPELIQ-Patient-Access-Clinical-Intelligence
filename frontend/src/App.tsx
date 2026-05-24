@@ -20,6 +20,7 @@ import { PasswordResetPage } from './pages/auth/PasswordResetPage'
 import { AiIntakePage } from './pages/intake/AiIntakePage'
 import { ManualIntakePage } from './pages/intake/ManualIntakePage'
 import { IntakePage } from './pages/intake/IntakePage'
+import { IntakeListPage } from './pages/intake/IntakeListPage'
 import { DocumentUploadPage } from './pages/documents/DocumentUploadPage'
 import { DocumentListPage } from './pages/documents/DocumentListPage'
 import { PatientViewPage } from './pages/clinical/PatientViewPage'
@@ -66,6 +67,7 @@ function App() {
           <Route path="/booking/appointments/:appointmentId" element={<AppLayout><AppointmentDetailPage /></AppLayout>} />
           <Route path="/booking/confirm" element={<AppLayout><BookingConfirmationPage /></AppLayout>} />
           <Route path="/intake" element={<IntakePage />} />
+          <Route path="/intake/history" element={<IntakeListPage />} />
           <Route path="/intake/ai" element={<AiIntakePage />} />
           <Route path="/intake/manual" element={<ManualIntakePage />} />
           <Route path="/documents/upload" element={<DocumentUploadPage />} />

@@ -29,7 +29,7 @@ export const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { label: 'Dashboard',      path: '/dashboard/admin',    icon: LayoutDashboard, roles: ['admin'] },
   { label: 'Appointments',   path: '/booking/history',   icon: Calendar,        roles: ['patient'] },
   { label: 'Book',           path: '/booking/search',    icon: Calendar,        roles: ['patient'] },
-  { label: 'Intake',         path: '/intake',            icon: ClipboardList,   roles: ['patient'] },
+  { label: 'Intake',         path: '/intake/history', icon: ClipboardList,   roles: ['patient'] },
   { label: 'Documents',      path: '/documents',         icon: FileText,        roles: ['patient'] },
 
   // ── Staff ─────────────────────────────────────────────────────────────────

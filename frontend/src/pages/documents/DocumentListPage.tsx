@@ -1,11 +1,12 @@
-import { useState } from 'react'
-import { ArrowLeft, Clock, FileText, Plus, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ArrowLeft, Clock, FileText, Loader2, Plus, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 import {
   DeleteConfirmDialog,
   type DeleteMode,
 } from '../../components/documents/DeleteConfirmDialog'
+import { bookingApi, type PatientDocumentRecord } from '../../services/bookingApi'
 
 // --- Types ---
 
@@ -14,11 +15,10 @@ type DocumentStatus = 'uploading' | 'scanning' | 'processing' | 'completed' | 'f
 interface ClinicalDocument {
   id: string
   fileName: string
-  format: 'PDF' | 'DOCX' | 'PNG' | 'JPG' | 'DICOM'
+  format: string
   uploadDate: string
   sizeBytes: number
   status: DocumentStatus
-  /** AC-01: Retention policy. Patient-uploaded documents are retained indefinitely. */
   retentionPolicy: 'indefinite'
 }
 
@@ -30,6 +30,30 @@ const formatBytes = (bytes: number): string => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+const formatDate = (iso: string): string => {
+  const d = new Date(iso)
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+const mapProcessingStatus = (status: string): DocumentStatus => {
+  const lower = status.toLowerCase()
+  if (lower === 'completed') return 'completed'
+  if (lower === 'failed') return 'failed'
+  if (lower === 'scanning') return 'scanning'
+  if (lower === 'uploading') return 'uploading'
+  return 'processing'
+}
+
+const mapApiDocToLocal = (doc: PatientDocumentRecord): ClinicalDocument => ({
+  id: doc.id,
+  fileName: doc.fileName,
+  format: doc.fileFormat.toUpperCase(),
+  uploadDate: formatDate(doc.uploadedAt),
+  sizeBytes: doc.fileSizeBytes,
+  status: mapProcessingStatus(doc.processingStatus),
+  retentionPolicy: 'indefinite',
+})
+
 const STATUS_CONFIG: Record<DocumentStatus, { label: string; className: string }> = {
   uploading: { label: 'Uploading', className: 'bg-blue-500/10 text-blue-700' },
   scanning: { label: 'Scanning', className: 'bg-amber-500/10 text-amber-700' },
@@ -38,48 +62,41 @@ const STATUS_CONFIG: Record<DocumentStatus, { label: string; className: string }
   failed: { label: 'Failed', className: 'bg-destructive/10 text-destructive' },
 }
 
-// --- Mock data ---
-// Inferred decision: No document list API endpoint is in scope for this task (frontend only).
-// Static mock data is used to demonstrate the UI, matching the wireframe-SCR-012 samples.
-const MOCK_DOCUMENTS: ClinicalDocument[] = [
-  {
-    id: 'doc-001',
-    fileName: 'CBC-Results-2025-01.pdf',
-    format: 'PDF',
-    uploadDate: 'Jan 25, 2025',
-    sizeBytes: 2.4 * 1024 * 1024,
-    status: 'completed',
-    retentionPolicy: 'indefinite',
-  },
-  {
-    id: 'doc-002',
-    fileName: 'Chest-Xray-Anterior.dicom',
-    format: 'DICOM',
-    uploadDate: 'Jan 25, 2025',
-    sizeBytes: 18.7 * 1024 * 1024,
-    status: 'processing',
-    retentionPolicy: 'indefinite',
-  },
-  {
-    id: 'doc-003',
-    fileName: 'MRI-Knee-Left.dicom',
-    format: 'DICOM',
-    uploadDate: 'Jan 23, 2025',
-    sizeBytes: 45.2 * 1024 * 1024,
-    status: 'failed',
-    retentionPolicy: 'indefinite',
-  },
-]
-
 // --- Component ---
 
 export const DocumentListPage = () => {
-  const [documents, setDocuments] = useState<ClinicalDocument[]>(MOCK_DOCUMENTS)
+  const [documents, setDocuments] = useState<ClinicalDocument[]>([])
+  const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogMode, setDialogMode] = useState<DeleteMode>('single')
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
   const pendingDocument = documents.find((d) => d.id === pendingDeleteId)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const fetchDocuments = async () => {
+      try {
+        setLoading(true)
+        const records = await bookingApi.getMyDocuments()
+        if (!cancelled) {
+          setDocuments(records.map(mapApiDocToLocal))
+        }
+      } catch {
+        if (!cancelled) {
+          setDocuments([])
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    void fetchDocuments()
+    return () => { cancelled = true }
+  }, [])
 
   // AC-02: open delete dialog for a single document
   const openDeleteSingle = (id: string) => {
@@ -158,7 +175,12 @@ export const DocumentListPage = () => {
           </header>
 
           {/* Empty state — shown after all documents are deleted (edge case: last document) */}
-          {documents.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-3 text-sm text-muted-foreground">Loading documents…</span>
+            </div>
+          ) : documents.length === 0 ? (
             <section
               className="flex flex-col items-center rounded-xl border border-dashed border-border bg-muted/30 py-16 text-center"
               aria-label="No documents"

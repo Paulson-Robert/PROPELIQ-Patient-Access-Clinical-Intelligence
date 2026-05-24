@@ -89,6 +89,15 @@ export interface PatientDocumentRecord {
   uploadedAt: string
 }
 
+export interface PatientIntakeRecord {
+  id: string
+  appointmentId: string
+  intakeMode: string
+  reasonForVisit: string | null
+  completedAt: string | null
+  lastModifiedAt: string
+}
+
 export interface PatientNotificationRecord {
   id: string
   appointmentId: string
@@ -371,6 +380,13 @@ const adaptPatientAppointmentDto = (raw: {
   insuranceProvider: raw.insuranceProvider,
 })
 
+/** Returns 'YYYY-MM-DD' for today + offsetDays */
+const futureDateStr = (offsetDays: number): string => {
+  const d = new Date()
+  d.setDate(d.getDate() + offsetDays)
+  return d.toISOString().substring(0, 10)
+}
+
 const MOCK_SLOTS: AvailabilitySlot[] = [
   {
     id: 'slot-001',
@@ -378,7 +394,7 @@ const MOCK_SLOTS: AvailabilitySlot[] = [
     providerName: 'Dr. Sarah Chen',
     providerInitials: 'SC',
     specialty: 'Internal Medicine',
-    date: '2025-01-28',
+    date: futureDateStr(1),
     startTime: '09:00',
     endTime: '09:30',
     durationMinutes: 30,
@@ -391,7 +407,7 @@ const MOCK_SLOTS: AvailabilitySlot[] = [
     providerName: 'Dr. Sarah Chen',
     providerInitials: 'SC',
     specialty: 'Internal Medicine',
-    date: '2025-01-28',
+    date: futureDateStr(1),
     startTime: '09:30',
     endTime: '10:00',
     durationMinutes: 30,
@@ -404,7 +420,7 @@ const MOCK_SLOTS: AvailabilitySlot[] = [
     providerName: 'Dr. Michael Okafor',
     providerInitials: 'MO',
     specialty: 'Cardiology',
-    date: '2025-01-28',
+    date: futureDateStr(1),
     startTime: '10:00',
     endTime: '10:45',
     durationMinutes: 45,
@@ -417,7 +433,7 @@ const MOCK_SLOTS: AvailabilitySlot[] = [
     providerName: 'Dr. Emily Johansson',
     providerInitials: 'EJ',
     specialty: 'Dermatology',
-    date: '2025-01-28',
+    date: futureDateStr(1),
     startTime: '11:00',
     endTime: '11:20',
     durationMinutes: 20,
@@ -430,7 +446,7 @@ const MOCK_SLOTS: AvailabilitySlot[] = [
     providerName: 'Dr. Lisa Nakamura',
     providerInitials: 'LN',
     specialty: 'Family Medicine',
-    date: '2025-01-29',
+    date: futureDateStr(2),
     startTime: '14:00',
     endTime: '14:30',
     durationMinutes: 30,
@@ -443,7 +459,7 @@ const MOCK_SLOTS: AvailabilitySlot[] = [
     providerName: 'Dr. Michael Okafor',
     providerInitials: 'MO',
     specialty: 'Cardiology',
-    date: '2025-01-29',
+    date: futureDateStr(2),
     startTime: '15:00',
     endTime: '15:45',
     durationMinutes: 45,
@@ -496,6 +512,50 @@ const MOCK_PATIENTS: PatientSearchResult[] = [
 
 const mockLockedSlotIds = new Set<string>()
 const mockConfirmedAppointments: AppointmentRecord[] = []
+const mockIntakeRecords: PatientIntakeRecord[] = [
+  {
+    id: 'intake-001',
+    appointmentId: 'appt-001',
+    intakeMode: 'AI',
+    reasonForVisit: 'Annual physical exam',
+    completedAt: new Date(Date.now() - 2 * 86_400_000).toISOString(),
+    lastModifiedAt: new Date(Date.now() - 2 * 86_400_000).toISOString(),
+  },
+  {
+    id: 'intake-002',
+    appointmentId: 'appt-002',
+    intakeMode: 'Manual',
+    reasonForVisit: 'Follow-up for blood pressure management',
+    completedAt: new Date(Date.now() - 7 * 86_400_000).toISOString(),
+    lastModifiedAt: new Date(Date.now() - 7 * 86_400_000).toISOString(),
+  },
+]
+const mockDocumentRecords: PatientDocumentRecord[] = [
+  {
+    id: 'doc-001',
+    fileName: 'CBC-Results-2025-01.pdf',
+    fileFormat: 'PDF',
+    fileSizeBytes: Math.round(2.4 * 1024 * 1024),
+    processingStatus: 'Completed',
+    uploadedAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+  },
+  {
+    id: 'doc-002',
+    fileName: 'Chest-Xray-Anterior.dicom',
+    fileFormat: 'DICOM',
+    fileSizeBytes: Math.round(18.7 * 1024 * 1024),
+    processingStatus: 'Processing',
+    uploadedAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+  },
+  {
+    id: 'doc-003',
+    fileName: 'MRI-Knee-Left.dicom',
+    fileFormat: 'DICOM',
+    fileSizeBytes: Math.round(45.2 * 1024 * 1024),
+    processingStatus: 'Failed',
+    uploadedAt: new Date(Date.now() - 5 * 86_400_000).toISOString(),
+  },
+]
 
 let mockWalkInCounter = 1
 
@@ -875,7 +935,7 @@ export const bookingApi = {
   async getMyDocuments(): Promise<PatientDocumentRecord[]> {
     if (USE_MOCK_BOOKING || !API_BASE_URL) {
       await wait(200)
-      return []
+      return [...mockDocumentRecords]
     }
 
     const raw = await getJson<{
@@ -919,6 +979,31 @@ export const bookingApi = {
       notificationType: n.notificationType,
       status: n.status,
       createdAt: n.createdAt,
+    }))
+  },
+
+  async getMyIntakes(): Promise<PatientIntakeRecord[]> {
+    if (USE_MOCK_BOOKING || !API_BASE_URL) {
+      await wait(200)
+      return [...mockIntakeRecords]
+    }
+
+    const raw = await getJson<{
+      intakeId: string
+      appointmentId: string
+      intakeMode: string
+      reasonForVisit: string | null
+      completedAt: string | null
+      lastModifiedAt: string
+    }[]>('/api/intake/my')
+
+    return raw.map((i) => ({
+      id: i.intakeId,
+      appointmentId: i.appointmentId,
+      intakeMode: i.intakeMode,
+      reasonForVisit: i.reasonForVisit,
+      completedAt: i.completedAt,
+      lastModifiedAt: i.lastModifiedAt,
     }))
   },
 }
