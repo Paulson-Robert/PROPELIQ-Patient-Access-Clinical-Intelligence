@@ -28,6 +28,13 @@ public sealed class RegisterPatientCommandValidator : AbstractValidator<Register
 
         RuleFor(command => command.Password)
             .SetValidator(new PasswordComplexityValidator());
+
+        RuleFor(command => command.Role)
+            .Must(role =>
+                string.IsNullOrWhiteSpace(role) ||
+                string.Equals(role, "patient", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(role, "staff", StringComparison.OrdinalIgnoreCase))
+            .WithMessage("Role must be Patient or Staff.");
     }
 }
 

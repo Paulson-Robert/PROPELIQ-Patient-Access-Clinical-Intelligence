@@ -25,8 +25,7 @@ export interface NavItem {
 // Items are ordered per role; getNavItemsForRole preserves array order.
 // Each role has its own Dashboard entry pointing to its role-specific landing page.
 export const NAV_ITEMS: ReadonlyArray<NavItem> = [
-  { label: 'Dashboard',      path: '/dashboard/patient',  icon: LayoutDashboard, roles: ['patient', 'staff'] },
-  { label: 'Dashboard',      path: '/dashboard/admin',    icon: LayoutDashboard, roles: ['admin'] },
+  { label: 'Dashboard',      path: '/dashboard/patient',  icon: LayoutDashboard, roles: ['patient'] },
   { label: 'Appointments',   path: '/booking/history',   icon: Calendar,        roles: ['patient'] },
   { label: 'Book',           path: '/booking/search',    icon: Calendar,        roles: ['patient'] },
   { label: 'Intake',         path: '/intake/history', icon: ClipboardList,   roles: ['patient'] },

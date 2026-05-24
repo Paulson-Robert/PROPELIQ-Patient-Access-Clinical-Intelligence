@@ -3,50 +3,79 @@ import { ArrowLeft, FolderOpen } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { DropZone } from '../../components/documents/DropZone'
 import { UploadProgress, type UploadItem } from '../../components/documents/UploadProgress'
-
-// Simulated upload: increments 5% every 100ms (~2 s total per file).
-// Inferred decision — no backend upload API endpoint is defined in TASK_001 scope.
-const PROGRESS_STEP = 5
-const PROGRESS_INTERVAL_MS = 100
+import { bookingApi } from '../../services/bookingApi'
 
 const generateId = (): string =>
   `upload-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message
+  }
+
+  return 'Upload failed. Please try again.'
+}
+
 export const DocumentUploadPage = () => {
   const [items, setItems] = useState<UploadItem[]>([])
-  const intervalsRef = useRef<Map<string, number>>(new Map())
+  const mountedRef = useRef(true)
+  const startTimeoutsRef = useRef<number[]>([])
 
-  // Clear all pending intervals on unmount to prevent memory leaks
   useEffect(() => {
-    const intervals = intervalsRef.current
+    mountedRef.current = true
+    const startTimeouts = startTimeoutsRef.current
     return () => {
-      for (const id of intervals.values()) {
-        window.clearInterval(id)
+      mountedRef.current = false
+      for (const timeoutId of startTimeouts) {
+        window.clearTimeout(timeoutId)
       }
     }
   }, [])
 
-  const simulateUpload = useCallback((id: string) => {
-    const interval = window.setInterval(() => {
-      setItems((prev) =>
-        prev.map((item) => {
-          if (item.id !== id) return item
+  const updateProgress = useCallback((id: string, progress: number) => {
+    if (!mountedRef.current) return
 
-          const nextProgress = Math.min(item.progress + PROGRESS_STEP, 100)
-
-          if (nextProgress === 100) {
-            window.clearInterval(intervalsRef.current.get(id))
-            intervalsRef.current.delete(id)
-            return { ...item, progress: 100, status: 'done' }
-          }
-
-          return { ...item, progress: nextProgress }
-        }),
-      )
-    }, PROGRESS_INTERVAL_MS)
-
-    intervalsRef.current.set(id, interval)
+    setItems((prev) =>
+      prev.map((current) =>
+        current.id === id && current.status === 'uploading'
+          ? { ...current, progress: Math.max(current.progress, Math.min(progress, 95)) }
+          : current,
+      ),
+    )
   }, [])
+
+  const uploadFile = useCallback(
+    async (id: string, file: File) => {
+      try {
+        await bookingApi.uploadDocument(file, (progress) => updateProgress(id, progress))
+
+        if (!mountedRef.current) return
+
+        setItems((prev) =>
+          prev.map((current) =>
+            current.id === id
+              ? { ...current, progress: 100, status: 'done' }
+              : current,
+          ),
+        )
+      } catch (error) {
+        if (!mountedRef.current) return
+
+        setItems((prev) =>
+          prev.map((current) =>
+            current.id === id
+              ? {
+                  ...current,
+                  status: 'error',
+                  errorMessage: getErrorMessage(error),
+                }
+              : current,
+          ),
+        )
+      }
+    },
+    [updateProgress],
+  )
 
   const handleFilesAccepted = useCallback(
     (files: File[]) => {
@@ -54,16 +83,20 @@ export const DocumentUploadPage = () => {
         id: generateId(),
         file,
         status: 'uploading',
-        progress: 0,
+        progress: 5,
       }))
 
       setItems((prev) => [...prev, ...newItems])
 
       for (const item of newItems) {
-        simulateUpload(item.id)
+        const timeoutId = window.setTimeout(() => {
+          startTimeoutsRef.current = startTimeoutsRef.current.filter((id) => id !== timeoutId)
+          void uploadFile(item.id, item.file)
+        }, 0)
+        startTimeoutsRef.current.push(timeoutId)
       }
     },
-    [simulateUpload],
+    [uploadFile],
   )
 
   return (

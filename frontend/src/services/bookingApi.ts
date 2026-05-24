@@ -1,3 +1,5 @@
+import { authHeaders, setAuthToken } from './authTokenStore'
+
 export interface AvailabilitySlot {
   id: string
   providerId: string
@@ -48,6 +50,7 @@ export interface CancelAppointmentPayload {
 
 export interface WalkInBookingPayload {
   patientId?: string
+  patientName?: string
   guestName?: string
   guestEmail?: string
   guestPhone?: string
@@ -89,6 +92,8 @@ export interface PatientDocumentRecord {
   uploadedAt: string
 }
 
+export type UploadProgressCallback = (progress: number) => void
+
 export interface PatientIntakeRecord {
   id: string
   appointmentId: string
@@ -112,6 +117,13 @@ export type BookingErrorCode =
   | 'SLOT_UNAVAILABLE'
   | 'LOCK_EXPIRED'
   | 'NOT_FOUND'
+  | 'NO_FILE'
+  | 'UNSUPPORTED_FORMAT'
+  | 'FILE_TOO_LARGE'
+  | 'PATIENT_NOT_FOUND'
+  | 'INVALID_REQUEST'
+  | 'UPLOAD_FAILED'
+  | 'DELETE_FAILED'
 
 export class BookingError extends Error {
   code: BookingErrorCode
@@ -129,36 +141,12 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 const USE_MOCK_BOOKING = (import.meta.env.VITE_USE_MOCK_AUTH ?? 'true') !== 'false'
 
 // ---------------------------------------------------------------------------
-// Auth token store — populated by the auth layer after login.
-// bookingApi reads it so every real API call includes Authorization: Bearer.
-// Persisted in sessionStorage so the token survives page refreshes within
-// the same browser tab.
+// Backwards-compatible wrapper for older imports. The shared token store is
+// used by all real API services that need Authorization: Bearer.
 // ---------------------------------------------------------------------------
-const TOKEN_STORAGE_KEY = 'propeliq_access_token'
-
-let _accessToken: string | null = (() => {
-  try {
-    return sessionStorage.getItem(TOKEN_STORAGE_KEY)
-  } catch {
-    return null
-  }
-})()
-
 export const setBookingAuthToken = (token: string | null): void => {
-  _accessToken = token
-  try {
-    if (token) {
-      sessionStorage.setItem(TOKEN_STORAGE_KEY, token)
-    } else {
-      sessionStorage.removeItem(TOKEN_STORAGE_KEY)
-    }
-  } catch {
-    // sessionStorage unavailable (e.g. private browsing quota exceeded)
-  }
+  setAuthToken(token)
 }
-
-const authHeaders = (): Record<string, string> =>
-  _accessToken ? { Authorization: `Bearer ${_accessToken}` } : {}
 
 const wait = (ms = 300): Promise<void> =>
   new Promise((resolve) => {
@@ -239,6 +227,29 @@ const putJson = async <TResponse>(path: string, body: unknown): Promise<TRespons
   }
 
   return (await response.json()) as TResponse
+}
+
+const deleteRequest = async (path: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'DELETE',
+    credentials: 'include',
+    headers: authHeaders(),
+  })
+
+  if (!response.ok) {
+    let message = 'Delete failed'
+    let code: BookingErrorCode = 'DELETE_FAILED'
+
+    try {
+      const parsed = (await response.json()) as { message?: string; code?: BookingErrorCode }
+      message = parsed.message ?? message
+      code = parsed.code ?? code
+    } catch {
+      // use defaults
+    }
+
+    throw new BookingError(message, code, response.status)
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -379,6 +390,166 @@ const adaptPatientAppointmentDto = (raw: {
   patientEmail: '',
   insuranceProvider: raw.insuranceProvider,
 })
+
+const adaptPatientSearchDto = (raw: {
+  userId: string
+  firstName: string
+  lastName: string
+  dateOfBirth: string | null
+  email: string
+  phone: string | null
+}): PatientSearchResult => ({
+  id: raw.userId,
+  name: `${raw.firstName} ${raw.lastName}`.trim(),
+  email: raw.email,
+  phone: raw.phone ?? undefined,
+  dateOfBirth: raw.dateOfBirth ?? undefined,
+})
+
+const splitGuestName = (name?: string): { firstName?: string; lastName?: string } => {
+  const parts = name?.trim().split(/\s+/).filter(Boolean) ?? []
+  if (parts.length === 0) {
+    return {}
+  }
+
+  const [firstName, ...lastNameParts] = parts
+  return {
+    firstName,
+    lastName: lastNameParts.length > 0 ? lastNameParts.join(' ') : undefined,
+  }
+}
+
+const buildWalkInRequestDto = (payload: WalkInBookingPayload) => {
+  const guestName = splitGuestName(payload.guestName)
+
+  return {
+    slotId: '00000000-0000-0000-0000-000000000000',
+    existingPatientUserId: payload.patientId,
+    firstName: guestName.firstName,
+    lastName: guestName.lastName,
+    dateOfBirth: undefined,
+    email: payload.guestEmail,
+    phone: payload.guestPhone,
+    createAccount: false,
+  }
+}
+
+const adaptWalkInBookingDto = (
+  raw: {
+    appointmentId: string
+    patientUserId: string
+    queueId: string
+    bookingType: string
+    status: string
+    createdAtUtc: string
+    temporaryPatientRecordCreated: boolean
+    patientDisplayName?: string
+    estimatedWaitMinutes?: number
+  },
+  payload: WalkInBookingPayload,
+): WalkInBookingResponse => ({
+  appointmentId: raw.appointmentId,
+  queueId: raw.queueId,
+  bookingType: 'WalkIn',
+  status: 'Scheduled',
+  patientDisplayName:
+    raw.patientDisplayName ??
+    payload.patientName ??
+    payload.guestName?.trim() ??
+    'Walk-in patient',
+  estimatedWaitMinutes: raw.estimatedWaitMinutes ?? 20,
+})
+
+const formatFromFileName = (fileName: string): string => {
+  const extension = fileName.split('.').pop()?.toLowerCase()
+  switch (extension) {
+    case 'pdf': return 'PDF'
+    case 'docx': return 'DOCX'
+    case 'png': return 'PNG'
+    case 'jpg':
+    case 'jpeg':
+      return 'JPG'
+    case 'dcm':
+      return 'DICOM'
+    default:
+      return 'UNKNOWN'
+  }
+}
+
+const parseResponseJson = <TResponse>(text: string): TResponse => {
+  if (!text.trim()) {
+    return {} as TResponse
+  }
+
+  return JSON.parse(text) as TResponse
+}
+
+const parseUploadError = (text: string): { message: string; code: BookingErrorCode } => {
+  try {
+    const parsed = JSON.parse(text) as { message?: string; code?: BookingErrorCode }
+    return {
+      message: parsed.message ?? 'Upload failed',
+      code: parsed.code ?? 'UPLOAD_FAILED',
+    }
+  } catch {
+    return {
+      message: 'Upload failed',
+      code: 'UPLOAD_FAILED',
+    }
+  }
+}
+
+const uploadDocumentWithXhr = (
+  file: File,
+  onProgress?: UploadProgressCallback,
+): Promise<{
+  documentId: string
+  message: string
+}> =>
+  new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    const body = new FormData()
+    body.append('file', file)
+
+    xhr.open('POST', `${API_BASE_URL}/api/documents/upload`)
+    xhr.withCredentials = true
+
+    for (const [key, value] of Object.entries(authHeaders())) {
+      xhr.setRequestHeader(key, value)
+    }
+
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable || event.total <= 0) return
+
+      const progress = Math.min(95, Math.max(1, Math.round((event.loaded / event.total) * 95)))
+      onProgress?.(progress)
+    }
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(parseResponseJson(xhr.responseText))
+        } catch {
+          reject(new BookingError('Upload response was invalid.', 'UPLOAD_FAILED', xhr.status))
+        }
+        return
+      }
+
+      const parsed = parseUploadError(xhr.responseText)
+      reject(new BookingError(parsed.message, parsed.code, xhr.status))
+    }
+
+    xhr.onerror = () => {
+      reject(new BookingError('Upload failed due to a network error.', 'UPLOAD_FAILED', 0))
+    }
+
+    xhr.onabort = () => {
+      reject(new BookingError('Upload was cancelled.', 'UPLOAD_FAILED', 0))
+    }
+
+    onProgress?.(1)
+    xhr.send(body)
+  })
 
 /** Returns 'YYYY-MM-DD' for today + offsetDays */
 const futureDateStr = (offsetDays: number): string => {
@@ -740,6 +911,45 @@ const mockBookingApi = {
       estimatedWaitMinutes: 20,
     }
   },
+
+  async uploadDocument(
+    file: File,
+    onProgress?: UploadProgressCallback,
+  ): Promise<PatientDocumentRecord> {
+    onProgress?.(20)
+    await wait(120)
+    onProgress?.(60)
+    await wait(120)
+    onProgress?.(95)
+    await wait(120)
+
+    const record: PatientDocumentRecord = {
+      id: `doc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      fileName: file.name,
+      fileFormat: formatFromFileName(file.name),
+      fileSizeBytes: file.size,
+      processingStatus: 'Completed',
+      uploadedAt: new Date().toISOString(),
+    }
+
+    mockDocumentRecords.unshift(record)
+    return { ...record }
+  },
+
+  async deleteDocument(documentId: string): Promise<void> {
+    await wait(150)
+    const index = mockDocumentRecords.findIndex((record) => record.id === documentId)
+    if (index === -1) {
+      throw new BookingError('Document not found', 'NOT_FOUND', 404)
+    }
+
+    mockDocumentRecords.splice(index, 1)
+  },
+
+  async deleteAllDocuments(): Promise<void> {
+    await wait(150)
+    mockDocumentRecords.splice(0, mockDocumentRecords.length)
+  },
 }
 
 export const bookingApi = {
@@ -798,7 +1008,17 @@ export const bookingApi = {
       return mockBookingApi.searchPatients(query)
     }
 
-    return getJson<PatientSearchResult[]>(`/api/patients?search=${encodeURIComponent(query)}`)
+    const search = new URLSearchParams({ name: query })
+    const raw = await getJson<{
+      userId: string
+      firstName: string
+      lastName: string
+      dateOfBirth: string | null
+      email: string
+      phone: string | null
+    }[]>(`/api/appointments/patients/search?${search.toString()}`)
+
+    return raw.map(adaptPatientSearchDto)
   },
 
   async lockSlot(slotId: string): Promise<LockSlotResponse> {
@@ -905,7 +1125,55 @@ export const bookingApi = {
       return mockBookingApi.submitWalkIn(payload)
     }
 
-    return postJson<WalkInBookingResponse>('/api/appointments/walkin', payload)
+    const raw = await postJson<{
+      appointmentId: string
+      patientUserId: string
+      queueId: string
+      bookingType: string
+      status: string
+      createdAtUtc: string
+      temporaryPatientRecordCreated: boolean
+      patientDisplayName?: string
+      estimatedWaitMinutes?: number
+    }>('/api/appointments/walkin', buildWalkInRequestDto(payload))
+
+    return adaptWalkInBookingDto(raw, payload)
+  },
+
+  async uploadDocument(
+    file: File,
+    onProgress?: UploadProgressCallback,
+  ): Promise<PatientDocumentRecord> {
+    if (USE_MOCK_BOOKING || !API_BASE_URL) {
+      return mockBookingApi.uploadDocument(file, onProgress)
+    }
+
+    const raw = await uploadDocumentWithXhr(file, onProgress)
+
+    return {
+      id: raw.documentId,
+      fileName: file.name,
+      fileFormat: formatFromFileName(file.name),
+      fileSizeBytes: file.size,
+      processingStatus: 'Completed',
+      uploadedAt: new Date().toISOString(),
+    }
+  },
+
+  async deleteDocument(documentId: string): Promise<void> {
+    if (USE_MOCK_BOOKING || !API_BASE_URL) {
+      return mockBookingApi.deleteDocument(documentId)
+    }
+
+    await deleteRequest(`/api/documents/${documentId}`)
+  },
+
+  async deleteAllDocuments(): Promise<void> {
+    if (USE_MOCK_BOOKING || !API_BASE_URL) {
+      return mockBookingApi.deleteAllDocuments()
+    }
+
+    await deleteRequest('/api/documents/my')
   },
 
   async getMyAppointments(statusFilter?: string): Promise<AppointmentRecord[]> {

@@ -92,6 +92,40 @@ public sealed class WalkInBookingServiceTests
     }
 
     [Fact]
+    public async Task CreateAsync_WithoutSlot_CreatesAdHocSameDaySlot()
+    {
+        var context = CreateContext();
+        var staffUserId = Guid.NewGuid();
+
+        SeedStaff(context, staffUserId);
+        await context.SaveChangesAsync();
+
+        var service = new WalkInBookingService(context);
+
+        var result = await service.CreateAsync(
+            new CreateWalkInRequest(
+                Guid.Empty,
+                staffUserId,
+                null,
+                "Jordan",
+                "Walker",
+                null,
+                null,
+                null,
+                false),
+            CancellationToken.None);
+
+        var appointment = await context.Appointments.SingleAsync();
+        var slot = await context.AvailabilitySlots.SingleAsync();
+
+        Assert.Equal(slot.SlotId, appointment.SlotId);
+        Assert.Equal(staffUserId, slot.ProviderId);
+        Assert.Equal(DateTime.UtcNow.Date, slot.StartTime.Date);
+        Assert.False(slot.IsAvailable);
+        Assert.True(result.TemporaryPatientRecordCreated);
+    }
+
+    [Fact]
     public async Task CreateAsync_WhenAccountEmailAlreadyExists_Throws()
     {
         var context = CreateContext();

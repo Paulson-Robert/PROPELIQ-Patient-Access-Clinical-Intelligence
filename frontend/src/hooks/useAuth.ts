@@ -18,10 +18,9 @@ import {
   type MfaVerificationRequest,
   type MfaVerificationResponse,
   type RegisterPayload,
-  type SocialProvider,
   type UserRole,
 } from '../services/authApi'
-import { setBookingAuthToken } from '../services/bookingApi'
+import { setAuthToken } from '../services/authTokenStore'
 
 // ---------------------------------------------------------------------------
 // Session persistence helpers — keep user info across page refreshes
@@ -61,7 +60,6 @@ interface AuthState {
 interface AuthContextValue extends AuthState {
   loginWithPassword: (email: string, password: string) => Promise<AuthResponse>
   registerWithEmail: (payload: RegisterPayload) => Promise<AuthResponse>
-  startSocialLogin: (provider: SocialProvider) => Promise<string>
   getMfaSetup: (email: string, method?: MfaMethod) => Promise<MfaSetupResponse>
   verifyMfaCode: (payload: MfaVerificationRequest) => Promise<MfaVerificationResponse>
   requestMfaCode: (payload: MfaCodeRequest) => Promise<{ sent: true }>
@@ -136,7 +134,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         const response = await authApi.login({ email, password })
         dispatch({ type: 'success', payload: response.user })
         persistUser(response.user)
-        setBookingAuthToken(response.accessToken)
+        setAuthToken(response.accessToken)
         return response
       } catch (error) {
         const errorMessage =
@@ -156,31 +154,13 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       const response = await authApi.register(payload)
       dispatch({ type: 'success', payload: response.user })
       persistUser(response.user)
-      setBookingAuthToken(response.accessToken)
+      setAuthToken(response.accessToken)
       return response
     } catch (error) {
       const errorMessage =
         error instanceof Error
           ? error.message
           : 'Unable to create your account right now'
-
-      dispatch({ type: 'failure', payload: errorMessage })
-      throw error
-    }
-  }, [])
-
-  const startSocialLogin = useCallback(async (provider: SocialProvider) => {
-    dispatch({ type: 'start' })
-
-    try {
-      const response = await authApi.startSocialLogin(provider)
-      dispatch({ type: 'clear-error' })
-      return response.redirectUrl
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Social login is temporarily unavailable'
 
       dispatch({ type: 'failure', payload: errorMessage })
       throw error
@@ -232,7 +212,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const logout = useCallback(() => {
     dispatch({ type: 'logout' })
     persistUser(null)
-    setBookingAuthToken(null)
+    setAuthToken(null)
     navigate('/auth/login', { replace: true })
   }, [navigate])
 
@@ -246,7 +226,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       ...state,
       loginWithPassword,
       registerWithEmail,
-      startSocialLogin,
       getMfaSetup,
       verifyMfaCode,
       requestMfaCode,
@@ -257,7 +236,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       state,
       loginWithPassword,
       registerWithEmail,
-      startSocialLogin,
       getMfaSetup,
       verifyMfaCode,
       requestMfaCode,

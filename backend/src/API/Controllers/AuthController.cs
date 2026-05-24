@@ -101,7 +101,7 @@ public sealed class AuthController : ControllerBase
             return BadRequest(new
             {
                 code = "validation_error",
-                message = "Password does not meet complexity requirements.",
+                message = "Registration details are invalid.",
                 errors = validation.Errors.Select(error => error.ErrorMessage),
             });
         }
@@ -119,14 +119,24 @@ public sealed class AuthController : ControllerBase
             });
         }
 
+        if (!TryResolveRegistrationRole(command.Role, out var requestedRole))
+        {
+            return BadRequest(new
+            {
+                code = "invalid_role",
+                message = "Role must be Patient or Staff.",
+            });
+        }
+
         var now = DateTime.UtcNow;
         var user = new User
         {
             UserId = Guid.NewGuid(),
             Email = normalizedEmail,
+            FullName = command.FullName,
             PasswordHash = _passwordHashService.HashPassword(command.Password),
             AuthProvider = AuthProvider.Local,
-            Role = UserRole.Patient,
+            Role = requestedRole,
             IsActive = true,
             PasswordUpdatedAtUtc = now,
             CreatedAt = now,
@@ -135,6 +145,7 @@ public sealed class AuthController : ControllerBase
         };
 
         _dbContext.Users.Add(user);
+        await QueuePatientProfileIfMissingAsync(user, now, cancellationToken).ConfigureAwait(false);
         await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         var tokenPayload = new AuthTokenPayload(
@@ -230,6 +241,10 @@ public sealed class AuthController : ControllerBase
         await _accountLockoutService
             .ResetFailedAttemptsAsync(user, cancellationToken)
             .ConfigureAwait(false);
+        if (await QueuePatientProfileIfMissingAsync(user, DateTime.UtcNow, cancellationToken).ConfigureAwait(false))
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
 
         var tokenPayload = new AuthTokenPayload(
             user.UserId,
@@ -374,6 +389,7 @@ public sealed class AuthController : ControllerBase
             existingUser.UpdatedAt = now;
         }
 
+        await QueuePatientProfileIfMissingAsync(existingUser, now, cancellationToken).ConfigureAwait(false);
         await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         return Ok(new
@@ -525,6 +541,7 @@ public sealed class AuthController : ControllerBase
             }
         }
 
+        await QueuePatientProfileIfMissingAsync(existingUser, now, cancellationToken).ConfigureAwait(false);
         await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         var tokenPayload = new AuthTokenPayload(
@@ -550,6 +567,105 @@ public sealed class AuthController : ControllerBase
 
     private string BuildLoginRedirect(string query) =>
         $"{_authSettings.LoginRedirectPath}?{query}";
+
+    private async Task<bool> QueuePatientProfileIfMissingAsync(
+        User user,
+        DateTime createdAt,
+        CancellationToken cancellationToken)
+    {
+        if (user.Role != UserRole.Patient)
+            return false;
+
+        var alreadyQueued = _dbContext.ChangeTracker
+            .Entries<PatientProfile>()
+            .Any(entry =>
+                entry.Entity.UserId == user.UserId &&
+                entry.State != EntityState.Deleted);
+
+        if (alreadyQueued)
+            return false;
+
+        var profileExists = await _dbContext.PatientProfiles
+            .AsNoTracking()
+            .AnyAsync(p => p.UserId == user.UserId, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (profileExists)
+            return false;
+
+        _dbContext.PatientProfiles.Add(CreatePatientProfile(user, createdAt));
+        return true;
+    }
+
+    private static PatientProfile CreatePatientProfile(User user, DateTime createdAt)
+    {
+        var (firstName, lastName) = DeriveProfileName(user.FullName, user.Email);
+
+        return new PatientProfile
+        {
+            PatientProfileId = Guid.NewGuid(),
+            UserId = user.UserId,
+            FirstName = firstName,
+            LastName = lastName,
+            CreatedAt = createdAt,
+        };
+    }
+
+    private static (string FirstName, string LastName) DeriveProfileName(
+        string? fullName,
+        string email)
+    {
+        var source = string.IsNullOrWhiteSpace(fullName)
+            ? email.Split('@')[0]
+                .Replace('.', ' ')
+                .Replace('_', ' ')
+                .Replace('-', ' ')
+            : fullName;
+
+        var parts = source
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        if (parts.Length == 0)
+            return ("Patient", "Patient");
+
+        if (parts.Length == 1)
+            return (ToTitleCase(parts[0]), "Patient");
+
+        return (ToTitleCase(parts[0]), ToTitleCase(parts[^1]));
+    }
+
+    private static string ToTitleCase(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "Patient";
+
+        return value.Length == 1
+            ? value.ToUpperInvariant()
+            : char.ToUpperInvariant(value[0]) + value[1..].ToLowerInvariant();
+    }
+
+    private static bool TryResolveRegistrationRole(string? rawRole, out UserRole role)
+    {
+        role = UserRole.Patient;
+
+        if (string.IsNullOrWhiteSpace(rawRole))
+        {
+            return true;
+        }
+
+        if (!Enum.TryParse<UserRole>(rawRole.Trim(), ignoreCase: true, out var parsedRole))
+        {
+            return false;
+        }
+
+        if (parsedRole != UserRole.Patient && parsedRole != UserRole.Staff)
+        {
+            return false;
+        }
+
+        role = parsedRole;
+        return true;
+    }
 
     private static async Task EnsureMinimumResponseTimeAsync(
         Stopwatch stopwatch,

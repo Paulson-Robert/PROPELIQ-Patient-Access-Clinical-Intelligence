@@ -54,6 +54,14 @@ const mapApiDocToLocal = (doc: PatientDocumentRecord): ClinicalDocument => ({
   retentionPolicy: 'indefinite',
 })
 
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message
+  }
+
+  return 'Document could not be deleted. Please try again.'
+}
+
 const STATUS_CONFIG: Record<DocumentStatus, { label: string; className: string }> = {
   uploading: { label: 'Uploading', className: 'bg-blue-500/10 text-blue-700' },
   scanning: { label: 'Scanning', className: 'bg-amber-500/10 text-amber-700' },
@@ -70,6 +78,8 @@ export const DocumentListPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogMode, setDialogMode] = useState<DeleteMode>('single')
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const pendingDocument = documents.find((d) => d.id === pendingDeleteId)
 
@@ -100,6 +110,7 @@ export const DocumentListPage = () => {
 
   // AC-02: open delete dialog for a single document
   const openDeleteSingle = (id: string) => {
+    setDeleteError(null)
     setPendingDeleteId(id)
     setDialogMode('single')
     setDialogOpen(true)
@@ -107,24 +118,40 @@ export const DocumentListPage = () => {
 
   // AC-03: open delete dialog for all documents
   const openDeleteAll = () => {
+    setDeleteError(null)
     setPendingDeleteId(null)
     setDialogMode('all')
     setDialogOpen(true)
   }
 
-  const handleConfirm = () => {
-    if (dialogMode === 'all') {
-      setDocuments([])
-    } else if (pendingDeleteId !== null) {
-      setDocuments((prev) => prev.filter((d) => d.id !== pendingDeleteId))
+  const handleConfirm = async () => {
+    setDeleteError(null)
+    setDeleting(true)
+
+    try {
+      if (dialogMode === 'all') {
+        await bookingApi.deleteAllDocuments()
+        setDocuments([])
+      } else if (pendingDeleteId !== null) {
+        await bookingApi.deleteDocument(pendingDeleteId)
+        setDocuments((prev) => prev.filter((d) => d.id !== pendingDeleteId))
+      }
+
+      setDialogOpen(false)
+      setPendingDeleteId(null)
+    } catch (error) {
+      setDeleteError(getErrorMessage(error))
+    } finally {
+      setDeleting(false)
     }
-    setDialogOpen(false)
-    setPendingDeleteId(null)
   }
 
   const handleCancel = () => {
+    if (deleting) return
+
     setDialogOpen(false)
     setPendingDeleteId(null)
+    setDeleteError(null)
   }
 
   return (
@@ -157,7 +184,8 @@ export const DocumentListPage = () => {
                 <button
                   type="button"
                   onClick={openDeleteAll}
-                  className="inline-flex items-center gap-2 rounded-md border border-destructive/40 bg-card px-3 py-2 text-sm font-medium text-destructive transition hover:bg-destructive/5 focus:outline-none focus:ring-2 focus:ring-ring"
+                  disabled={deleting}
+                  className="inline-flex items-center gap-2 rounded-md border border-destructive/40 bg-card px-3 py-2 text-sm font-medium text-destructive transition hover:bg-destructive/5 focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <Trash2 className="h-4 w-4" aria-hidden="true" />
                   Delete all
@@ -270,7 +298,8 @@ export const DocumentListPage = () => {
                             <button
                               type="button"
                               onClick={() => openDeleteSingle(doc.id)}
-                              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-destructive transition hover:bg-destructive/10 focus:outline-none focus:ring-2 focus:ring-ring"
+                              disabled={deleting}
+                              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-destructive transition hover:bg-destructive/10 focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
                               aria-label={`Delete ${doc.fileName}`}
                             >
                               <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -296,6 +325,8 @@ export const DocumentListPage = () => {
         open={dialogOpen}
         mode={dialogMode}
         documentName={pendingDocument?.fileName}
+        busy={deleting}
+        errorMessage={deleteError}
         onConfirm={handleConfirm}
         onCancel={handleCancel}
       />

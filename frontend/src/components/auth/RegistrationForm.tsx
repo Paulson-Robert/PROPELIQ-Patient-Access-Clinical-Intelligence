@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react'
+import type { RegistrationRole } from '../../services/authApi'
 import { isPasswordComplexityValid } from '../../utils/passwordValidation'
 import { PasswordInput } from './PasswordInput'
 
 interface RegistrationFormValues {
   email: string
+  role: RegistrationRole
   password: string
   confirmPassword: string
   acceptedTerms: boolean
@@ -14,12 +16,18 @@ interface RegistrationFormProps {
   onSubmit: (values: RegistrationFormValues) => Promise<void>
 }
 
+const roleOptions: Array<{ value: RegistrationRole; label: string }> = [
+  { value: 'patient', label: 'Patient' },
+  { value: 'staff', label: 'Staff' },
+]
+
 export const RegistrationForm = ({
   isSubmitting,
   onSubmit,
 }: RegistrationFormProps) => {
   const [values, setValues] = useState<RegistrationFormValues>({
     email: '',
+    role: 'patient',
     password: '',
     confirmPassword: '',
     acceptedTerms: false,
@@ -77,6 +85,41 @@ export const RegistrationForm = ({
           required
         />
       </div>
+
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-medium">Account type</legend>
+        <div className="grid grid-cols-2 gap-2 rounded-md border border-border bg-muted p-1">
+          {roleOptions.map((option) => {
+            const isSelected = values.role === option.value
+
+            return (
+              <label
+                key={option.value}
+                className={`flex min-h-10 cursor-pointer items-center justify-center rounded px-3 py-2 text-sm font-medium transition ${
+                  isSelected
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="register-role"
+                  value={option.value}
+                  checked={isSelected}
+                  onChange={() =>
+                    setValues((previous) => ({
+                      ...previous,
+                      role: option.value,
+                    }))
+                  }
+                  className="sr-only"
+                />
+                <span>{option.label}</span>
+              </label>
+            )
+          })}
+        </div>
+      </fieldset>
 
       <PasswordInput
         id="register-password"

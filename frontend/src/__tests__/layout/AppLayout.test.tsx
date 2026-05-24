@@ -50,6 +50,23 @@ describe('getNavItemsForRole', () => {
     expect(getNavItemsForRole('admin').length).toBeGreaterThan(0)
   })
 
+  it('returns one role-specific dashboard for every role', () => {
+    const expectedDashboards = {
+      patient: '/dashboard/patient',
+      staff: '/dashboard/staff',
+      admin: '/dashboard/admin',
+    } as const
+
+    Object.entries(expectedDashboards).forEach(([role, path]) => {
+      const dashboards = getNavItemsForRole(role as keyof typeof expectedDashboards).filter(
+        (item) => item.label === 'Dashboard',
+      )
+
+      expect(dashboards).toHaveLength(1)
+      expect(dashboards[0].path).toBe(path)
+    })
+  })
+
   it('covers all NAV_ITEMS — every item is reachable by at least one role', () => {
     const covered = NAV_ITEMS.every((item) => item.roles.length > 0)
     expect(covered).toBe(true)
@@ -73,9 +90,10 @@ describe('Sidebar', () => {
 
   it('shows only patient items for role=patient', () => {
     renderSidebar('patient')
-    const staffOnly = getNavItemsForRole('staff').filter((i) => !i.roles.includes('patient'))
+    const patientPaths = new Set(getNavItemsForRole('patient').map((item) => item.path))
+    const staffOnly = getNavItemsForRole('staff').filter((item) => !patientPaths.has(item.path))
     staffOnly.forEach((item) => {
-      expect(screen.queryByRole('link', { name: item.label })).not.toBeInTheDocument()
+      expect(document.querySelector(`a[href="${item.path}"]`)).not.toBeInTheDocument()
     })
   })
 
@@ -93,7 +111,7 @@ describe('Sidebar', () => {
       (i) => i.roles.includes('admin') && !i.roles.includes('patient'),
     )
     adminOnly.forEach((item) => {
-      expect(screen.queryByRole('link', { name: item.label })).not.toBeInTheDocument()
+      expect(document.querySelector(`a[href="${item.path}"]`)).not.toBeInTheDocument()
     })
   })
 
@@ -128,11 +146,12 @@ describe('BottomNav', () => {
 
   it('hides staff-only items from patient (Edge Case)', () => {
     renderBottomNav('patient')
+    const patientPaths = new Set(getNavItemsForRole('patient').map((item) => item.path))
     const staffOnly = NAV_ITEMS.filter(
-      (i) => i.roles.includes('staff') && !i.roles.includes('patient'),
+      (item) => item.roles.includes('staff') && !patientPaths.has(item.path),
     )
     staffOnly.forEach((item) => {
-      expect(screen.queryByRole('link', { name: new RegExp(item.label, 'i') })).not.toBeInTheDocument()
+      expect(document.querySelector(`a[href="${item.path}"]`)).not.toBeInTheDocument()
     })
   })
 

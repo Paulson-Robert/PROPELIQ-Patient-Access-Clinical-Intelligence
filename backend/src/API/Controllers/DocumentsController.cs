@@ -100,6 +100,88 @@ public sealed class DocumentsController : ControllerBase
         });
     }
 
+    // -------------------------------------------------------------------------
+    // DELETE /api/documents/{documentId}
+    // Permanently deletes one document owned by the authenticated patient.
+    // -------------------------------------------------------------------------
+    [HttpDelete("{documentId:guid}")]
+    [Authorize(Policy = RoleRequirements.PatientPolicy)]
+    public async Task<IActionResult> Delete(
+        Guid documentId,
+        CancellationToken cancellationToken)
+    {
+        var patientUserId = GetCurrentUserId();
+        if (patientUserId is null)
+            return Unauthorized();
+
+        var result = await DeleteDocumentForCurrentPatient(
+            documentId,
+            patientUserId.Value,
+            cancellationToken)
+            .ConfigureAwait(false);
+
+        return ToDeleteActionResult(result);
+    }
+
+    // -------------------------------------------------------------------------
+    // DELETE /api/documents/my
+    // Permanently deletes every document owned by the authenticated patient.
+    // -------------------------------------------------------------------------
+    [HttpDelete("my")]
+    [Authorize(Policy = RoleRequirements.PatientPolicy)]
+    public async Task<IActionResult> DeleteMyDocuments(CancellationToken cancellationToken)
+    {
+        var patientUserId = GetCurrentUserId();
+        if (patientUserId is null)
+            return Unauthorized();
+
+        var documents = await _mediator
+            .Send(new GetPatientDocumentsQuery(patientUserId.Value), cancellationToken)
+            .ConfigureAwait(false);
+
+        foreach (var document in documents)
+        {
+            var result = await DeleteDocumentForCurrentPatient(
+                document.DocumentId,
+                patientUserId.Value,
+                cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!result.Success)
+                return ToDeleteActionResult(result);
+        }
+
+        return NoContent();
+    }
+
+    private Task<Application.Interfaces.DeleteDocumentResult> DeleteDocumentForCurrentPatient(
+        Guid documentId,
+        Guid patientUserId,
+        CancellationToken cancellationToken)
+    {
+        return _mediator.Send(
+            new DeleteDocumentCommand(
+                documentId,
+                patientUserId,
+                HttpContext.Connection.RemoteIpAddress?.ToString()),
+            cancellationToken);
+    }
+
+    private IActionResult ToDeleteActionResult(Application.Interfaces.DeleteDocumentResult result)
+    {
+        if (result.Success)
+            return NoContent();
+
+        return result.FailureCode switch
+        {
+            "NOT_FOUND" => NotFound(new { code = result.FailureCode, message = result.FailureReason }),
+            "PATIENT_NOT_FOUND" => NotFound(new { code = result.FailureCode, message = result.FailureReason }),
+            "INVALID_REQUEST" => BadRequest(new { code = result.FailureCode, message = result.FailureReason }),
+            _ => StatusCode(StatusCodes.Status500InternalServerError,
+                new { code = "DELETE_FAILED", message = result.FailureReason }),
+        };
+    }
+
     private Guid? GetCurrentUserId()
     {
         var sub = User.FindFirstValue(ClaimTypes.NameIdentifier)

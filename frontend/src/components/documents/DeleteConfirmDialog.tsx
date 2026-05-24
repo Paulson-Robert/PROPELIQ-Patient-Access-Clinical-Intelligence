@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Loader2 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
 export type DeleteMode = 'single' | 'all'
@@ -9,7 +9,9 @@ interface DeleteConfirmDialogProps {
   mode: DeleteMode
   /** Name of the document being deleted — required when mode is 'single'. */
   documentName?: string
-  onConfirm: () => void
+  busy?: boolean
+  errorMessage?: string | null
+  onConfirm: () => void | Promise<void>
   onCancel: () => void
 }
 
@@ -38,6 +40,8 @@ export const DeleteConfirmDialog = ({
   open,
   mode,
   documentName,
+  busy = false,
+  errorMessage,
   onConfirm,
   onCancel,
 }: DeleteConfirmDialogProps) => {
@@ -63,7 +67,7 @@ export const DeleteConfirmDialog = ({
     focusable[0]?.focus()
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && !busy) {
         onCancel()
         return
       }
@@ -81,7 +85,7 @@ export const DeleteConfirmDialog = ({
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [open, onCancel])
+  }, [busy, open, onCancel])
 
   if (!open) return null
 
@@ -99,7 +103,7 @@ export const DeleteConfirmDialog = ({
       <div
         className="absolute inset-0 bg-black/50"
         aria-hidden="true"
-        onClick={onCancel}
+        onClick={busy ? undefined : onCancel}
       />
 
       {/* Dialog panel */}
@@ -174,29 +178,37 @@ export const DeleteConfirmDialog = ({
           </div>
         )}
 
+        {errorMessage ? (
+          <p className="mt-4 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+            {errorMessage}
+          </p>
+        ) : null}
+
         {/* Action buttons */}
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
             type="button"
             onClick={onCancel}
-            className="inline-flex items-center justify-center rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
+            disabled={busy}
+            className="inline-flex items-center justify-center rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
           >
             Cancel
           </button>
           <button
             type="button"
-            onClick={canConfirm ? onConfirm : undefined}
-            disabled={!canConfirm}
-            aria-disabled={!canConfirm}
+            onClick={canConfirm && !busy ? () => { void onConfirm() } : undefined}
+            disabled={!canConfirm || busy}
+            aria-disabled={!canConfirm || busy}
             className={cn(
-              'inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium text-white transition',
+              'inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-white transition',
               'focus:outline-none focus:ring-2 focus:ring-ring',
-              canConfirm
+              canConfirm && !busy
                 ? 'bg-destructive hover:bg-destructive/90'
                 : 'cursor-not-allowed bg-destructive/40',
             )}
           >
-            {isAll ? 'Delete all documents' : 'Delete document'}
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
+            {busy ? 'Deleting...' : isAll ? 'Delete all documents' : 'Delete document'}
           </button>
         </div>
       </div>

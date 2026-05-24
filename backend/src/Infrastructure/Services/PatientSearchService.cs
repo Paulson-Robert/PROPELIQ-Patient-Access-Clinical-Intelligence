@@ -36,7 +36,9 @@ public sealed class PatientSearchService : IPatientSearchService
                 && p.User.IsActive
                 && (p.FirstName.ToLower().Contains(term)
                     || p.LastName.ToLower().Contains(term)
-                    || (p.FirstName + " " + p.LastName).ToLower().Contains(term)));
+                    || (p.FirstName + " " + p.LastName).ToLower().Contains(term)
+                    || p.User.Email.ToLower().Contains(term)
+                    || (p.Phone != null && p.Phone.ToLower().Contains(term))));
 
         if (dateOfBirth.HasValue)
         {

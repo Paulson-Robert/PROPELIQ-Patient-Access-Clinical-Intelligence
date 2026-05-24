@@ -1,24 +1,9 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { RegistrationForm } from '../../components/auth/RegistrationForm'
-import { SocialLoginButtons } from '../../components/auth/SocialLoginButtons'
 import { useAuth } from '../../hooks/useAuth'
-import type { SocialProvider } from '../../services/authApi'
 
 type AuthMode = 'login' | 'register'
-
-const parseDisabledProviders = (value: string | null): SocialProvider[] => {
-  if (!value) {
-    return []
-  }
-
-  return value
-    .split(',')
-    .map((provider) => provider.trim().toLowerCase())
-    .filter((provider): provider is SocialProvider =>
-      provider === 'google' || provider === 'microsoft',
-    )
-}
 
 export const LoginPage = () => {
   const navigate = useNavigate()
@@ -27,27 +12,12 @@ export const LoginPage = () => {
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
 
-  const { loginWithPassword, registerWithEmail, startSocialLogin, isLoading, error, redirectPathForRole } =
+  const { loginWithPassword, registerWithEmail, isLoading, error, redirectPathForRole } =
     useAuth()
-
-  const oauthError = searchParams.get('oauthError')
-  const disabledProviders = parseDisabledProviders(searchParams.get('providerOutage'))
-
-  const oauthGuidance = useMemo(() => {
-    if (oauthError === 'consent_denied') {
-      return 'Consent was denied. Use email registration, or retry a social provider.'
-    }
-
-    if (oauthError === 'email_mismatch') {
-      return 'Your social account email does not match an existing record. Sign in with email to link accounts.'
-    }
-
-    return null
-  }, [oauthError])
 
   const sessionMessage = useMemo(() => {
     if (searchParams.get('session') === 'terminated') {
-      return 'Too many failed attempts — please log in again.'
+      return 'Too many failed attempts - please log in again.'
     }
 
     return null
@@ -73,17 +43,6 @@ export const LoginPage = () => {
     }
 
     navigate(redirectPathForRole(authResponse.user.role))
-  }
-
-  const onSocialProviderClick = async (provider: SocialProvider) => {
-    const redirectPath = await startSocialLogin(provider)
-
-    if (redirectPath.startsWith('/')) {
-      navigate(redirectPath)
-      return
-    }
-
-    window.location.assign(redirectPath)
   }
 
   return (
@@ -132,12 +91,6 @@ export const LoginPage = () => {
             </div>
           </div>
 
-          {oauthGuidance ? (
-            <p className="mb-4 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700">
-              {oauthGuidance}
-            </p>
-          ) : null}
-
           {sessionMessage ? (
             <p className="mb-4 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700">
               {sessionMessage}
@@ -149,18 +102,6 @@ export const LoginPage = () => {
               {error}
             </p>
           ) : null}
-
-          <SocialLoginButtons
-            onProviderClick={onSocialProviderClick}
-            isLoading={isLoading}
-            disabledProviders={disabledProviders}
-          />
-
-          <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-wide text-muted-foreground">
-            <span className="h-px flex-1 bg-border" aria-hidden="true" />
-            <span>or</span>
-            <span className="h-px flex-1 bg-border" aria-hidden="true" />
-          </div>
 
           {mode === 'login' ? (
             <form className="space-y-4" onSubmit={onLoginSubmit} aria-label="Log in to your account">
@@ -225,6 +166,7 @@ export const LoginPage = () => {
                 const response = await registerWithEmail({
                   email: values.email,
                   password: values.password,
+                  role: values.role,
                 })
 
                 navigate(redirectPathForRole(response.user.role))
