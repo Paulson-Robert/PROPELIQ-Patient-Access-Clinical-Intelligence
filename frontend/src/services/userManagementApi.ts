@@ -1,4 +1,5 @@
 import type { UserRole } from './authApi'
+import { authHeaders } from './authTokenStore'
 
 export type UserStatus = 'active' | 'inactive' | 'locked'
 
@@ -65,7 +66,7 @@ const wait = (ms = 250): Promise<void> =>
 const getJson = async <TResponse>(path: string): Promise<TResponse> => {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     credentials: 'include',
   })
 
@@ -88,7 +89,7 @@ const getJson = async <TResponse>(path: string): Promise<TResponse> => {
 const postJson = async <TResponse>(path: string, body: unknown): Promise<TResponse> => {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     credentials: 'include',
     body: JSON.stringify(body),
   })
@@ -112,7 +113,7 @@ const postJson = async <TResponse>(path: string, body: unknown): Promise<TRespon
 const patchJson = async <TResponse>(path: string, body: unknown): Promise<TResponse> => {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     credentials: 'include',
     body: JSON.stringify(body),
   })
@@ -231,6 +232,46 @@ const mockDeactivateUser = async (userId: string): Promise<ManagedUser> => {
   return updated
 }
 
+// ---------------------------------------------------------------------------
+// Backend ↔ Frontend shape adapters
+// (backend uses UserRole enum as int and returns `userId` not `id`)
+// ---------------------------------------------------------------------------
+
+const ROLE_INT_TO_STRING: Record<number, UserRole> = {
+  0: 'patient',
+  1: 'staff',
+  2: 'admin',
+}
+
+interface BackendUserDto {
+  userId: string
+  email: string
+  fullName: string | null
+  role: number | UserRole
+  status: string
+  lastLoginDate: string | null
+}
+
+interface BackendUserListResult {
+  users: BackendUserDto[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+const mapUser = (dto: BackendUserDto): ManagedUser => ({
+  id: dto.userId,
+  email: dto.email,
+  fullName: dto.fullName ?? '',
+  role:
+    typeof dto.role === 'number'
+      ? (ROLE_INT_TO_STRING[dto.role] ?? 'patient')
+      : (dto.role as UserRole),
+  status: dto.status as UserStatus,
+  // Backend returns full ISO datetime; strip time portion to get a date string
+  lastLoginDate: dto.lastLoginDate ? dto.lastLoginDate.slice(0, 10) : null,
+})
+
 export const userManagementApi = {
   listUsers: async (params: UserListParams): Promise<UserListResponse> => {
     if (USE_MOCK) return mockListUsers(params)
@@ -239,21 +280,31 @@ export const userManagementApi = {
     if (params.role) qs.set('role', params.role)
     if (params.page) qs.set('page', String(params.page))
     if (params.pageSize) qs.set('pageSize', String(params.pageSize))
-    return getJson<UserListResponse>(`/api/admin/users?${qs}`)
+    const raw = await getJson<BackendUserListResult>(`/api/admin/users?${qs}`)
+    return { ...raw, users: raw.users.map(mapUser) }
   },
 
   createUser: async (payload: CreateUserPayload): Promise<ManagedUser> => {
     if (USE_MOCK) return mockCreateUser(payload)
-    return postJson<ManagedUser>('/api/admin/users', payload)
+    const raw = await postJson<BackendUserDto>('/api/admin/users', payload)
+    return mapUser(raw)
   },
 
   updateUser: async (userId: string, payload: UpdateUserPayload): Promise<ManagedUser> => {
     if (USE_MOCK) return mockUpdateUser(userId, payload)
-    return patchJson<ManagedUser>(`/api/admin/users/${encodeURIComponent(userId)}`, payload)
+    const raw = await patchJson<BackendUserDto>(
+      `/api/admin/users/${encodeURIComponent(userId)}`,
+      payload,
+    )
+    return mapUser(raw)
   },
 
   deactivateUser: async (userId: string): Promise<ManagedUser> => {
     if (USE_MOCK) return mockDeactivateUser(userId)
-    return patchJson<ManagedUser>(`/api/admin/users/${encodeURIComponent(userId)}/deactivate`, {})
+    const raw = await patchJson<BackendUserDto>(
+      `/api/admin/users/${encodeURIComponent(userId)}/deactivate`,
+      {},
+    )
+    return mapUser(raw)
   },
 }

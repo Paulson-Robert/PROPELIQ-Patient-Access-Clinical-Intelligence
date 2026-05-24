@@ -1,6 +1,8 @@
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Download, FileText } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Download } from 'lucide-react'
+import { AdminSidebar } from '../../components/admin/AdminSidebar'
+import { AUDIT_LOG_EXPORT_URL } from '../../services/auditLogApi'
 import { cn } from '../../lib/utils'
 import {
   auditLogApi,
@@ -121,42 +123,7 @@ export const AuditLogPage = () => {
       </a>
 
       <div className="flex min-h-screen bg-background">
-        {/* Sidebar */}
-        <nav
-          className="hidden w-56 shrink-0 border-r border-border bg-card p-4 lg:flex lg:flex-col"
-          aria-label="Admin navigation"
-        >
-          <div className="mb-6 flex items-center gap-2 text-sm font-semibold text-foreground">
-            <FileText className="h-5 w-5 text-primary" aria-hidden="true" />
-            HealthAccess
-          </div>
-          <ul className="flex flex-col gap-1">
-            <li>
-              <a
-                href="/dashboard/admin"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-              >
-                Dashboard
-              </a>
-            </li>
-            <li>
-              <a
-                href="/admin/users"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-              >
-                Users
-              </a>
-            </li>
-            <li>
-              <span
-                className="flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm font-medium text-foreground"
-                aria-current="page"
-              >
-                Audit log
-              </span>
-            </li>
-          </ul>
-        </nav>
+        <AdminSidebar activePage="audit-log" />
 
         {/* Main content */}
         <div className="flex flex-1 flex-col">
@@ -173,15 +140,22 @@ export const AuditLogPage = () => {
               </button>
               <h1 className="text-xl font-semibold text-foreground">Audit log</h1>
             </div>
-            {/* Export stub — format/endpoint not yet specified */}
-            <button
-              type="button"
+            {/* Export — downloads a CSV of all matching entries */}
+            <a
+              href={AUDIT_LOG_EXPORT_URL({
+                actor: actorFilter,
+                action: actionFilter,
+                resource: resourceFilter,
+                fromDate,
+                toDate,
+              })}
+              download
               className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
-              aria-label="Export audit log"
+              aria-label="Export audit log as CSV"
             >
               <Download className="h-4 w-4" aria-hidden="true" />
               Export
-            </button>
+            </a>
           </header>
 
           <main id="main" className="flex-1 p-6">

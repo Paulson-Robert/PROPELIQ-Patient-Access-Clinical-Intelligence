@@ -1,3 +1,5 @@
+import { authHeaders } from './authTokenStore'
+
 export type AuditAction = 'Login' | 'Logout' | 'Create' | 'Update' | 'Delete' | 'View' | 'Export'
 
 export type AuditResource =
@@ -59,7 +61,7 @@ const wait = (ms = 250): Promise<void> =>
 const getJson = async <TResponse>(path: string): Promise<TResponse> => {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     credentials: 'include',
   })
 
@@ -373,6 +375,60 @@ function applyMockFilters(params: AuditLogListParams): AuditLogListResponse {
   return { entries, total, page, pageSize }
 }
 
+// ---------------------------------------------------------------------------
+// Backend ↔ Frontend shape adapters
+// ---------------------------------------------------------------------------
+
+interface BackendAuditEntry {
+  auditLogId: number
+  timestamp: string
+  actorName: string | null
+  actorUserId: string | null
+  actorRole: string
+  actionType: string
+  resourceType: string
+  resourceId: string | null
+  details: string | null
+}
+
+interface BackendAuditPageResult {
+  entries: BackendAuditEntry[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+const mapEntry = (e: BackendAuditEntry): AuditLogEntry => ({
+  id: String(e.auditLogId),
+  timestamp: e.timestamp,
+  actor: e.actorName ?? 'System',
+  action: e.actionType as AuditAction,
+  resource: e.resourceType as AuditResource,
+  resourceId: e.resourceId,
+  details: (() => {
+    if (!e.details) return {}
+    try {
+      return JSON.parse(e.details) as Record<string, unknown>
+    } catch {
+      return { raw: e.details }
+    }
+  })(),
+})
+
+/** Base URL for audit log export (used by AuditLogPage for the CSV download link). */
+export const AUDIT_LOG_EXPORT_URL = (
+  params: Omit<AuditLogListParams, 'page' | 'pageSize'> = {},
+): string => {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
+  const qs = new URLSearchParams()
+  if (params.actor) qs.set('actor', params.actor)
+  if (params.action) qs.set('action', params.action)
+  if (params.resource) qs.set('resource', params.resource)
+  if (params.fromDate) qs.set('fromDate', params.fromDate)
+  if (params.toDate) qs.set('toDate', params.toDate)
+  return `${API_BASE_URL}/api/admin/audit-log/export?${qs.toString()}`
+}
+
 export const auditLogApi = {
   listEntries: async (params: AuditLogListParams = {}): Promise<AuditLogListResponse> => {
     if (USE_MOCK) {
@@ -380,15 +436,21 @@ export const auditLogApi = {
       return applyMockFilters(params)
     }
 
-    const search = new URLSearchParams()
-    if (params.actor) search.set('actor', params.actor)
-    if (params.action) search.set('action', params.action)
-    if (params.resource) search.set('resource', params.resource)
-    if (params.fromDate) search.set('fromDate', params.fromDate)
-    if (params.toDate) search.set('toDate', params.toDate)
-    search.set('page', String(params.page ?? 1))
-    search.set('pageSize', String(params.pageSize ?? 25))
+    const qs = new URLSearchParams()
+    if (params.actor) qs.set('actor', params.actor)
+    if (params.action) qs.set('action', params.action)
+    if (params.resource) qs.set('resource', params.resource)
+    if (params.fromDate) qs.set('fromDate', params.fromDate)
+    if (params.toDate) qs.set('toDate', params.toDate)
+    qs.set('page', String(params.page ?? 1))
+    qs.set('pageSize', String(params.pageSize ?? 25))
 
-    return getJson(`/api/audit-log?${search.toString()}`)
+    const raw = await getJson<BackendAuditPageResult>(`/api/admin/audit-log?${qs.toString()}`)
+    return {
+      entries: raw.entries.map(mapEntry),
+      total: raw.total,
+      page: raw.page,
+      pageSize: raw.pageSize,
+    }
   },
 }

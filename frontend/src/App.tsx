@@ -28,6 +28,7 @@ import { CodeMappingPage } from './pages/clinical/CodeMappingPage'
 import { UserManagementPage } from './pages/admin/UserManagementPage'
 import { AuditLogPage } from './pages/admin/AuditLogPage'
 import { MetricsDashboardPage } from './pages/admin/MetricsDashboardPage'
+import { RequireAdmin } from './components/admin/RequireAdmin'
 
 // Redirects /dashboard to the landing page for the authenticated user's role
 const DashboardRedirect = () => {
@@ -57,7 +58,7 @@ function App() {
           <Route path="/auth/mfa/verify" element={<MfaVerificationPage />} />
           <Route path="/auth/mfa/setup" element={<MfaSetupPage />} />
           <Route path="/dashboard/patient" element={<AppLayout><PatientDashboardPage /></AppLayout>} />
-          <Route path="/dashboard/admin" element={<AdminDashboardPage />} />
+          <Route path="/dashboard/admin" element={<RequireAdmin><AdminDashboardPage /></RequireAdmin>} />
           <Route path="/dashboard/staff" element={<AppLayout><StaffDashboardPage /></AppLayout>} />
           <Route path="/dashboard" element={<DashboardRedirect />} />
           <Route path="/booking/history" element={<AppLayout><AppointmentHistoryPage /></AppLayout>} />
@@ -74,9 +75,9 @@ function App() {
           <Route path="/documents" element={<AppLayout childrenOwnMain><DocumentListPage /></AppLayout>} />
           <Route path="/clinical/patient/:patientId" element={<AppLayout childrenOwnMain><PatientViewPage /></AppLayout>} />
           <Route path="/clinical/patient/:patientId/codes" element={<AppLayout childrenOwnMain><CodeMappingPage /></AppLayout>} />
-          <Route path="/admin/users" element={<UserManagementPage />} />
-          <Route path="/admin/audit-log" element={<AuditLogPage />} />
-          <Route path="/admin/metrics" element={<MetricsDashboardPage />} />
+          <Route path="/admin/users" element={<RequireAdmin><UserManagementPage /></RequireAdmin>} />
+          <Route path="/admin/audit-log" element={<RequireAdmin><AuditLogPage /></RequireAdmin>} />
+          <Route path="/admin/metrics" element={<RequireAdmin><MetricsDashboardPage /></RequireAdmin>} />
           <Route path="*" element={<Navigate to="/auth/login" replace />} />
         </Routes>
       </AuthProvider>

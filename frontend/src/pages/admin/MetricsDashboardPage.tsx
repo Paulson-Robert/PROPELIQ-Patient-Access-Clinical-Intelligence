@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BarChart2, ChevronLeft } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
+import { AdminSidebar } from '../../components/admin/AdminSidebar'
 import { KpiCard } from '../../components/metrics/KpiCard'
 import { TrendChart, type ChartDataPoint } from '../../components/metrics/TrendChart'
 import { metricsApi, type DateRange, type MetricsData } from '../../services/metricsApi'
@@ -64,50 +65,7 @@ export const MetricsDashboardPage = () => {
       </a>
 
       <div className="flex min-h-screen bg-background">
-        {/* Sidebar */}
-        <nav
-          className="hidden w-56 shrink-0 border-r border-border bg-card p-4 lg:flex lg:flex-col"
-          aria-label="Admin navigation"
-        >
-          <div className="mb-6 flex items-center gap-2 text-sm font-semibold text-foreground">
-            <BarChart2 className="h-5 w-5 text-primary" aria-hidden="true" />
-            HealthAccess
-          </div>
-          <ul className="flex flex-col gap-1">
-            <li>
-              <a
-                href="/dashboard/admin"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-              >
-                Dashboard
-              </a>
-            </li>
-            <li>
-              <a
-                href="/admin/users"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-              >
-                Users
-              </a>
-            </li>
-            <li>
-              <a
-                href="/admin/audit-log"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-              >
-                Audit log
-              </a>
-            </li>
-            <li>
-              <span
-                className="flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm font-medium text-foreground"
-                aria-current="page"
-              >
-                Metrics
-              </span>
-            </li>
-          </ul>
-        </nav>
+        <AdminSidebar activePage="metrics" />
 
         {/* Main content */}
         <div className="flex flex-1 flex-col">

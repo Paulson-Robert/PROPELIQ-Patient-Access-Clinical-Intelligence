@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Users } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { AdminSidebar } from '../../components/admin/AdminSidebar'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../hooks/useAuth'
 import { UserFormDialog, type UserFormValues } from '../../components/admin/UserFormDialog'
@@ -169,31 +170,7 @@ export const UserManagementPage = () => {
       </a>
 
       <div className="flex min-h-screen bg-background">
-        {/* Sidebar */}
-        <nav className="hidden w-56 shrink-0 border-r border-border bg-card p-4 lg:flex lg:flex-col" aria-label="Admin navigation">
-          <div className="mb-6 flex items-center gap-2 text-sm font-semibold text-foreground">
-            <Users className="h-5 w-5 text-primary" aria-hidden="true" />
-            HealthAccess
-          </div>
-          <ul className="flex flex-col gap-1">
-            <li>
-              <a
-                href="/dashboard/admin"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-              >
-                Dashboard
-              </a>
-            </li>
-            <li>
-              <span
-                className="flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm font-medium text-foreground"
-                aria-current="page"
-              >
-                Users
-              </span>
-            </li>
-          </ul>
-        </nav>
+        <AdminSidebar activePage="users" />
 
         {/* Main content */}
         <div className="flex flex-1 flex-col">

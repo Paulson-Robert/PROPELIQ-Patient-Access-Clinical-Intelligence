@@ -1,31 +1,46 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Activity, BarChart3, FileText, LayoutDashboard, LogOut, Users } from 'lucide-react'
-import { useAuth } from '../../hooks/useAuth'
+import { BarChart3, FileText, Users } from 'lucide-react'
+import { AdminSidebar } from '../../components/admin/AdminSidebar'
+import { userManagementApi } from '../../services/userManagementApi'
+import { auditLogApi } from '../../services/auditLogApi'
 
 interface SystemStat {
   totalUsers: number
-  totalUsersTrend: string
   todayActivityCount: number
   systemHealthy: boolean
-}
-
-const MOCK_STATS: SystemStat = {
-  totalUsers: 892,
-  totalUsersTrend: '+12 this week',
-  todayActivityCount: 156,
-  systemHealthy: true,
 }
 
 // AC-018/019/020: Admin dashboard landing — system overview with navigation to admin sections
 export const AdminDashboardPage = () => {
   const navigate = useNavigate()
-  const { logout } = useAuth()
   const [stats, setStats] = useState<SystemStat | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Replace with real API call when available
-    setStats(MOCK_STATS)
+    const today = new Date().toISOString().slice(0, 10)
+
+    const fetchStats = async () => {
+      setIsLoading(true)
+      try {
+        const [usersResult, auditResult] = await Promise.all([
+          userManagementApi.listUsers({ pageSize: 1 }),
+          auditLogApi.listEntries({ fromDate: today, toDate: today, pageSize: 1 }),
+        ])
+        setStats({
+          totalUsers: usersResult.total,
+          todayActivityCount: auditResult.total,
+          systemHealthy: true,
+        })
+      } catch {
+        // Fallback to showing unavailable state rather than crashing
+        setStats({ totalUsers: 0, todayActivityCount: 0, systemHealthy: true })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    void fetchStats()
   }, [])
 
   return (
@@ -38,65 +53,7 @@ export const AdminDashboardPage = () => {
       </a>
 
       <div className="flex min-h-screen bg-background">
-        {/* Sidebar — matches pattern used by other admin pages */}
-        <nav
-          className="hidden w-56 shrink-0 border-r border-border bg-card p-4 lg:flex lg:flex-col"
-          aria-label="Admin navigation"
-        >
-          <div className="mb-6 flex items-center gap-2 text-sm font-semibold text-foreground">
-            <LayoutDashboard className="h-5 w-5 text-primary" aria-hidden="true" />
-            PropelIQ
-          </div>
-          <ul className="flex flex-1 flex-col gap-1" role="list">
-            <li>
-              <span
-                className="flex items-center gap-2 rounded-md bg-primary/10 px-3 py-2 text-sm font-medium text-primary"
-                aria-current="page"
-              >
-                <LayoutDashboard className="h-4 w-4 shrink-0" aria-hidden="true" />
-                Dashboard
-              </span>
-            </li>
-            <li>
-              <a
-                href="/admin/users"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-              >
-                <Users className="h-4 w-4 shrink-0" aria-hidden="true" />
-                User management
-              </a>
-            </li>
-            <li>
-              <a
-                href="/admin/audit-log"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-              >
-                <FileText className="h-4 w-4 shrink-0" aria-hidden="true" />
-                Audit log
-              </a>
-            </li>
-            <li>
-              <a
-                href="/admin/metrics"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-              >
-                <BarChart3 className="h-4 w-4 shrink-0" aria-hidden="true" />
-                Platform metrics
-              </a>
-            </li>
-          </ul>
-
-          <div className="mt-auto border-t border-border pt-3">
-            <button
-              type="button"
-              onClick={logout}
-              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
-            >
-              <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
-              Log out
-            </button>
-          </div>
-        </nav>
+        <AdminSidebar activePage="dashboard" />
 
         {/* Main content */}
         <div className="flex flex-1 flex-col">
@@ -124,22 +81,16 @@ export const AdminDashboardPage = () => {
                 {/* Total users */}
                 <div className="rounded-lg border border-border bg-card p-5">
                   <div className="text-sm text-muted-foreground">Total users</div>
-                  <div className="mt-1 text-3xl font-bold text-foreground">
-                    {stats ? stats.totalUsers.toLocaleString() : '—'}
+                  <div className="mt-1 text-3xl font-bold text-foreground" aria-live="polite">
+                    {isLoading ? '…' : (stats?.totalUsers.toLocaleString() ?? '—')}
                   </div>
-                  {stats && (
-                    <div className="mt-1 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-                      <Activity className="h-3 w-3" aria-hidden="true" />
-                      {stats.totalUsersTrend}
-                    </div>
-                  )}
                 </div>
 
                 {/* Today's activity */}
                 <div className="rounded-lg border border-border bg-card p-5">
                   <div className="text-sm text-muted-foreground">Today's activity</div>
-                  <div className="mt-1 text-3xl font-bold text-foreground">
-                    {stats ? stats.todayActivityCount.toLocaleString() : '—'}
+                  <div className="mt-1 text-3xl font-bold text-foreground" aria-live="polite">
+                    {isLoading ? '…' : (stats?.todayActivityCount.toLocaleString() ?? '—')}
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">Audit log entries</div>
                 </div>
