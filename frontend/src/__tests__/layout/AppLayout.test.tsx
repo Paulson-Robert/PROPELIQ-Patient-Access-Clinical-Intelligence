@@ -119,6 +119,14 @@ describe('Sidebar', () => {
     renderSidebar('patient')
     expect(screen.getByRole('button', { name: /log out/i })).toBeInTheDocument()
   })
+
+  it('keeps the desktop sidebar bounded to the viewport', () => {
+    renderSidebar('patient')
+
+    const sidebar = screen.getByRole('navigation', { name: 'Main navigation' }).parentElement
+    expect(sidebar).toHaveClass('md:sticky')
+    expect(sidebar).toHaveClass('md:h-screen')
+  })
 })
 
 // --- BottomNav (mobile) ---
@@ -202,5 +210,18 @@ describe('AppLayout', () => {
       </MemoryRouter>,
     )
     expect(screen.getByText('Test content')).toBeInTheDocument()
+  })
+
+  it('allows child pages to own the main landmark', () => {
+    render(
+      <MemoryRouter>
+        <AppLayout childrenOwnMain>
+          <main id="main-content">Standalone page content</main>
+        </AppLayout>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('main')).toHaveTextContent('Standalone page content')
+    expect(document.querySelectorAll('#main-content')).toHaveLength(1)
   })
 })

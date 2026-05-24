@@ -18,7 +18,8 @@ public sealed record ManualSymptoms(
 
 /// <summary>Full intake payload sent on final submission (AC-01).</summary>
 public sealed record SubmitManualIntakeRequest(
-    Guid PatientUserId,
+    Guid ActorUserId,
+    string ActorRole,
     Guid AppointmentId,
     string? ChronicConditions,
     string? PastSurgeries,
@@ -32,7 +33,8 @@ public sealed record SubmitManualIntakeRequest(
 
 /// <summary>Partial payload used for draft auto-save between steps (AC-02).</summary>
 public sealed record SaveIntakeDraftRequest(
-    Guid PatientUserId,
+    Guid ActorUserId,
+    string ActorRole,
     Guid AppointmentId,
     string? ChronicConditions,
     string? PastSurgeries,
@@ -70,7 +72,8 @@ public sealed record ManualIntakeResult(
 public sealed record IntakeDraftResult(
     bool Success,
     Guid? IntakeId,
-    string? FailureReason);
+    string? FailureReason,
+    string? FailureCode);
 
 // ---------------------------------------------------------------------------
 // Service contract
@@ -78,15 +81,16 @@ public sealed record IntakeDraftResult(
 
 /// <summary>
 /// Handles manual intake persistence: submission (AC-01), draft save (AC-02),
-/// and draft retrieval (AC-02). Idempotency is enforced at the service level
-/// (Edge Case: duplicate submission).
+/// and draft retrieval (AC-02). The actor may be the patient or staff; the
+/// service resolves the stored patient profile from the appointment. Completed
+/// submissions are append-only; only unfinished drafts are updated in place.
 /// </summary>
 public interface IManualIntakeService
 {
     /// <summary>
     /// Validates and persists a completed manual intake (AC-01).
-    /// Returns <c>FailureCode = "ALREADY_SUBMITTED"</c> when a completed record
-    /// already exists for the appointment (idempotency guard).
+    /// Completes an unfinished draft when one exists; otherwise creates a new
+    /// completed history record.
     /// </summary>
     Task<ManualIntakeResult> SubmitAsync(
         SubmitManualIntakeRequest request,
@@ -100,9 +104,10 @@ public interface IManualIntakeService
         SaveIntakeDraftRequest request,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Returns the draft (or submitted) intake record, or <c>null</c> if none exists.</summary>
+    /// <summary>Returns the unfinished draft intake record, or <c>null</c> if none exists.</summary>
     Task<IntakeDraftDto?> GetDraftAsync(
-        Guid patientUserId,
+        Guid actorUserId,
+        string actorRole,
         Guid appointmentId,
         CancellationToken cancellationToken = default);
 }

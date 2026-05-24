@@ -103,6 +103,50 @@ export interface PatientIntakeRecord {
   lastModifiedAt: string
 }
 
+export interface ManualIntakeDraftPayload {
+  chronicConditions?: string | null
+  pastSurgeries?: string | null
+  familyHistory?: string | null
+  symptomsDescription?: string | null
+  symptomOnset?: string | null
+  symptomSeverity?: string | null
+  currentMedications?: string | null
+  knownAllergies?: string | null
+  reasonForVisit?: string | null
+}
+
+export interface ManualIntakeSubmitPayload extends ManualIntakeDraftPayload {
+  reasonForVisit: string
+}
+
+export interface ManualIntakeDraft extends ManualIntakeDraftPayload {
+  intakeId: string
+  isSubmitted: boolean
+  lastModifiedAt: string
+}
+
+export interface ManualIntakeResult {
+  success: boolean
+  intakeId: string | null
+  failureReason: string | null
+  failureCode: string | null
+}
+
+export interface AiIntakeSubmitPayload {
+  chronicConditions?: string | null
+  currentMedications?: string | null
+  allergies?: string | null
+  surgicalHistory?: string | null
+  reasonForVisit: string
+}
+
+export interface AiIntakeSubmitResult {
+  success: boolean
+  intakeId: string | null
+  failureReason: string | null
+  failureCode: string | null
+}
+
 export interface PatientNotificationRecord {
   id: string
   appointmentId: string
@@ -121,7 +165,11 @@ export type BookingErrorCode =
   | 'UNSUPPORTED_FORMAT'
   | 'FILE_TOO_LARGE'
   | 'PATIENT_NOT_FOUND'
+  | 'APPOINTMENT_NOT_FOUND'
   | 'INVALID_REQUEST'
+  | 'VALIDATION_ERROR'
+  | 'INTAKE_FAILED'
+  | 'DRAFT_SAVE_FAILED'
   | 'UPLOAD_FAILED'
   | 'DELETE_FAILED'
 
@@ -158,6 +206,34 @@ const getJson = async <TResponse>(path: string): Promise<TResponse> => {
     credentials: 'include',
     headers: authHeaders(),
   })
+
+  if (!response.ok) {
+    let message = 'Request failed'
+    let code: BookingErrorCode = 'NOT_FOUND'
+
+    try {
+      const parsed = (await response.json()) as { message?: string; code?: BookingErrorCode }
+      message = parsed.message ?? message
+      code = parsed.code ?? code
+    } catch {
+      // use defaults
+    }
+
+    throw new BookingError(message, code, response.status)
+  }
+
+  return (await response.json()) as TResponse
+}
+
+const getOptionalJson = async <TResponse>(path: string): Promise<TResponse | null> => {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    credentials: 'include',
+    headers: authHeaders(),
+  })
+
+  if (response.status === 204) {
+    return null
+  }
 
   if (!response.ok) {
     let message = 'Request failed'
@@ -434,6 +510,26 @@ const buildWalkInRequestDto = (payload: WalkInBookingPayload) => {
   }
 }
 
+const buildManualIntakeRequestDto = (payload: ManualIntakeDraftPayload) => ({
+  chronicConditions: payload.chronicConditions ?? null,
+  pastSurgeries: payload.pastSurgeries ?? null,
+  familyHistory: payload.familyHistory ?? null,
+  symptomsDescription: payload.symptomsDescription ?? null,
+  symptomOnset: payload.symptomOnset ?? null,
+  symptomSeverity: payload.symptomSeverity ?? null,
+  currentMedications: payload.currentMedications ?? null,
+  knownAllergies: payload.knownAllergies ?? null,
+  reasonForVisit: payload.reasonForVisit ?? null,
+})
+
+const buildAiIntakeRequestDto = (payload: AiIntakeSubmitPayload) => ({
+  chronicConditions: payload.chronicConditions ?? null,
+  currentMedications: payload.currentMedications ?? null,
+  allergies: payload.allergies ?? null,
+  surgicalHistory: payload.surgicalHistory ?? null,
+  reasonForVisit: payload.reasonForVisit,
+})
+
 const adaptWalkInBookingDto = (
   raw: {
     appointmentId: string
@@ -683,24 +779,8 @@ const MOCK_PATIENTS: PatientSearchResult[] = [
 
 const mockLockedSlotIds = new Set<string>()
 const mockConfirmedAppointments: AppointmentRecord[] = []
-const mockIntakeRecords: PatientIntakeRecord[] = [
-  {
-    id: 'intake-001',
-    appointmentId: 'appt-001',
-    intakeMode: 'AI',
-    reasonForVisit: 'Annual physical exam',
-    completedAt: new Date(Date.now() - 2 * 86_400_000).toISOString(),
-    lastModifiedAt: new Date(Date.now() - 2 * 86_400_000).toISOString(),
-  },
-  {
-    id: 'intake-002',
-    appointmentId: 'appt-002',
-    intakeMode: 'Manual',
-    reasonForVisit: 'Follow-up for blood pressure management',
-    completedAt: new Date(Date.now() - 7 * 86_400_000).toISOString(),
-    lastModifiedAt: new Date(Date.now() - 7 * 86_400_000).toISOString(),
-  },
-]
+const mockIntakeRecords: PatientIntakeRecord[] = []
+const mockIntakeDrafts = new Map<string, ManualIntakeDraft>()
 const mockDocumentRecords: PatientDocumentRecord[] = [
   {
     id: 'doc-001',
@@ -949,6 +1029,143 @@ const mockBookingApi = {
   async deleteAllDocuments(): Promise<void> {
     await wait(150)
     mockDocumentRecords.splice(0, mockDocumentRecords.length)
+  },
+
+  async getManualIntakeDraft(appointmentId: string): Promise<ManualIntakeDraft | null> {
+    await wait(120)
+    const draft = mockIntakeDrafts.get(appointmentId)
+    if (draft?.isSubmitted) return null
+    return draft ? { ...draft } : null
+  },
+
+  async saveManualIntakeDraft(
+    appointmentId: string,
+    payload: ManualIntakeDraftPayload,
+  ): Promise<ManualIntakeResult> {
+    await wait(120)
+
+    const now = new Date().toISOString()
+    const existingDraft = mockIntakeDrafts.get(appointmentId)
+    const activeDraft = existingDraft?.isSubmitted ? undefined : existingDraft
+    const intakeId = activeDraft?.intakeId ?? `intake-${Date.now()}`
+    const draft: ManualIntakeDraft = {
+      ...activeDraft,
+      ...payload,
+      intakeId,
+      isSubmitted: false,
+      lastModifiedAt: now,
+    }
+
+    mockIntakeDrafts.set(appointmentId, draft)
+
+    const existingRecord = mockIntakeRecords.find(
+      (record) =>
+        record.appointmentId === appointmentId &&
+        record.intakeMode === 'Manual' &&
+        record.completedAt === null,
+    )
+    if (existingRecord) {
+      existingRecord.reasonForVisit = draft.reasonForVisit ?? existingRecord.reasonForVisit
+      existingRecord.lastModifiedAt = now
+    } else {
+      mockIntakeRecords.unshift({
+        id: intakeId,
+        appointmentId,
+        intakeMode: 'Manual',
+        reasonForVisit: draft.reasonForVisit ?? null,
+        completedAt: null,
+        lastModifiedAt: now,
+      })
+    }
+
+    return {
+      success: true,
+      intakeId,
+      failureReason: null,
+      failureCode: null,
+    }
+  },
+
+  async submitManualIntake(
+    appointmentId: string,
+    payload: ManualIntakeSubmitPayload,
+  ): Promise<ManualIntakeResult> {
+    await wait(250)
+
+    if (!payload.reasonForVisit.trim()) {
+      throw new BookingError('Reason for visit is required.', 'VALIDATION_ERROR', 400)
+    }
+
+    const now = new Date().toISOString()
+    const existingDraft = mockIntakeDrafts.get(appointmentId)
+    const activeDraft = existingDraft?.isSubmitted ? undefined : existingDraft
+    const intakeId = activeDraft?.intakeId ?? `intake-${Date.now()}`
+    const draft: ManualIntakeDraft = {
+      ...activeDraft,
+      ...payload,
+      intakeId,
+      isSubmitted: true,
+      lastModifiedAt: now,
+    }
+
+    mockIntakeDrafts.delete(appointmentId)
+
+    const existingRecord = mockIntakeRecords.find(
+      (record) =>
+        record.appointmentId === appointmentId &&
+        record.intakeMode === 'Manual' &&
+        record.completedAt === null,
+    )
+    if (existingRecord) {
+      existingRecord.reasonForVisit = payload.reasonForVisit
+      existingRecord.completedAt = existingRecord.completedAt ?? now
+      existingRecord.lastModifiedAt = now
+    } else {
+      mockIntakeRecords.unshift({
+        id: draft.intakeId,
+        appointmentId,
+        intakeMode: 'Manual',
+        reasonForVisit: payload.reasonForVisit,
+        completedAt: now,
+        lastModifiedAt: now,
+      })
+    }
+
+    return {
+      success: true,
+      intakeId,
+      failureReason: null,
+      failureCode: null,
+    }
+  },
+
+  async submitAiIntake(
+    appointmentId: string,
+    payload: AiIntakeSubmitPayload,
+  ): Promise<AiIntakeSubmitResult> {
+    await wait(250)
+
+    if (!payload.reasonForVisit.trim()) {
+      throw new BookingError('Reason for visit is required.', 'VALIDATION_ERROR', 400)
+    }
+
+    const now = new Date().toISOString()
+    const intakeId = `intake-${Date.now()}`
+    mockIntakeRecords.unshift({
+      id: intakeId,
+      appointmentId,
+      intakeMode: 'AI',
+      reasonForVisit: payload.reasonForVisit,
+      completedAt: now,
+      lastModifiedAt: now,
+    })
+
+    return {
+      success: true,
+      intakeId,
+      failureReason: null,
+      failureCode: null,
+    }
   },
 }
 
@@ -1248,6 +1465,56 @@ export const bookingApi = {
       status: n.status,
       createdAt: n.createdAt,
     }))
+  },
+
+  async getManualIntakeDraft(appointmentId: string): Promise<ManualIntakeDraft | null> {
+    if (USE_MOCK_BOOKING || !API_BASE_URL) {
+      return mockBookingApi.getManualIntakeDraft(appointmentId)
+    }
+
+    return getOptionalJson<ManualIntakeDraft>(`/api/intake/${appointmentId}/draft`)
+  },
+
+  async saveManualIntakeDraft(
+    appointmentId: string,
+    payload: ManualIntakeDraftPayload,
+  ): Promise<ManualIntakeResult> {
+    if (USE_MOCK_BOOKING || !API_BASE_URL) {
+      return mockBookingApi.saveManualIntakeDraft(appointmentId, payload)
+    }
+
+    return putJson<ManualIntakeResult>(
+      `/api/intake/${appointmentId}/draft`,
+      buildManualIntakeRequestDto(payload),
+    )
+  },
+
+  async submitManualIntake(
+    appointmentId: string,
+    payload: ManualIntakeSubmitPayload,
+  ): Promise<ManualIntakeResult> {
+    if (USE_MOCK_BOOKING || !API_BASE_URL) {
+      return mockBookingApi.submitManualIntake(appointmentId, payload)
+    }
+
+    return postJson<ManualIntakeResult>(
+      `/api/intake/${appointmentId}/submit`,
+      buildManualIntakeRequestDto(payload),
+    )
+  },
+
+  async submitAiIntake(
+    appointmentId: string,
+    payload: AiIntakeSubmitPayload,
+  ): Promise<AiIntakeSubmitResult> {
+    if (USE_MOCK_BOOKING || !API_BASE_URL) {
+      return mockBookingApi.submitAiIntake(appointmentId, payload)
+    }
+
+    return postJson<AiIntakeSubmitResult>(
+      `/api/intake/${appointmentId}/ai/submit`,
+      buildAiIntakeRequestDto(payload),
+    )
   },
 
   async getMyIntakes(): Promise<PatientIntakeRecord[]> {

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Handlers;
 
-internal sealed class GetPatientIntakesQueryHandler
+public sealed class GetPatientIntakesQueryHandler
     : IRequestHandler<GetPatientIntakesQuery, IReadOnlyList<PatientIntakeDto>>
 {
     private readonly ApplicationDbContext _db;
@@ -19,9 +19,14 @@ internal sealed class GetPatientIntakesQueryHandler
         GetPatientIntakesQuery request,
         CancellationToken cancellationToken)
     {
-        var results = await _db.IntakeRecords
-            .AsNoTracking()
-            .Where(i => i.PatientProfile.UserId == request.PatientUserId)
+        var query = _db.IntakeRecords.AsNoTracking();
+
+        if (!IsStaffScopedRole(request.ActorRole))
+        {
+            query = query.Where(i => i.PatientProfile.UserId == request.ActorUserId);
+        }
+
+        var results = await query
             .OrderByDescending(i => i.LastModifiedAt)
             .Select(i => new PatientIntakeDto(
                 i.IntakeId,
@@ -35,4 +40,8 @@ internal sealed class GetPatientIntakesQueryHandler
 
         return results.AsReadOnly();
     }
+
+    private static bool IsStaffScopedRole(string actorRole)
+        => actorRole.Equals("Staff", StringComparison.OrdinalIgnoreCase)
+           || actorRole.Equals("Admin", StringComparison.OrdinalIgnoreCase);
 }

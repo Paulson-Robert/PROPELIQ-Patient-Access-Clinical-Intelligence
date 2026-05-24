@@ -1,8 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { AlertCircle, Loader2 } from 'lucide-react'
 import { ChatBubble } from '../../components/intake/ChatBubble'
 import { IntakeProgress } from '../../components/intake/IntakeProgress'
 import { IntakeSummary, type ExtractedField } from '../../components/intake/IntakeSummary'
+import { useAuth } from '../../hooks/useAuth'
+import {
+  BookingError,
+  bookingApi,
+  type AiIntakeSubmitPayload,
+  type AppointmentRecord,
+} from '../../services/bookingApi'
 
 // ---------------------------------------------------------------------------
 // Intake question flow
@@ -55,8 +63,7 @@ const INTAKE_QUESTIONS: IntakeQuestion[] = [
 
 const TOTAL_QUESTIONS = INTAKE_QUESTIONS.length
 
-// Simulated AI typing delay (ms) — inferred decision: 800ms matches UX expectation
-// logged: implement-tasks:Step3 | decision | AiIntakePage.tsx | UC-009 | Simulated AI delay of 800ms chosen for natural conversation pacing; no backend AI endpoint defined in task scope.
+// Client-guided assistant typing delay (ms) for natural conversation pacing.
 const AI_RESPONSE_DELAY_MS = 800
 
 // ---------------------------------------------------------------------------
@@ -70,6 +77,7 @@ interface ChatMessage {
 }
 
 type PageView = 'chat' | 'summary' | 'submitted'
+type IntakeContextState = 'loading' | 'ready' | 'missing' | 'error'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -82,6 +90,19 @@ const buildExtractedFields = (data: ExtractedData): ExtractedField[] => [
   { label: 'Surgical history', value: data.surgicalHistory, confidence: data.surgicalHistory ? 'high' : 'pending' },
   { label: 'Reason for visit', value: data.reasonForVisit, confidence: data.reasonForVisit ? 'high' : 'pending' },
 ]
+
+const pickDefaultAppointment = (appointments: AppointmentRecord[]): AppointmentRecord | null =>
+  appointments
+    .filter((appointment) => appointment.status === 'Scheduled')
+    .sort((a, b) => `${a.date}T${a.startTime}`.localeCompare(`${b.date}T${b.startTime}`))[0] ?? null
+
+const toSubmitPayload = (data: ExtractedData): AiIntakeSubmitPayload => ({
+  chronicConditions: data.chronicConditions,
+  currentMedications: data.currentMedications,
+  allergies: data.allergies,
+  surgicalHistory: data.surgicalHistory,
+  reasonForVisit: data.reasonForVisit?.trim() ?? '',
+})
 
 // ---------------------------------------------------------------------------
 // Props
@@ -108,9 +129,17 @@ export const AiIntakePage = ({
   onAiUnavailable,
 }: AiIntakePageProps = {}) => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const { user } = useAuth()
+  const queryAppointmentId = searchParams.get('appointmentId')
 
   const [view, setView] = useState<PageView>('chat')
   const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [appointmentId, setAppointmentId] = useState<string | null>(queryAppointmentId)
+  const [contextState, setContextState] = useState<IntakeContextState>(
+    queryAppointmentId ? 'ready' : 'loading',
+  )
+  const [contextMessage, setContextMessage] = useState<string | null>(null)
   const [isAiTyping, setIsAiTyping] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [questionIndex, setQuestionIndex] = useState(0)
@@ -122,11 +151,13 @@ export const AiIntakePage = ({
     reasonForVisit: null,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [aiUnavailable, setAiUnavailable] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const typingTimerRef = useRef<number | null>(null)
+  const appointmentQuery = appointmentId ? `?appointmentId=${encodeURIComponent(appointmentId)}` : ''
 
   const clearTypingTimer = useCallback(() => {
     if (typingTimerRef.current !== null) {
@@ -135,8 +166,60 @@ export const AiIntakePage = ({
     }
   }, [])
 
-  // Post the first AI question on mount
   useEffect(() => {
+    if (queryAppointmentId) {
+      setAppointmentId(queryAppointmentId)
+      setContextState('ready')
+      setContextMessage(null)
+      return
+    }
+
+    if (user?.role === 'staff') {
+      setAppointmentId(null)
+      setContextState('missing')
+      setContextMessage('Open intake from a patient row in the same-day queue so the AI intake is tied to an appointment.')
+      return
+    }
+
+    let cancelled = false
+
+    const resolveAppointment = async () => {
+      setContextState('loading')
+      setContextMessage(null)
+
+      try {
+        const appointments = await bookingApi.getMyAppointments('Scheduled')
+        if (cancelled) return
+
+        const nextAppointment = pickDefaultAppointment(appointments)
+        if (!nextAppointment) {
+          setAppointmentId(null)
+          setContextState('missing')
+          setContextMessage('Book or select an upcoming appointment before completing pre-visit intake.')
+          return
+        }
+
+        setAppointmentId(nextAppointment.id)
+        setContextState('ready')
+      } catch {
+        if (cancelled) return
+        setAppointmentId(null)
+        setContextState('error')
+        setContextMessage('Unable to load your upcoming appointments. Please try again.')
+      }
+    }
+
+    void resolveAppointment()
+
+    return () => {
+      cancelled = true
+    }
+  }, [queryAppointmentId, user?.role])
+
+  // Post the first AI question once the appointment context is ready.
+  useEffect(() => {
+    if (contextState !== 'ready' || messages.length > 0) return
+
     setIsAiTyping(true)
     typingTimerRef.current = window.setTimeout(() => {
       try {
@@ -151,7 +234,7 @@ export const AiIntakePage = ({
     }, AI_RESPONSE_DELAY_MS)
 
     return clearTypingTimer
-  }, [clearTypingTimer])
+  }, [clearTypingTimer, contextState, messages.length])
 
   // Scroll to latest message
   useEffect(() => {
@@ -200,6 +283,7 @@ export const AiIntakePage = ({
       setExtractedData(updated)
       onExtractedDataChange?.(updated)
       setInputValue('')
+      setSubmitError(null)
 
       const nextIndex = questionIndex + 1
       setQuestionIndex(nextIndex)
@@ -218,16 +302,75 @@ export const AiIntakePage = ({
   }
 
   const handleSubmit = async () => {
+    const payload = toSubmitPayload(extractedData)
+
+    if (!appointmentId) {
+      setSubmitError('Choose an appointment before submitting intake.')
+      return
+    }
+
+    if (!payload.reasonForVisit) {
+      setSubmitError('Reason for visit is required.')
+      return
+    }
+
     setIsSubmitting(true)
+    setSubmitError(null)
+
     try {
-      // No backend endpoint in scope — simulated submission
-      await new Promise<void>((resolve) => window.setTimeout(resolve, 600))
+      await bookingApi.submitAiIntake(appointmentId, payload)
       setView('submitted')
-    } catch {
-      // submission error handled gracefully
+    } catch (error) {
+      const message =
+        error instanceof BookingError
+          ? error.message
+          : 'Unable to submit intake right now. Please try again.'
+
+      setSubmitError(message)
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (contextState === 'loading') {
+    return (
+      <main
+        className="flex min-h-screen items-center justify-center bg-background px-4 py-8 text-foreground"
+        id="main-content"
+      >
+        <div className="flex items-center gap-3 text-sm text-muted-foreground" role="status">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" aria-hidden="true" />
+          Preparing intake...
+        </div>
+      </main>
+    )
+  }
+
+  if (contextState === 'missing' || contextState === 'error') {
+    const isStaff = user?.role === 'staff'
+    const primaryTarget = isStaff ? '/queue/same-day' : '/booking/history'
+    const primaryLabel = isStaff ? 'Open same-day queue' : 'Choose appointment'
+
+    return (
+      <main
+        className="flex min-h-screen items-center justify-center bg-background px-4 py-8 text-foreground"
+        id="main-content"
+      >
+        <section className="w-full max-w-md rounded-xl border border-border bg-card p-6 text-center shadow-sm">
+          <AlertCircle className="mx-auto h-10 w-10 text-amber-600" aria-hidden="true" />
+          <h1 className="mt-3 text-lg font-semibold text-foreground">Appointment needed</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {contextMessage ?? 'Select an appointment before completing intake.'}
+          </p>
+          <Link
+            to={primaryTarget}
+            className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            {primaryLabel}
+          </Link>
+        </section>
+      </main>
+    )
   }
 
   // -------------------------------------------------------------------------
@@ -249,7 +392,7 @@ export const AiIntakePage = ({
           <button
             type="button"
             className="mt-4 w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            onClick={() => onSwitchToManual ? onSwitchToManual() : navigate('/intake/manual')}
+            onClick={() => onSwitchToManual ? onSwitchToManual() : navigate(`/intake/manual${appointmentQuery}`)}
           >
             Use manual form
           </button>
@@ -277,7 +420,7 @@ export const AiIntakePage = ({
           <button
             type="button"
             className="mt-4 w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            onClick={() => navigate('/dashboard/patient')}
+            onClick={() => navigate(user?.role === 'staff' ? '/dashboard/staff' : '/dashboard/patient')}
           >
             Return to dashboard
           </button>
@@ -296,6 +439,14 @@ export const AiIntakePage = ({
           <div className="mb-6">
             <IntakeProgress completedCount={TOTAL_QUESTIONS} totalCount={TOTAL_QUESTIONS} />
           </div>
+          {submitError && (
+            <div
+              className="mb-5 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+              role="alert"
+            >
+              {submitError}
+            </div>
+          )}
           <IntakeSummary
             fields={buildExtractedFields(extractedData)}
             isSubmitting={isSubmitting}
@@ -324,7 +475,7 @@ export const AiIntakePage = ({
             type="button"
             aria-label="Back to dashboard"
             className="rounded-md p-1 text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={() => navigate('/dashboard/patient')}
+            onClick={() => navigate(user?.role === 'staff' ? '/dashboard/staff' : '/dashboard/patient')}
           >
             <svg
               width="20"
@@ -355,7 +506,7 @@ export const AiIntakePage = ({
             role="tab"
             aria-selected="false"
             className="rounded-md px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={() => onSwitchToManual ? onSwitchToManual() : navigate('/intake/manual')}
+            onClick={() => onSwitchToManual ? onSwitchToManual() : navigate(`/intake/manual${appointmentQuery}`)}
           >
             Manual form
           </button>

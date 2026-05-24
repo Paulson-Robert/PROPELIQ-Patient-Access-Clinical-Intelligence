@@ -1,13 +1,23 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, CheckCircle } from 'lucide-react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { AlertCircle, ChevronLeft, CheckCircle, Loader2 } from 'lucide-react'
 import { IntakeStepper } from '../../components/intake/IntakeStepper'
+import { useAuth } from '../../hooks/useAuth'
+import {
+  BookingError,
+  bookingApi,
+  type AppointmentRecord,
+  type ManualIntakeDraft,
+  type ManualIntakeDraftPayload,
+  type ManualIntakeSubmitPayload,
+} from '../../services/bookingApi'
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
 const DRAFT_KEY = 'intake-manual-draft'
+const DRAFT_SAVE_DELAY_MS = 500
 
 const STEP_LABELS = ['Medical history', 'Symptoms', 'Medications', 'Allergies', 'Reason for visit']
 
@@ -41,6 +51,9 @@ interface IntakeFormData {
   reasonForVisit: string
 }
 
+type IntakeContextState = 'loading' | 'ready' | 'missing' | 'error'
+type DraftSaveState = 'idle' | 'saving' | 'saved' | 'error'
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -57,9 +70,9 @@ const EMPTY_FORM: IntakeFormData = {
   reasonForVisit: '',
 }
 
-const readDraft = (): IntakeFormData | null => {
+const readDraft = (key = DRAFT_KEY): IntakeFormData | null => {
   try {
-    const raw = localStorage.getItem(DRAFT_KEY)
+    const raw = localStorage.getItem(key)
     if (!raw) return null
     const parsed = JSON.parse(raw) as unknown
     if (typeof parsed !== 'object' || parsed === null) return null
@@ -68,6 +81,46 @@ const readDraft = (): IntakeFormData | null => {
     return null
   }
 }
+
+const draftKeyForAppointment = (appointmentId: string | null): string =>
+  appointmentId ? `${DRAFT_KEY}:${appointmentId}` : DRAFT_KEY
+
+const hasAnyFormData = (data: IntakeFormData): boolean =>
+  Object.values(data).some((value) => value.trim().length > 0)
+
+const fromDraftDto = (draft: ManualIntakeDraft): IntakeFormData => ({
+  chronicConditions: draft.chronicConditions ?? '',
+  pastSurgeries: draft.pastSurgeries ?? '',
+  familyHistory: draft.familyHistory ?? '',
+  symptoms: draft.symptomsDescription ?? '',
+  symptomOnset: draft.symptomOnset ?? '',
+  symptomSeverity: draft.symptomSeverity ?? '',
+  currentMedications: draft.currentMedications ?? '',
+  knownAllergies: draft.knownAllergies ?? '',
+  reasonForVisit: draft.reasonForVisit ?? '',
+})
+
+const toDraftPayload = (data: IntakeFormData): ManualIntakeDraftPayload => ({
+  chronicConditions: data.chronicConditions,
+  pastSurgeries: data.pastSurgeries,
+  familyHistory: data.familyHistory,
+  symptomsDescription: data.symptoms,
+  symptomOnset: data.symptomOnset,
+  symptomSeverity: data.symptomSeverity,
+  currentMedications: data.currentMedications,
+  knownAllergies: data.knownAllergies,
+  reasonForVisit: data.reasonForVisit,
+})
+
+const toSubmitPayload = (data: IntakeFormData): ManualIntakeSubmitPayload => ({
+  ...toDraftPayload(data),
+  reasonForVisit: data.reasonForVisit.trim(),
+})
+
+const pickDefaultAppointment = (appointments: AppointmentRecord[]): AppointmentRecord | null =>
+  appointments
+    .filter((appointment) => appointment.status === 'Scheduled')
+    .sort((a, b) => `${a.date}T${a.startTime}`.localeCompare(`${b.date}T${b.startTime}`))[0] ?? null
 
 // ---------------------------------------------------------------------------
 // Shared field/label styles
@@ -290,23 +343,142 @@ interface ManualIntakePageProps {
 
 export const ManualIntakePage = ({ onSwitchToAi }: ManualIntakePageProps = {}) => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const { user } = useAuth()
+  const queryAppointmentId = searchParams.get('appointmentId')
 
   const [currentStep, setCurrentStep] = useState(0)
   const [formData, setFormData] = useState<IntakeFormData>(() => readDraft() ?? EMPTY_FORM)
+  const [appointmentId, setAppointmentId] = useState<string | null>(queryAppointmentId)
+  const [contextState, setContextState] = useState<IntakeContextState>(
+    queryAppointmentId ? 'ready' : 'loading',
+  )
+  const [contextMessage, setContextMessage] = useState<string | null>(null)
+  const [draftLoaded, setDraftLoaded] = useState(false)
+  const [hasUserEdited, setHasUserEdited] = useState(false)
+  const [draftSaveState, setDraftSaveState] = useState<DraftSaveState>('idle')
   const [validationError, setValidationError] = useState<string | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
 
-  // AC-03 + Edge case: Save draft to localStorage on every change.
-  // localStorage.setItem is synchronous, so data persists even on browser close.
   useEffect(() => {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(formData))
-  }, [formData])
+    if (queryAppointmentId) {
+      setAppointmentId(queryAppointmentId)
+      setContextState('ready')
+      setContextMessage(null)
+      return
+    }
+
+    if (user?.role === 'staff') {
+      setAppointmentId(null)
+      setContextState('missing')
+      setContextMessage('Open intake from a patient row in the same-day queue so the form is tied to an appointment.')
+      return
+    }
+
+    let cancelled = false
+
+    const resolveAppointment = async () => {
+      setContextState('loading')
+      setContextMessage(null)
+
+      try {
+        const appointments = await bookingApi.getMyAppointments('Scheduled')
+        if (cancelled) return
+
+        const nextAppointment = pickDefaultAppointment(appointments)
+        if (!nextAppointment) {
+          setAppointmentId(null)
+          setContextState('missing')
+          setContextMessage('Book or select an upcoming appointment before completing pre-visit intake.')
+          return
+        }
+
+        setAppointmentId(nextAppointment.id)
+        setContextState('ready')
+      } catch {
+        if (cancelled) return
+        setAppointmentId(null)
+        setContextState('error')
+        setContextMessage('Unable to load your upcoming appointments. Please try again.')
+      }
+    }
+
+    void resolveAppointment()
+
+    return () => {
+      cancelled = true
+    }
+  }, [queryAppointmentId, user?.role])
+
+  useEffect(() => {
+    if (!appointmentId || contextState !== 'ready') return
+
+    let cancelled = false
+
+    const loadDraft = async () => {
+      setDraftLoaded(false)
+      setDraftSaveState('idle')
+
+      try {
+        const serverDraft = await bookingApi.getManualIntakeDraft(appointmentId)
+        if (cancelled) return
+
+        const localDraft =
+          readDraft(draftKeyForAppointment(appointmentId)) ??
+          readDraft() ??
+          EMPTY_FORM
+
+        setFormData(serverDraft ? fromDraftDto(serverDraft) : localDraft)
+        setHasUserEdited(false)
+      } catch {
+        if (cancelled) return
+        const localDraft =
+          readDraft(draftKeyForAppointment(appointmentId)) ??
+          readDraft() ??
+          EMPTY_FORM
+
+        setFormData(localDraft)
+        setHasUserEdited(false)
+        setDraftSaveState('error')
+      } finally {
+        if (!cancelled) setDraftLoaded(true)
+      }
+    }
+
+    void loadDraft()
+
+    return () => {
+      cancelled = true
+    }
+  }, [appointmentId, contextState])
+
+  // Keep a local fallback draft while the API-backed draft is the source of truth.
+  useEffect(() => {
+    localStorage.setItem(draftKeyForAppointment(appointmentId), JSON.stringify(formData))
+  }, [appointmentId, formData])
+
+  useEffect(() => {
+    if (!appointmentId || !draftLoaded || !hasUserEdited || isSubmitted || !hasAnyFormData(formData)) return
+
+    const timer = window.setTimeout(() => {
+      setDraftSaveState('saving')
+      void bookingApi
+        .saveManualIntakeDraft(appointmentId, toDraftPayload(formData))
+        .then(() => setDraftSaveState('saved'))
+        .catch(() => setDraftSaveState('error'))
+    }, DRAFT_SAVE_DELAY_MS)
+
+    return () => window.clearTimeout(timer)
+  }, [appointmentId, draftLoaded, formData, hasUserEdited, isSubmitted])
 
   const updateField = useCallback(
     <K extends keyof IntakeFormData>(key: K, value: IntakeFormData[K]) => {
       setFormData((prev) => ({ ...prev, [key]: value }))
+      setHasUserEdited(true)
       if (key === 'reasonForVisit') setValidationError(null)
+      setSubmitError(null)
     },
     [],
   )
@@ -330,28 +502,44 @@ export const ManualIntakePage = ({ onSwitchToAi }: ManualIntakePageProps = {}) =
     setValidationError(null)
   }
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (!formData.reasonForVisit.trim()) {
       setValidationError('Primary reason for visit is required.')
       return
     }
+
+    if (!appointmentId) {
+      setSubmitError('Choose an appointment before submitting intake.')
+      return
+    }
+
     setIsSubmitting(true)
-    // Inferred decision: no intake submission API endpoint defined in task scope.
-    // Simulating async submission and clearing draft on success.
-    // logged: implement-tasks:Step3 | decision | ManualIntakePage.tsx | UC-010 | Simulated intake submission with 600ms delay; no backend endpoint specified in task or upstream spec.
-    setTimeout(() => {
+    setSubmitError(null)
+
+    try {
+      await bookingApi.submitManualIntake(appointmentId, toSubmitPayload(formData))
       localStorage.removeItem(DRAFT_KEY)
+      localStorage.removeItem(draftKeyForAppointment(appointmentId))
+      setDraftSaveState('saved')
       setIsSubmitting(false)
       setIsSubmitted(true)
-    }, 600)
-  }, [formData.reasonForVisit])
+    } catch (error) {
+      const message =
+        error instanceof BookingError
+          ? error.message
+          : 'Unable to submit intake right now. Please try again.'
+
+      setSubmitError(message)
+      setIsSubmitting(false)
+    }
+  }, [appointmentId, formData])
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (currentStep < 4) {
       handleNext()
     } else {
-      handleSubmit()
+      void handleSubmit()
     }
   }
 
@@ -378,10 +566,51 @@ export const ManualIntakePage = ({ onSwitchToAi }: ManualIntakePageProps = {}) =
           <button
             type="button"
             className="mt-6 w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            onClick={() => navigate('/dashboard/patient')}
+            onClick={() => navigate(user?.role === 'staff' ? '/dashboard/staff' : '/dashboard/patient')}
           >
             Back to dashboard
           </button>
+        </section>
+      </main>
+    )
+  }
+
+  if (contextState === 'loading' || (contextState === 'ready' && !draftLoaded)) {
+    return (
+      <main
+        className="flex min-h-screen items-center justify-center bg-background px-4 py-8 text-foreground"
+        id="main-content"
+      >
+        <div className="flex items-center gap-3 text-sm text-muted-foreground" role="status">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" aria-hidden="true" />
+          Preparing intake...
+        </div>
+      </main>
+    )
+  }
+
+  if (contextState === 'missing' || contextState === 'error') {
+    const isStaff = user?.role === 'staff'
+    const primaryTarget = isStaff ? '/queue/same-day' : '/booking/history'
+    const primaryLabel = isStaff ? 'Open same-day queue' : 'Choose appointment'
+
+    return (
+      <main
+        className="flex min-h-screen items-center justify-center bg-background px-4 py-8 text-foreground"
+        id="main-content"
+      >
+        <section className="w-full max-w-md rounded-xl border border-border bg-card p-6 text-center shadow-sm">
+          <AlertCircle className="mx-auto h-10 w-10 text-amber-600" aria-hidden="true" />
+          <h1 className="mt-3 text-lg font-semibold text-foreground">Appointment needed</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {contextMessage ?? 'Select an appointment before completing intake.'}
+          </p>
+          <Link
+            to={primaryTarget}
+            className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            {primaryLabel}
+          </Link>
         </section>
       </main>
     )
@@ -392,6 +621,8 @@ export const ManualIntakePage = ({ onSwitchToAi }: ManualIntakePageProps = {}) =
     onChange: updateField,
     validationError,
   }
+  const appointmentQuery = appointmentId ? `?appointmentId=${encodeURIComponent(appointmentId)}` : ''
+  const aiHref = `/intake/ai${appointmentQuery}`
 
   return (
     <div
@@ -432,7 +663,7 @@ export const ManualIntakePage = ({ onSwitchToAi }: ManualIntakePageProps = {}) =
               </button>
             ) : (
               <a
-                href="/intake/ai"
+                href={aiHref}
                 className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 AI assistant
@@ -466,9 +697,32 @@ export const ManualIntakePage = ({ onSwitchToAi }: ManualIntakePageProps = {}) =
               <p className="mt-1 text-sm text-muted-foreground">
                 {STEP_DESCRIPTIONS[currentStep]}
               </p>
+              {draftSaveState === 'saving' && (
+                <p className="mt-2 text-xs text-muted-foreground" role="status">
+                  Saving draft...
+                </p>
+              )}
+              {draftSaveState === 'saved' && (
+                <p className="mt-2 text-xs text-emerald-700" role="status">
+                  Draft saved
+                </p>
+              )}
+              {draftSaveState === 'error' && (
+                <p className="mt-2 text-xs text-amber-700" role="status">
+                  Draft is saved locally. Server sync will retry when you make another change.
+                </p>
+              )}
             </div>
 
             <form onSubmit={handleFormSubmit} noValidate aria-labelledby="step-heading">
+              {submitError && (
+                <div
+                  className="mb-5 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+                  role="alert"
+                >
+                  {submitError}
+                </div>
+              )}
               {currentStep === 0 && <MedicalHistoryStep {...stepProps} />}
               {currentStep === 1 && <SymptomsStep {...stepProps} />}
               {currentStep === 2 && <MedicationsStep {...stepProps} />}

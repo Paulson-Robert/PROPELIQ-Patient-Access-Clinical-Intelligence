@@ -37,12 +37,13 @@ public sealed class IntakeController : ControllerBase
     public async Task<ActionResult<IReadOnlyList<PatientIntakeDto>>> GetMyIntakes(
         CancellationToken cancellationToken)
     {
-        var patientUserId = GetCurrentUserId();
-        if (patientUserId is null)
+        var actorUserId = GetCurrentUserId();
+        var actorRole = GetCurrentRole();
+        if (actorUserId is null || actorRole is null)
             return Unauthorized();
 
         var result = await _mediator
-            .Send(new GetPatientIntakesQuery(patientUserId.Value), cancellationToken)
+            .Send(new GetPatientIntakesQuery(actorUserId.Value, actorRole), cancellationToken)
             .ConfigureAwait(false);
 
         return Ok(result);
@@ -58,17 +59,19 @@ public sealed class IntakeController : ControllerBase
         [FromBody] SubmitManualIntakeRequestDto request,
         CancellationToken cancellationToken)
     {
-        var patientUserId = GetCurrentUserId();
-        if (patientUserId is null)
+        var actorUserId = GetCurrentUserId();
+        var actorRole = GetCurrentRole();
+        if (actorUserId is null || actorRole is null)
             return Unauthorized();
 
-        if (string.IsNullOrWhiteSpace(request.ReasonForVisit))
+        if (request is null || string.IsNullOrWhiteSpace(request.ReasonForVisit))
             return BadRequest(new { code = "VALIDATION_ERROR", message = "Reason for visit is required." });
 
         var result = await _mediator
             .Send(
                 new SubmitManualIntakeCommand(
-                    patientUserId.Value,
+                    actorUserId.Value,
+                    actorRole,
                     appointmentId,
                     request.ChronicConditions,
                     request.PastSurgeries,
@@ -87,12 +90,60 @@ public sealed class IntakeController : ControllerBase
             return result.FailureCode switch
             {
                 "PATIENT_NOT_FOUND" => NotFound(new { code = result.FailureCode, message = result.FailureReason }),
+                "APPOINTMENT_NOT_FOUND" => NotFound(new { code = result.FailureCode, message = result.FailureReason }),
+                "INVALID_REQUEST" => BadRequest(new { code = result.FailureCode, message = result.FailureReason }),
                 "VALIDATION_ERROR" => BadRequest(new { code = result.FailureCode, message = result.FailureReason }),
                 _ => StatusCode(500, new { code = "INTAKE_FAILED", message = result.FailureReason }),
             };
         }
 
-        // ALREADY_SUBMITTED is a success — return 200 so the client can handle idempotency gracefully.
+        return Ok(result);
+    }
+
+    // -------------------------------------------------------------------------
+    // POST /api/intake/{appointmentId}/ai/submit
+    // Persist the completed AI-assisted intake summary
+    // -------------------------------------------------------------------------
+    [HttpPost("{appointmentId:guid}/ai/submit")]
+    public async Task<ActionResult<AiIntakeSubmissionResult>> SubmitAi(
+        [FromRoute] Guid appointmentId,
+        [FromBody] SubmitAiIntakeRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var actorUserId = GetCurrentUserId();
+        var actorRole = GetCurrentRole();
+        if (actorUserId is null || actorRole is null)
+            return Unauthorized();
+
+        if (request is null || string.IsNullOrWhiteSpace(request.ReasonForVisit))
+            return BadRequest(new { code = "VALIDATION_ERROR", message = "Reason for visit is required." });
+
+        var result = await _mediator
+            .Send(
+                new SubmitAiIntakeCommand(
+                    actorUserId.Value,
+                    actorRole,
+                    appointmentId,
+                    request.ChronicConditions,
+                    request.CurrentMedications,
+                    request.Allergies,
+                    request.SurgicalHistory,
+                    request.ReasonForVisit),
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!result.Success)
+        {
+            return result.FailureCode switch
+            {
+                "PATIENT_NOT_FOUND" => NotFound(new { code = result.FailureCode, message = result.FailureReason }),
+                "APPOINTMENT_NOT_FOUND" => NotFound(new { code = result.FailureCode, message = result.FailureReason }),
+                "INVALID_REQUEST" => BadRequest(new { code = result.FailureCode, message = result.FailureReason }),
+                "VALIDATION_ERROR" => BadRequest(new { code = result.FailureCode, message = result.FailureReason }),
+                _ => StatusCode(500, new { code = "INTAKE_FAILED", message = result.FailureReason }),
+            };
+        }
+
         return Ok(result);
     }
 
@@ -106,14 +157,16 @@ public sealed class IntakeController : ControllerBase
         [FromBody] SaveIntakeDraftRequestDto request,
         CancellationToken cancellationToken)
     {
-        var patientUserId = GetCurrentUserId();
-        if (patientUserId is null)
+        var actorUserId = GetCurrentUserId();
+        var actorRole = GetCurrentRole();
+        if (actorUserId is null || actorRole is null)
             return Unauthorized();
 
         var result = await _mediator
             .Send(
                 new SaveIntakeDraftCommand(
-                    patientUserId.Value,
+                    actorUserId.Value,
+                    actorRole,
                     appointmentId,
                     request.ChronicConditions,
                     request.PastSurgeries,
@@ -128,7 +181,15 @@ public sealed class IntakeController : ControllerBase
             .ConfigureAwait(false);
 
         if (!result.Success)
-            return StatusCode(500, new { code = "DRAFT_SAVE_FAILED", message = result.FailureReason });
+        {
+            return result.FailureCode switch
+            {
+                "APPOINTMENT_NOT_FOUND" => NotFound(new { code = result.FailureCode, message = result.FailureReason }),
+                "PATIENT_NOT_FOUND" => NotFound(new { code = result.FailureCode, message = result.FailureReason }),
+                "INVALID_REQUEST" => BadRequest(new { code = result.FailureCode, message = result.FailureReason }),
+                _ => StatusCode(500, new { code = "DRAFT_SAVE_FAILED", message = result.FailureReason }),
+            };
+        }
 
         return Ok(result);
     }
@@ -142,12 +203,13 @@ public sealed class IntakeController : ControllerBase
         [FromRoute] Guid appointmentId,
         CancellationToken cancellationToken)
     {
-        var patientUserId = GetCurrentUserId();
-        if (patientUserId is null)
+        var actorUserId = GetCurrentUserId();
+        var actorRole = GetCurrentRole();
+        if (actorUserId is null || actorRole is null)
             return Unauthorized();
 
         var draft = await _mediator
-            .Send(new GetIntakeDraftQuery(patientUserId.Value, appointmentId), cancellationToken)
+            .Send(new GetIntakeDraftQuery(actorUserId.Value, actorRole, appointmentId), cancellationToken)
             .ConfigureAwait(false);
 
         if (draft is null)
@@ -163,6 +225,9 @@ public sealed class IntakeController : ControllerBase
 
         return Guid.TryParse(sub, out var id) ? id : null;
     }
+
+    private string? GetCurrentRole()
+        => User.FindFirstValue(ClaimTypes.Role);
 }
 
 // ---------------------------------------------------------------------------
@@ -178,6 +243,13 @@ public sealed record SubmitManualIntakeRequestDto(
     string? SymptomSeverity,
     string? CurrentMedications,
     string? KnownAllergies,
+    string ReasonForVisit);
+
+public sealed record SubmitAiIntakeRequestDto(
+    string? ChronicConditions,
+    string? CurrentMedications,
+    string? Allergies,
+    string? SurgicalHistory,
     string ReasonForVisit);
 
 public sealed record SaveIntakeDraftRequestDto(

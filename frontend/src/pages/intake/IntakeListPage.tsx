@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ClipboardList, Loader2, Plus } from 'lucide-react'
 import { bookingApi, type PatientIntakeRecord } from '../../services/bookingApi'
+import { useAuth } from '../../hooks/useAuth'
 
 const formatDate = (iso: string): string => {
   const d = new Date(iso)
@@ -46,8 +47,13 @@ const statusBadge = (completedAt: string | null) => {
 }
 
 export const IntakeListPage = () => {
+  const { user } = useAuth()
   const [intakes, setIntakes] = useState<PatientIntakeRecord[]>([])
   const [loading, setLoading] = useState(true)
+  const isStaff = user?.role === 'staff'
+  const dashboardPath = isStaff ? '/dashboard/staff' : '/dashboard/patient'
+  const newIntakePath = isStaff ? '/queue/same-day' : '/intake'
+  const newIntakeLabel = isStaff ? 'Open queue' : 'New intake'
 
   useEffect(() => {
     let cancelled = false
@@ -80,7 +86,7 @@ export const IntakeListPage = () => {
         <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link
-              to="/dashboard/patient"
+              to={dashboardPath}
               className="inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               aria-label="Back to dashboard"
             >
@@ -90,11 +96,11 @@ export const IntakeListPage = () => {
           </div>
 
           <Link
-            to="/intake"
+            to={newIntakePath}
             className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
-            New intake
+            {newIntakeLabel}
           </Link>
         </header>
 
@@ -114,11 +120,11 @@ export const IntakeListPage = () => {
               Complete a pre-visit intake to see your history here.
             </p>
             <Link
-              to="/intake"
+              to={newIntakePath}
               className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <Plus className="h-4 w-4" aria-hidden="true" />
-              Start intake
+              {newIntakeLabel}
             </Link>
           </section>
         ) : (

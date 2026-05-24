@@ -8,15 +8,15 @@ namespace Application.Commands;
 ///
 /// Validation rules enforced:
 /// - <see cref="ReasonForVisit"/> must be non-empty (required field in SCR-010).
-/// - PatientUserId and AppointmentId must be valid GUIDs (non-empty).
+/// - ActorUserId, ActorRole, and AppointmentId must be present.
 ///
-/// Idempotency: if a completed <c>IntakeRecord</c> already exists for the
-/// appointment, the handler returns a success result with
-/// <c>FailureCode = "ALREADY_SUBMITTED"</c> rather than creating a duplicate
-/// (Edge Case: duplicate submission).
+/// Completed submissions are append-only history entries. If an unfinished
+/// manual draft exists for the appointment, the service completes that draft;
+/// otherwise it creates a new completed intake record.
 /// </summary>
 public sealed record SubmitManualIntakeCommand(
-    Guid PatientUserId,
+    Guid ActorUserId,
+    string ActorRole,
     Guid AppointmentId,
     string? ChronicConditions,
     string? PastSurgeries,
@@ -42,12 +42,14 @@ internal sealed class SubmitManualIntakeCommandHandler
         SubmitManualIntakeCommand request,
         CancellationToken cancellationToken)
     {
-        if (request.PatientUserId == Guid.Empty || request.AppointmentId == Guid.Empty)
+        if (request.ActorUserId == Guid.Empty ||
+            string.IsNullOrWhiteSpace(request.ActorRole) ||
+            request.AppointmentId == Guid.Empty)
         {
             return Task.FromResult(new ManualIntakeResult(
                 Success: false,
                 IntakeId: null,
-                FailureReason: "PatientUserId and AppointmentId are required.",
+                FailureReason: "ActorUserId, ActorRole, and AppointmentId are required.",
                 FailureCode: "INVALID_REQUEST"));
         }
 
@@ -62,7 +64,8 @@ internal sealed class SubmitManualIntakeCommandHandler
 
         return _intake.SubmitAsync(
             new SubmitManualIntakeRequest(
-                request.PatientUserId,
+                request.ActorUserId,
+                request.ActorRole,
                 request.AppointmentId,
                 request.ChronicConditions,
                 request.PastSurgeries,

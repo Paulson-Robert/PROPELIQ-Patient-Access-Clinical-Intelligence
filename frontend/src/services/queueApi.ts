@@ -84,9 +84,55 @@ const getJson = async <TResponse>(path: string): Promise<TResponse> => {
   return (await response.json()) as TResponse
 }
 
+const adaptQueueEntryDto = (raw: {
+  appointmentId: string
+  position: number
+  patientId: string
+  patientName: string
+  appointmentTime: string
+  providerName: string
+  status: QueueStatus
+  bookingType: BookingType
+  arrivalTimestamp?: string | null
+  riskLevel: RiskLevel
+  estimatedWaitMinutes: number
+}): QueueEntry => ({
+  id: raw.appointmentId,
+  position: raw.position,
+  patientId: raw.patientId,
+  patientName: raw.patientName,
+  appointmentTime: raw.appointmentTime,
+  providerName: raw.providerName,
+  status: raw.status,
+  bookingType: raw.bookingType,
+  arrivalTimestamp: raw.arrivalTimestamp ?? undefined,
+  riskLevel: raw.riskLevel,
+  estimatedWaitMinutes: raw.estimatedWaitMinutes,
+})
+
+const adaptQueueResponseDto = (raw: {
+  entries: Array<{
+    appointmentId: string
+    position: number
+    patientId: string
+    patientName: string
+    appointmentTime: string
+    providerName: string
+    status: QueueStatus
+    bookingType: BookingType
+    arrivalTimestamp?: string | null
+    riskLevel: RiskLevel
+    estimatedWaitMinutes: number
+  }>
+  summary: QueueSummary
+}): QueueResponse => ({
+  entries: raw.entries.map(adaptQueueEntryDto),
+  summary: raw.summary,
+})
+
 const mockQueue: QueueEntry[] = [
   {
-    id: 'qe-001',
+    id: 'appt-001',
     position: 1,
     patientId: 'pat-001',
     patientName: 'Maria Santos',
@@ -99,7 +145,7 @@ const mockQueue: QueueEntry[] = [
     estimatedWaitMinutes: 5,
   },
   {
-    id: 'qe-002',
+    id: 'appt-002',
     position: 2,
     patientId: 'pat-002',
     patientName: "James O'Brien-Fitzgerald",
@@ -111,7 +157,7 @@ const mockQueue: QueueEntry[] = [
     estimatedWaitMinutes: 15,
   },
   {
-    id: 'qe-003',
+    id: 'appt-003',
     position: 3,
     patientId: 'pat-003',
     patientName: 'Priya Sharma',
@@ -123,7 +169,7 @@ const mockQueue: QueueEntry[] = [
     estimatedWaitMinutes: 25,
   },
   {
-    id: 'qe-004',
+    id: 'appt-004',
     position: 4,
     patientId: 'pat-004',
     patientName: 'Robert Kim',
@@ -135,7 +181,7 @@ const mockQueue: QueueEntry[] = [
     estimatedWaitMinutes: 30,
   },
   {
-    id: 'qe-005',
+    id: 'appt-005',
     position: 5,
     patientId: 'pat-005',
     patientName: 'Aisha Johnson',
@@ -213,7 +259,24 @@ export const queueApi = {
       return mockQueueApi.getTodayQueue()
     }
 
-    return getJson<QueueResponse>('/api/queue/today')
+    const raw = await getJson<{
+      entries: Array<{
+        appointmentId: string
+        position: number
+        patientId: string
+        patientName: string
+        appointmentTime: string
+        providerName: string
+        status: QueueStatus
+        bookingType: BookingType
+        arrivalTimestamp?: string | null
+        riskLevel: RiskLevel
+        estimatedWaitMinutes: number
+      }>
+      summary: QueueSummary
+    }>('/api/queue/today')
+
+    return adaptQueueResponseDto(raw)
   },
 
   async markArrived(payload: MarkArrivedPayload): Promise<MarkArrivedResponse> {
@@ -221,7 +284,15 @@ export const queueApi = {
       return mockQueueApi.markArrived(payload)
     }
 
-    return postJson<MarkArrivedResponse>(`/api/queue/${payload.entryId}/arrived`, {})
+    const raw = await postJson<{
+      appointmentId: string
+      arrivalTimestamp: string
+    }>(`/api/queue/${payload.entryId}/arrived`, {})
+
+    return {
+      entryId: raw.appointmentId,
+      arrivalTimestamp: raw.arrivalTimestamp,
+    }
   },
 
   async reorderQueue(payload: ReorderPayload): Promise<QueueResponse> {
@@ -229,9 +300,26 @@ export const queueApi = {
       return mockQueueApi.reorderQueue(payload)
     }
 
-    return postJson<QueueResponse>(`/api/queue/${payload.entryId}/reorder`, {
+    const raw = await postJson<{
+      entries: Array<{
+        appointmentId: string
+        position: number
+        patientId: string
+        patientName: string
+        appointmentTime: string
+        providerName: string
+        status: QueueStatus
+        bookingType: BookingType
+        arrivalTimestamp?: string | null
+        riskLevel: RiskLevel
+        estimatedWaitMinutes: number
+      }>
+      summary: QueueSummary
+    }>(`/api/queue/${payload.entryId}/reorder`, {
       newPosition: payload.newPosition,
       reason: payload.reason,
     })
+
+    return adaptQueueResponseDto(raw)
   },
 }

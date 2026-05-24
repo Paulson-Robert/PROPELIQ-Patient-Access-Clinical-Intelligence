@@ -66,12 +66,12 @@ function App() {
           <Route path="/queue/same-day" element={<SameDayQueuePage />} />
           <Route path="/booking/appointments/:appointmentId" element={<AppLayout><AppointmentDetailPage /></AppLayout>} />
           <Route path="/booking/confirm" element={<AppLayout><BookingConfirmationPage /></AppLayout>} />
-          <Route path="/intake" element={<IntakePage />} />
-          <Route path="/intake/history" element={<IntakeListPage />} />
-          <Route path="/intake/ai" element={<AiIntakePage />} />
-          <Route path="/intake/manual" element={<ManualIntakePage />} />
-          <Route path="/documents/upload" element={<DocumentUploadPage />} />
-          <Route path="/documents" element={<DocumentListPage />} />
+          <Route path="/intake" element={<AppLayout childrenOwnMain><IntakePage /></AppLayout>} />
+          <Route path="/intake/history" element={<AppLayout childrenOwnMain><IntakeListPage /></AppLayout>} />
+          <Route path="/intake/ai" element={<AppLayout childrenOwnMain><AiIntakePage /></AppLayout>} />
+          <Route path="/intake/manual" element={<AppLayout childrenOwnMain><ManualIntakePage /></AppLayout>} />
+          <Route path="/documents/upload" element={<AppLayout childrenOwnMain><DocumentUploadPage /></AppLayout>} />
+          <Route path="/documents" element={<AppLayout childrenOwnMain><DocumentListPage /></AppLayout>} />
           <Route path="/clinical/patient/:patientId" element={<PatientViewPage />} />
           <Route path="/clinical/patient/:patientId/codes" element={<CodeMappingPage />} />
           <Route path="/admin/users" element={<UserManagementPage />} />
