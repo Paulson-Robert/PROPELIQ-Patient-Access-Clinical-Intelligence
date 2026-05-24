@@ -76,7 +76,7 @@ if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ASPNETCORE_URLS")))
 builder.Services.AddSecurityHeaders();
 
 // Add authentication services (JWT + OpenIddict + OAuth handlers)
-builder.Services.AddOpenIddictAuthentication(builder.Configuration);
+builder.Services.AddOpenIddictAuthentication(builder.Configuration, builder.Environment);
 builder.Services.AddRoleAuthorizationPolicies();
 
 // Add Hangfire background job processing with PostgreSQL storage

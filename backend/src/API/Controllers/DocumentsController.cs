@@ -49,6 +49,26 @@ public sealed class DocumentsController : ControllerBase
     }
 
     // -------------------------------------------------------------------------
+    // GET /api/documents/patients/{patientUserId}
+    // Returns clinical documents for a patient selected by staff.
+    // -------------------------------------------------------------------------
+    [HttpGet("patients/{patientUserId:guid}")]
+    [Authorize(Policy = RoleRequirements.StaffPolicy)]
+    public async Task<ActionResult<IReadOnlyList<PatientDocumentDto>>> GetPatientDocuments(
+        Guid patientUserId,
+        CancellationToken cancellationToken)
+    {
+        if (GetCurrentUserId() is null)
+            return Unauthorized();
+
+        var result = await _mediator
+            .Send(new GetPatientDocumentsQuery(patientUserId), cancellationToken)
+            .ConfigureAwait(false);
+
+        return Ok(result);
+    }
+
+    // -------------------------------------------------------------------------
     // POST /api/documents/upload
     // AC-01: Accept multipart/form-data with a single file field named "file"
     // -------------------------------------------------------------------------
@@ -65,6 +85,36 @@ public sealed class DocumentsController : ControllerBase
         if (patientUserId is null)
             return Unauthorized();
 
+        return await UploadForPatientUser(patientUserId.Value, file, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    // -------------------------------------------------------------------------
+    // POST /api/documents/patients/{patientUserId}/upload
+    // Staff upload for an explicitly selected patient.
+    // -------------------------------------------------------------------------
+    [HttpPost("patients/{patientUserId:guid}/upload")]
+    [Authorize(Policy = RoleRequirements.StaffPolicy)]
+    [RequestSizeLimit(MaxUploadBytes)]
+    [RequestFormLimits(MultipartBodyLengthLimit = MaxUploadBytes)]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UploadForPatient(
+        Guid patientUserId,
+        IFormFile? file,
+        CancellationToken cancellationToken)
+    {
+        if (GetCurrentUserId() is null)
+            return Unauthorized();
+
+        return await UploadForPatientUser(patientUserId, file, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    private async Task<IActionResult> UploadForPatientUser(
+        Guid patientUserId,
+        IFormFile? file,
+        CancellationToken cancellationToken)
+    {
         if (file is null || file.Length == 0)
             return BadRequest(new { code = "NO_FILE", message = "A non-empty file is required." });
 
@@ -72,7 +122,7 @@ public sealed class DocumentsController : ControllerBase
 
         var result = await _mediator.Send(
             new UploadDocumentCommand(
-                patientUserId.Value,
+                patientUserId,
                 file.FileName,
                 file.ContentType,
                 file.Length,
@@ -124,6 +174,32 @@ public sealed class DocumentsController : ControllerBase
     }
 
     // -------------------------------------------------------------------------
+    // DELETE /api/documents/patients/{patientUserId}/{documentId}
+    // Staff deletion for a document owned by the selected patient.
+    // -------------------------------------------------------------------------
+    [HttpDelete("patients/{patientUserId:guid}/{documentId:guid}")]
+    [Authorize(Policy = RoleRequirements.StaffPolicy)]
+    public async Task<IActionResult> DeleteForPatient(
+        Guid patientUserId,
+        Guid documentId,
+        CancellationToken cancellationToken)
+    {
+        var staffUserId = GetCurrentUserId();
+        if (staffUserId is null)
+            return Unauthorized();
+
+        var result = await DeleteDocumentForPatient(
+            documentId,
+            patientUserId,
+            staffUserId.Value,
+            "staff",
+            cancellationToken)
+            .ConfigureAwait(false);
+
+        return ToDeleteActionResult(result);
+    }
+
+    // -------------------------------------------------------------------------
     // DELETE /api/documents/my
     // Permanently deletes every document owned by the authenticated patient.
     // -------------------------------------------------------------------------
@@ -154,16 +230,66 @@ public sealed class DocumentsController : ControllerBase
         return NoContent();
     }
 
+    // -------------------------------------------------------------------------
+    // DELETE /api/documents/patients/{patientUserId}
+    // Staff delete-all for the selected patient's documents.
+    // -------------------------------------------------------------------------
+    [HttpDelete("patients/{patientUserId:guid}")]
+    [Authorize(Policy = RoleRequirements.StaffPolicy)]
+    public async Task<IActionResult> DeletePatientDocuments(
+        Guid patientUserId,
+        CancellationToken cancellationToken)
+    {
+        var staffUserId = GetCurrentUserId();
+        if (staffUserId is null)
+            return Unauthorized();
+
+        var documents = await _mediator
+            .Send(new GetPatientDocumentsQuery(patientUserId), cancellationToken)
+            .ConfigureAwait(false);
+
+        foreach (var document in documents)
+        {
+            var result = await DeleteDocumentForPatient(
+                document.DocumentId,
+                patientUserId,
+                staffUserId.Value,
+                "staff",
+                cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!result.Success)
+                return ToDeleteActionResult(result);
+        }
+
+        return NoContent();
+    }
+
     private Task<Application.Interfaces.DeleteDocumentResult> DeleteDocumentForCurrentPatient(
         Guid documentId,
         Guid patientUserId,
+        CancellationToken cancellationToken)
+        => DeleteDocumentForPatient(
+            documentId,
+            patientUserId,
+            patientUserId,
+            "patient",
+            cancellationToken);
+
+    private Task<Application.Interfaces.DeleteDocumentResult> DeleteDocumentForPatient(
+        Guid documentId,
+        Guid patientUserId,
+        Guid actorUserId,
+        string actorRole,
         CancellationToken cancellationToken)
     {
         return _mediator.Send(
             new DeleteDocumentCommand(
                 documentId,
                 patientUserId,
-                HttpContext.Connection.RemoteIpAddress?.ToString()),
+                HttpContext.Connection.RemoteIpAddress?.ToString(),
+                actorUserId,
+                actorRole),
             cancellationToken);
     }
 

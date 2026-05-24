@@ -598,6 +598,7 @@ const parseUploadError = (text: string): { message: string; code: BookingErrorCo
 const uploadDocumentWithXhr = (
   file: File,
   onProgress?: UploadProgressCallback,
+  patientUserId?: string,
 ): Promise<{
   documentId: string
   message: string
@@ -607,7 +608,11 @@ const uploadDocumentWithXhr = (
     const body = new FormData()
     body.append('file', file)
 
-    xhr.open('POST', `${API_BASE_URL}/api/documents/upload`)
+    const uploadPath = patientUserId
+      ? `/api/documents/patients/${encodeURIComponent(patientUserId)}/upload`
+      : '/api/documents/upload'
+
+    xhr.open('POST', `${API_BASE_URL}${uploadPath}`)
     xhr.withCredentials = true
 
     for (const [key, value] of Object.entries(authHeaders())) {
@@ -781,8 +786,11 @@ const mockLockedSlotIds = new Set<string>()
 const mockConfirmedAppointments: AppointmentRecord[] = []
 const mockIntakeRecords: PatientIntakeRecord[] = []
 const mockIntakeDrafts = new Map<string, ManualIntakeDraft>()
-const mockDocumentRecords: PatientDocumentRecord[] = [
+const DEFAULT_MOCK_PATIENT_USER_ID = 'mock-current-patient'
+type MockDocumentRecord = PatientDocumentRecord & { patientUserId: string }
+const mockDocumentRecords: MockDocumentRecord[] = [
   {
+    patientUserId: DEFAULT_MOCK_PATIENT_USER_ID,
     id: 'doc-001',
     fileName: 'CBC-Results-2025-01.pdf',
     fileFormat: 'PDF',
@@ -791,6 +799,7 @@ const mockDocumentRecords: PatientDocumentRecord[] = [
     uploadedAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
   },
   {
+    patientUserId: DEFAULT_MOCK_PATIENT_USER_ID,
     id: 'doc-002',
     fileName: 'Chest-Xray-Anterior.dicom',
     fileFormat: 'DICOM',
@@ -799,6 +808,7 @@ const mockDocumentRecords: PatientDocumentRecord[] = [
     uploadedAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
   },
   {
+    patientUserId: DEFAULT_MOCK_PATIENT_USER_ID,
     id: 'doc-003',
     fileName: 'MRI-Knee-Left.dicom',
     fileFormat: 'DICOM',
@@ -809,6 +819,22 @@ const mockDocumentRecords: PatientDocumentRecord[] = [
 ]
 
 let mockWalkInCounter = 1
+
+const toPatientDocumentRecord = (record: MockDocumentRecord): PatientDocumentRecord => ({
+  id: record.id,
+  fileName: record.fileName,
+  fileFormat: record.fileFormat,
+  fileSizeBytes: record.fileSizeBytes,
+  processingStatus: record.processingStatus,
+  uploadedAt: record.uploadedAt,
+})
+
+const getMockDocumentsForPatient = (
+  patientUserId = DEFAULT_MOCK_PATIENT_USER_ID,
+): PatientDocumentRecord[] =>
+  mockDocumentRecords
+    .filter((record) => record.patientUserId === patientUserId)
+    .map(toPatientDocumentRecord)
 
 const mockBookingApi = {
   async getAppointment(appointmentId: string): Promise<AppointmentRecord> {
@@ -995,6 +1021,7 @@ const mockBookingApi = {
   async uploadDocument(
     file: File,
     onProgress?: UploadProgressCallback,
+    patientUserId = DEFAULT_MOCK_PATIENT_USER_ID,
   ): Promise<PatientDocumentRecord> {
     onProgress?.(20)
     await wait(120)
@@ -1003,7 +1030,8 @@ const mockBookingApi = {
     onProgress?.(95)
     await wait(120)
 
-    const record: PatientDocumentRecord = {
+    const record: MockDocumentRecord = {
+      patientUserId,
       id: `doc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       fileName: file.name,
       fileFormat: formatFromFileName(file.name),
@@ -1013,12 +1041,17 @@ const mockBookingApi = {
     }
 
     mockDocumentRecords.unshift(record)
-    return { ...record }
+    return toPatientDocumentRecord(record)
   },
 
-  async deleteDocument(documentId: string): Promise<void> {
+  async deleteDocument(
+    documentId: string,
+    patientUserId = DEFAULT_MOCK_PATIENT_USER_ID,
+  ): Promise<void> {
     await wait(150)
-    const index = mockDocumentRecords.findIndex((record) => record.id === documentId)
+    const index = mockDocumentRecords.findIndex(
+      (record) => record.id === documentId && record.patientUserId === patientUserId,
+    )
     if (index === -1) {
       throw new BookingError('Document not found', 'NOT_FOUND', 404)
     }
@@ -1026,9 +1059,13 @@ const mockBookingApi = {
     mockDocumentRecords.splice(index, 1)
   },
 
-  async deleteAllDocuments(): Promise<void> {
+  async deleteAllDocuments(patientUserId = DEFAULT_MOCK_PATIENT_USER_ID): Promise<void> {
     await wait(150)
-    mockDocumentRecords.splice(0, mockDocumentRecords.length)
+    for (let index = mockDocumentRecords.length - 1; index >= 0; index -= 1) {
+      if (mockDocumentRecords[index].patientUserId === patientUserId) {
+        mockDocumentRecords.splice(index, 1)
+      }
+    }
   },
 
   async getManualIntakeDraft(appointmentId: string): Promise<ManualIntakeDraft | null> {
@@ -1360,12 +1397,13 @@ export const bookingApi = {
   async uploadDocument(
     file: File,
     onProgress?: UploadProgressCallback,
+    patientUserId?: string,
   ): Promise<PatientDocumentRecord> {
     if (USE_MOCK_BOOKING || !API_BASE_URL) {
-      return mockBookingApi.uploadDocument(file, onProgress)
+      return mockBookingApi.uploadDocument(file, onProgress, patientUserId)
     }
 
-    const raw = await uploadDocumentWithXhr(file, onProgress)
+    const raw = await uploadDocumentWithXhr(file, onProgress, patientUserId)
 
     return {
       id: raw.documentId,
@@ -1377,20 +1415,28 @@ export const bookingApi = {
     }
   },
 
-  async deleteDocument(documentId: string): Promise<void> {
+  async deleteDocument(documentId: string, patientUserId?: string): Promise<void> {
     if (USE_MOCK_BOOKING || !API_BASE_URL) {
-      return mockBookingApi.deleteDocument(documentId)
+      return mockBookingApi.deleteDocument(documentId, patientUserId)
     }
 
-    await deleteRequest(`/api/documents/${documentId}`)
+    const path = patientUserId
+      ? `/api/documents/patients/${encodeURIComponent(patientUserId)}/${documentId}`
+      : `/api/documents/${documentId}`
+
+    await deleteRequest(path)
   },
 
-  async deleteAllDocuments(): Promise<void> {
+  async deleteAllDocuments(patientUserId?: string): Promise<void> {
     if (USE_MOCK_BOOKING || !API_BASE_URL) {
-      return mockBookingApi.deleteAllDocuments()
+      return mockBookingApi.deleteAllDocuments(patientUserId)
     }
 
-    await deleteRequest('/api/documents/my')
+    const path = patientUserId
+      ? `/api/documents/patients/${encodeURIComponent(patientUserId)}`
+      : '/api/documents/my'
+
+    await deleteRequest(path)
   },
 
   async getMyAppointments(statusFilter?: string): Promise<AppointmentRecord[]> {
@@ -1420,7 +1466,7 @@ export const bookingApi = {
   async getMyDocuments(): Promise<PatientDocumentRecord[]> {
     if (USE_MOCK_BOOKING || !API_BASE_URL) {
       await wait(200)
-      return [...mockDocumentRecords]
+      return getMockDocumentsForPatient()
     }
 
     const raw = await getJson<{
@@ -1431,6 +1477,31 @@ export const bookingApi = {
       processingStatus: string
       uploadedAt: string
     }[]>('/api/documents/my')
+
+    return raw.map((d) => ({
+      id: d.documentId,
+      fileName: d.fileName,
+      fileFormat: d.fileFormat,
+      fileSizeBytes: d.fileSizeBytes,
+      processingStatus: d.processingStatus,
+      uploadedAt: d.uploadedAt,
+    }))
+  },
+
+  async getPatientDocuments(patientUserId: string): Promise<PatientDocumentRecord[]> {
+    if (USE_MOCK_BOOKING || !API_BASE_URL) {
+      await wait(200)
+      return getMockDocumentsForPatient(patientUserId)
+    }
+
+    const raw = await getJson<{
+      documentId: string
+      fileName: string
+      fileFormat: string
+      fileSizeBytes: number
+      processingStatus: string
+      uploadedAt: string
+    }[]>(`/api/documents/patients/${encodeURIComponent(patientUserId)}`)
 
     return raw.map((d) => ({
       id: d.documentId,

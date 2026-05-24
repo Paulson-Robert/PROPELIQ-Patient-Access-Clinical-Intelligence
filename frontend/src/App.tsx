@@ -62,8 +62,8 @@ function App() {
           <Route path="/dashboard" element={<DashboardRedirect />} />
           <Route path="/booking/history" element={<AppLayout><AppointmentHistoryPage /></AppLayout>} />
           <Route path="/booking/search" element={<AppLayout><AppointmentSearchPage /></AppLayout>} />
-          <Route path="/booking/walk-in" element={<WalkInBookingPage />} />
-          <Route path="/queue/same-day" element={<SameDayQueuePage />} />
+          <Route path="/booking/walk-in" element={<AppLayout childrenOwnMain><WalkInBookingPage /></AppLayout>} />
+          <Route path="/queue/same-day" element={<AppLayout childrenOwnMain><SameDayQueuePage /></AppLayout>} />
           <Route path="/booking/appointments/:appointmentId" element={<AppLayout><AppointmentDetailPage /></AppLayout>} />
           <Route path="/booking/confirm" element={<AppLayout><BookingConfirmationPage /></AppLayout>} />
           <Route path="/intake" element={<AppLayout childrenOwnMain><IntakePage /></AppLayout>} />
@@ -72,8 +72,8 @@ function App() {
           <Route path="/intake/manual" element={<AppLayout childrenOwnMain><ManualIntakePage /></AppLayout>} />
           <Route path="/documents/upload" element={<AppLayout childrenOwnMain><DocumentUploadPage /></AppLayout>} />
           <Route path="/documents" element={<AppLayout childrenOwnMain><DocumentListPage /></AppLayout>} />
-          <Route path="/clinical/patient/:patientId" element={<PatientViewPage />} />
-          <Route path="/clinical/patient/:patientId/codes" element={<CodeMappingPage />} />
+          <Route path="/clinical/patient/:patientId" element={<AppLayout childrenOwnMain><PatientViewPage /></AppLayout>} />
+          <Route path="/clinical/patient/:patientId/codes" element={<AppLayout childrenOwnMain><CodeMappingPage /></AppLayout>} />
           <Route path="/admin/users" element={<UserManagementPage />} />
           <Route path="/admin/audit-log" element={<AuditLogPage />} />
           <Route path="/admin/metrics" element={<MetricsDashboardPage />} />

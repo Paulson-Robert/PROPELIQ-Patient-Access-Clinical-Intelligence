@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Server.AspNetCore;
@@ -191,7 +192,8 @@ public static class OpenIddictConfiguration
 {
     public static IServiceCollection AddOpenIddictAuthentication(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHostEnvironment? environment = null)
     {
         services.AddSingleton<IValidateOptions<AuthSettings>, AuthSettingsValidator>();
         services.AddOptions<AuthSettings>()
@@ -261,8 +263,16 @@ public static class OpenIddictConfiguration
                 options.DisableAccessTokenEncryption();
                 options.SetAccessTokenLifetime(TimeSpan.FromMinutes(settings.AccessTokenMinutes));
 
-                options.AddDevelopmentEncryptionCertificate()
-                    .AddDevelopmentSigningCertificate();
+                if (environment?.IsDevelopment() == true)
+                {
+                    options.AddEphemeralEncryptionKey()
+                        .AddEphemeralSigningKey();
+                }
+                else
+                {
+                    options.AddDevelopmentEncryptionCertificate()
+                        .AddDevelopmentSigningCertificate();
+                }
 
                 options.UseAspNetCore()
                     .EnableTokenEndpointPassthrough();

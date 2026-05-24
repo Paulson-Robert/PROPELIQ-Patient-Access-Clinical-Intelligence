@@ -8,7 +8,9 @@ namespace Application.Interfaces;
 public sealed record DeleteDocumentRequest(
     Guid DocumentId,
     Guid RequestingPatientUserId,
-    string? IpAddress = null);
+    string? IpAddress = null,
+    Guid? ActorUserId = null,
+    string ActorRole = "patient");
 
 /// <summary>Result returned by <see cref="IDocumentDeletionService.DeleteAsync"/>.</summary>
 public sealed record DeleteDocumentResult(
@@ -25,7 +27,7 @@ public sealed record DeleteDocumentResult(
 /// conflicts, and code mappings, then triggers PatientView re-aggregation (US_034).
 ///
 /// Responsibilities:
-/// - Authorisation check: document must belong to the requesting patient.
+/// - Authorisation check: document must belong to the target patient.
 /// - Cancel any in-progress NER processing before deleting (edge case).
 /// - Physical file removal and DB record deletion within a transaction.
 /// - Audit log entry for every deletion (AC-05).

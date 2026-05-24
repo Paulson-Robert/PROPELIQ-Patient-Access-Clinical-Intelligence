@@ -186,8 +186,8 @@ public sealed class DocumentDeletionService : IDocumentDeletionService
             _db.AuditLogs.Add(new AuditLog
             {
                 Timestamp = DateTime.UtcNow,
-                ActorUserId = request.RequestingPatientUserId,
-                ActorRole = "patient",
+                ActorUserId = request.ActorUserId ?? request.RequestingPatientUserId,
+                ActorRole = request.ActorRole,
                 ActionType = "DocumentDeleted",
                 ResourceType = "ClinicalDocument",
                 ResourceId = document.DocumentId.ToString(),
