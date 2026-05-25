@@ -1516,7 +1516,24 @@ export const bookingApi = {
   async getMyNotifications(): Promise<PatientNotificationRecord[]> {
     if (USE_MOCK_BOOKING || !API_BASE_URL) {
       await wait(200)
-      return []
+      return [
+        {
+          id: 'notif-001',
+          appointmentId: 'appt-001',
+          channel: 'Email',
+          notificationType: 'BookingConfirmation',
+          status: 'Delivered',
+          createdAt: new Date(Date.now() - 2 * 3_600_000).toISOString(),
+        },
+        {
+          id: 'notif-002',
+          appointmentId: 'appt-001',
+          channel: 'SMS',
+          notificationType: 'AppointmentReminder',
+          status: 'Delivered',
+          createdAt: new Date(Date.now() - 24 * 3_600_000).toISOString(),
+        },
+      ]
     }
 
     const raw = await getJson<{

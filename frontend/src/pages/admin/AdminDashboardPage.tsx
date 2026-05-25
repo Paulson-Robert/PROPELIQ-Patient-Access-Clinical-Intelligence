@@ -1,9 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BarChart3, FileText, Users } from 'lucide-react'
+import { BarChart3, Bell, CheckCircle, FileText, Loader2, Users } from 'lucide-react'
 import { AdminSidebar } from '../../components/admin/AdminSidebar'
 import { userManagementApi } from '../../services/userManagementApi'
 import { auditLogApi } from '../../services/auditLogApi'
+import {
+  notificationApi,
+  type StaffNotificationRecord,
+} from '../../services/notificationApi'
 
 interface SystemStat {
   totalUsers: number
@@ -11,11 +15,87 @@ interface SystemStat {
   systemHealthy: boolean
 }
 
+const VARIANT_DOT: Record<string, string> = {
+  error: 'bg-destructive',
+  warning: 'bg-amber-500',
+  success: 'bg-emerald-500',
+  info: 'bg-primary',
+}
+
+const formatRelativeTime = (isoDate: string): string => {
+  const diffMs = Date.now() - new Date(isoDate).getTime()
+  const diffMins = Math.floor(diffMs / 60_000)
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  const diffHours = Math.floor(diffMins / 60)
+  if (diffHours < 24) return `${diffHours}h ago`
+  return `${Math.floor(diffHours / 24)}d ago`
+}
+
+interface AdminNotifItemProps {
+  notification: StaffNotificationRecord
+  onMarkRead: (id: string) => void
+}
+
+const AdminNotifItem = ({ notification, onMarkRead }: AdminNotifItemProps) => (
+  <li className="flex items-start gap-3 px-4 py-3">
+    <span
+      className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${VARIANT_DOT[notification.variant] ?? VARIANT_DOT.info} ${notification.isRead ? 'opacity-30' : ''}`}
+      aria-hidden="true"
+    />
+    <div className="min-w-0 flex-1">
+      <p className={`text-sm font-medium ${notification.isRead ? 'text-muted-foreground' : 'text-foreground'}`}>
+        {notification.title}
+      </p>
+      {notification.message && (
+        <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">{notification.message}</p>
+      )}
+      <p className="mt-1 text-xs text-muted-foreground">{formatRelativeTime(notification.createdAt)}</p>
+    </div>
+    {!notification.isRead && (
+      <button
+        type="button"
+        onClick={() => onMarkRead(notification.id)}
+        className="shrink-0 self-start rounded p-1 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        aria-label={`Mark "${notification.title}" as read`}
+      >
+        <CheckCircle className="h-4 w-4" aria-hidden="true" />
+      </button>
+    )}
+  </li>
+)
+
 // AC-018/019/020: Admin dashboard landing — system overview with navigation to admin sections
 export const AdminDashboardPage = () => {
   const navigate = useNavigate()
   const [stats, setStats] = useState<SystemStat | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  const [notifications, setNotifications] = useState<StaffNotificationRecord[]>([])
+  const [notifsLoading, setNotifsLoading] = useState(true)
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      setNotifsLoading(true)
+      const page = await notificationApi.getStaffNotifications(1, 5)
+      setNotifications(page.items)
+    } catch {
+      // Non-critical
+    } finally {
+      setNotifsLoading(false)
+    }
+  }, [])
+
+  const handleMarkRead = useCallback(async (id: string) => {
+    try {
+      await notificationApi.markStaffNotificationRead(id)
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, isRead: true, readAt: new Date().toISOString() } : n)),
+      )
+    } catch {
+      // Silent
+    }
+  }, [])
 
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10)
@@ -41,7 +121,10 @@ export const AdminDashboardPage = () => {
     }
 
     void fetchStats()
-  }, [])
+    void fetchNotifications()
+  }, [fetchNotifications])
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length
 
   return (
     <>
@@ -182,6 +265,52 @@ export const AdminDashboardPage = () => {
                     </p>
                   </div>
                 </button>
+              </div>
+            </section>
+
+            {/* Notifications panel */}
+            <section aria-labelledby="admin-notifs-title" className="mt-8">
+              <div className="rounded-lg border border-border bg-card shadow-sm">
+                <header className="flex items-center justify-between border-b border-border px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <Bell className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                    <h2
+                      id="admin-notifs-title"
+                      className="text-sm font-semibold text-foreground"
+                    >
+                      System notifications
+                    </h2>
+                  </div>
+                  {unreadCount > 0 && (
+                    <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">
+                      {unreadCount} unread
+                    </span>
+                  )}
+                </header>
+
+                {notifsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" aria-hidden="true" />
+                    <span className="ml-2 text-sm text-muted-foreground">Loading…</span>
+                  </div>
+                ) : notifications.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground">
+                    No notifications at this time.
+                  </p>
+                ) : (
+                  <ul
+                    className="divide-y divide-border"
+                    aria-label="System notification items"
+                  >
+                    {notifications.map((n) => (
+                      <AdminNotifItem
+                        key={n.id}
+                        notification={n}
+                        onMarkRead={handleMarkRead}
+                      />
+                    ))}
+                  </ul>
+                )}
               </div>
             </section>
           </main>

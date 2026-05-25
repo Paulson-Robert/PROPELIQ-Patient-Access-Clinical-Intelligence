@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import type { ElementType } from 'react'
 import { Link } from 'react-router-dom'
 import {
   AlertCircle,
   AlertTriangle,
+  CheckCircle,
   Info,
+  Loader2,
   TrendingUp,
   Users,
   UserCheck,
@@ -11,6 +14,10 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { queueApi, type QueueEntry, type QueueSummary } from '../../services/queueApi'
+import {
+  notificationApi,
+  type StaffNotificationRecord,
+} from '../../services/notificationApi'
 
 const RISK_STYLES: Record<string, string> = {
   High: 'inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive',
@@ -41,6 +48,82 @@ const today = new Date().toLocaleDateString('en-US', {
   day: 'numeric',
 })
 
+const ALERT_VARIANT_STYLES: Record<string, { border: string; bg: string; icon: string }> = {
+  error: {
+    border: 'border-destructive/30',
+    bg: 'bg-destructive/5',
+    icon: 'text-destructive',
+  },
+  warning: {
+    border: 'border-amber-300/50',
+    bg: 'bg-amber-500/5',
+    icon: 'text-amber-600',
+  },
+  info: {
+    border: 'border-blue-300/50',
+    bg: 'bg-blue-500/5',
+    icon: 'text-blue-600',
+  },
+  success: {
+    border: 'border-emerald-300/50',
+    bg: 'bg-emerald-500/5',
+    icon: 'text-emerald-600',
+  },
+}
+
+const ALERT_ICONS: Record<string, ElementType> = {
+  error: AlertCircle,
+  warning: AlertTriangle,
+  info: Info,
+  success: CheckCircle,
+}
+
+interface AlertItemProps {
+  alert: StaffNotificationRecord
+  onMarkRead: (id: string) => void
+}
+
+const AlertItem = ({ alert, onMarkRead }: AlertItemProps) => {
+  const styles = ALERT_VARIANT_STYLES[alert.variant] ?? ALERT_VARIANT_STYLES.info
+  const Icon = ALERT_ICONS[alert.variant] ?? Info
+
+  const formatRelativeTime = (isoDate: string): string => {
+    const diffMs = Date.now() - new Date(isoDate).getTime()
+    const diffMins = Math.floor(diffMs / 60_000)
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins}m ago`
+    const diffHours = Math.floor(diffMins / 60)
+    if (diffHours < 24) return `${diffHours}h ago`
+    return `${Math.floor(diffHours / 24)}d ago`
+  }
+
+  return (
+    <div
+      role="alert"
+      className={`flex gap-3 rounded-lg border p-3 ${styles.border} ${styles.bg} ${alert.isRead ? 'opacity-60' : ''}`}
+    >
+      <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${styles.icon}`} aria-hidden="true" />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-foreground">{alert.title}</p>
+        {alert.message && (
+          <p className="mt-0.5 text-sm text-muted-foreground">{alert.message}</p>
+        )}
+        <p className="mt-1 text-xs text-muted-foreground">{formatRelativeTime(alert.createdAt)}</p>
+      </div>
+      {!alert.isRead && (
+        <button
+          type="button"
+          onClick={() => onMarkRead(alert.id)}
+          className="shrink-0 self-start rounded px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label={`Mark "${alert.title}" as read`}
+        >
+          Mark read
+        </button>
+      )}
+    </div>
+  )
+}
+
 export const StaffDashboardPage = () => {
   const { user } = useAuth()
   const firstName = user?.fullName?.split(' ')[0] ?? 'there'
@@ -53,6 +136,32 @@ export const StaffDashboardPage = () => {
     avgWaitMinutes: 0,
   })
   const [isLoading, setIsLoading] = useState(true)
+
+  const [alerts, setAlerts] = useState<StaffNotificationRecord[]>([])
+  const [alertsLoading, setAlertsLoading] = useState(true)
+
+  const fetchAlerts = useCallback(async () => {
+    try {
+      setAlertsLoading(true)
+      const page = await notificationApi.getStaffNotifications(1, 5)
+      setAlerts(page.items)
+    } catch {
+      // Non-critical — alerts panel degrades gracefully
+    } finally {
+      setAlertsLoading(false)
+    }
+  }, [])
+
+  const handleMarkRead = useCallback(async (id: string) => {
+    try {
+      await notificationApi.markStaffNotificationRead(id)
+      setAlerts((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, isRead: true, readAt: new Date().toISOString() } : n)),
+      )
+    } catch {
+      // Silent — UI already updated optimistically
+    }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -75,7 +184,12 @@ export const StaffDashboardPage = () => {
     return () => { cancelled = true }
   }, [])
 
+  useEffect(() => {
+    void fetchAlerts()
+  }, [fetchAlerts])
+
   const pendingCount = summary.totalInQueue - summary.arrivedCount
+  const unreadAlertsCount = alerts.filter((n) => !n.isRead).length
 
   return (
     <>
@@ -240,70 +354,33 @@ export const StaffDashboardPage = () => {
             >
               Alerts
             </h3>
-            <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">
-              3
-            </span>
+            {unreadAlertsCount > 0 && (
+              <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">
+                {unreadAlertsCount}
+              </span>
+            )}
           </div>
-          <div className="flex flex-col gap-3 px-5 py-4">
-            {/* Failed notification */}
-            <div
-              role="alert"
-              className="flex gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3"
-            >
-              <AlertCircle
-                className="mt-0.5 h-5 w-5 shrink-0 text-destructive"
-                aria-hidden="true"
-              />
-              <div>
-                <p className="text-sm font-semibold text-foreground">Failed notification</p>
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  SMS delivery failed for PAT-003 appointment reminder.
-                </p>
-              </div>
-            </div>
 
-            {/* Conflicts */}
-            <div
-              role="alert"
-              className="flex gap-3 rounded-lg border border-amber-300/50 bg-amber-500/5 p-3"
-            >
-              <AlertTriangle
-                className="mt-0.5 h-5 w-5 shrink-0 text-amber-600"
-                aria-hidden="true"
-              />
-              <div>
-                <p className="text-sm font-semibold text-foreground">2 conflicts pending</p>
-                <Link
-                  to="/queue/same-day"
-                  className="mt-0.5 text-sm text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
-                >
-                  Review conflicts for James O'Brien
-                </Link>
-              </div>
+          {alertsLoading ? (
+            <div className="flex items-center justify-center px-5 py-8">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" aria-hidden="true" />
+              <span className="ml-2 text-sm text-muted-foreground">Loading alerts…</span>
             </div>
-
-            {/* Low-confidence extraction */}
-            <div
-              role="alert"
-              className="flex gap-3 rounded-lg border border-blue-300/50 bg-blue-500/5 p-3"
-            >
-              <Info
-                className="mt-0.5 h-5 w-5 shrink-0 text-blue-600"
-                aria-hidden="true"
-              />
-              <div>
-                <p className="text-sm font-semibold text-foreground">
-                  Low-confidence extraction
-                </p>
-                <Link
-                  to="/queue/same-day"
-                  className="mt-0.5 text-sm text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
-                >
-                  Review code mapping for Maria Santos
-                </Link>
-              </div>
+          ) : alerts.length === 0 ? (
+            <div className="px-5 py-8 text-center text-sm text-muted-foreground">
+              No alerts at this time.
             </div>
-          </div>
+          ) : (
+            <div className="flex flex-col gap-3 px-5 py-4">
+              {alerts.map((alert) => (
+                <AlertItem
+                  key={alert.id}
+                  alert={alert}
+                  onMarkRead={handleMarkRead}
+                />
+              ))}
+            </div>
+          )}
         </section>
       </div>
 

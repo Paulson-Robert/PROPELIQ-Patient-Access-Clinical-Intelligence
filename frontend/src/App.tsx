@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { NotificationProvider } from './hooks/useNotifications'
+import { useNotificationSync } from './hooks/useNotificationSync'
 import { ToastContainer } from './components/notifications/ToastContainer'
 import { NotificationHistory } from './components/notifications/NotificationHistory'
 import { AppLayout } from './components/layout/AppLayout'
@@ -37,10 +38,17 @@ const DashboardRedirect = () => {
   return <Navigate to={`/dashboard/${role}`} replace />
 }
 
+// Syncs backend notifications into the bell history when the user is authenticated.
+const NotificationSyncLoader = () => {
+  useNotificationSync()
+  return null
+}
+
 function App() {
   return (
     <NotificationProvider>
       <AuthProvider>
+        <NotificationSyncLoader />
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
