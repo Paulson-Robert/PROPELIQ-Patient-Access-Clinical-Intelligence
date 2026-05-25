@@ -4,6 +4,7 @@ import { cn } from '../../lib/utils'
 import { useAuth } from '../../hooks/useAuth'
 import { getNavItemsForRole } from '../../config/navigation'
 import type { UserRole } from '../../services/authApi'
+import { UserAccountSummary } from './UserAccountSummary'
 
 interface SidebarProps {
   role: UserRole
@@ -13,7 +14,7 @@ interface SidebarProps {
 // AC-03: Nav items filtered to the authenticated role (Edge Case: hidden items never rendered)
 // AC-04: NavLink applies aria-current="page" and active styles when path matches
 export const Sidebar = ({ role }: SidebarProps) => {
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
   const items = getNavItemsForRole(role)
 
   return (
@@ -27,6 +28,8 @@ export const Sidebar = ({ role }: SidebarProps) => {
             PropelIQ
           </span>
         </div>
+
+        <UserAccountSummary user={user} className="mb-4 border-sidebar-border bg-sidebar-accent" />
 
         <ul role="list" className="flex flex-1 flex-col gap-0.5">
           {items.map((item) => {

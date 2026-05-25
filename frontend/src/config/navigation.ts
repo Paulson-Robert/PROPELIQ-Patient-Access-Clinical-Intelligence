@@ -35,7 +35,6 @@ export const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { label: 'Dashboard',      path: '/dashboard/staff',   icon: LayoutDashboard, roles: ['staff'] },
   { label: 'Queue',          path: '/queue/same-day',    icon: Activity,        roles: ['staff'] },
   { label: 'Walk-in booking', path: '/booking/walk-in',  icon: LogIn,           roles: ['staff'] },
-  { label: 'Intake',         path: '/intake',            icon: ClipboardList,   roles: ['staff'] },
   { label: 'Documents',      path: '/documents',         icon: FileText,        roles: ['staff'] },
 
   // ── Admin ─────────────────────────────────────────────────────────────────

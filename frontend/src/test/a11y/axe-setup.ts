@@ -7,7 +7,7 @@ expect.extend(matchers)
 
 // Module augmentation for vitest-axe custom matchers
 declare module 'vitest' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type, @typescript-eslint/no-unused-vars
   interface Assertion<T> extends matchers.AxeMatchers {}
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface AsymmetricMatchersContaining extends matchers.AxeMatchers {}

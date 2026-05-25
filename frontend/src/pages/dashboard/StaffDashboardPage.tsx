@@ -327,13 +327,13 @@ export const StaffDashboardPage = () => {
         >
           View full queue
         </Link>
-        <Link
+        {/* <Link
           to="/intake"
           id="quick-intake"
           className="inline-flex items-center rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           Patient intake
-        </Link>
+        </Link> */}
       </div>
     </>
   )

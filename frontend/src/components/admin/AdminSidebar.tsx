@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { BarChart3, FileText, LayoutDashboard, LogOut, Users } from 'lucide-react'
 // import { cn } from '../../lib/utils'
 import { useAuth } from '../../hooks/useAuth'
+import { UserAccountSummary } from '../layout/UserAccountSummary'
 
 export type AdminPage = 'dashboard' | 'users' | 'audit-log' | 'metrics'
 
@@ -38,7 +39,7 @@ const NAV_ITEMS: { id: AdminPage; label: string; href: string; icon: React.React
 
 export const AdminSidebar = ({ activePage }: AdminSidebarProps) => {
   const navigate = useNavigate()
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
 
   return (
     <nav
@@ -49,6 +50,8 @@ export const AdminSidebar = ({ activePage }: AdminSidebarProps) => {
         <LayoutDashboard className="h-5 w-5 text-primary" aria-hidden="true" />
         PropelIQ
       </div>
+
+      <UserAccountSummary user={user} className="mb-4" />
 
       <ul className="flex flex-1 flex-col gap-1" role="list">
         {NAV_ITEMS.map((item) => {

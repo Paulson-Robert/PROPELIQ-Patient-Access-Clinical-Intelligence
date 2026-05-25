@@ -5,14 +5,45 @@ import { getNavItemsForRole, NAV_ITEMS } from '../../config/navigation'
 import { Sidebar } from '../../components/layout/Sidebar'
 import { BottomNav } from '../../components/layout/BottomNav'
 import { AppLayout } from '../../components/layout/AppLayout'
+import { UserAccountSummary } from '../../components/layout/UserAccountSummary'
 
 // Mock useAuth so layout tests don't require a live AuthProvider
 vi.mock('../../hooks/useAuth', () => ({
   useAuth: vi.fn(() => ({
-    user: { email: 'test@example.com', role: 'patient' },
+    user: { email: 'test@example.com', role: 'patient', fullName: 'Test User' },
     logout: vi.fn(),
   })),
 }))
+
+// --- account summary ---
+
+describe('UserAccountSummary', () => {
+  it.each([
+    ['patient', 'Patient'],
+    ['staff', 'Staff'],
+    ['admin', 'Admin'],
+  ] as const)('renders user details and the %s role badge', (role, roleLabel) => {
+    render(
+      <UserAccountSummary
+        user={{ email: `${role}.user@example.com`, role, fullName: `${roleLabel} User` }}
+      />,
+    )
+
+    expect(
+      screen.getByLabelText(`Signed in as ${roleLabel} User, ${roleLabel}`),
+    ).toBeInTheDocument()
+    expect(screen.getByText(`${roleLabel} User`)).toBeInTheDocument()
+    expect(screen.getByText(`${role}.user@example.com`)).toBeInTheDocument()
+    expect(screen.getByText(roleLabel)).toBeInTheDocument()
+  })
+
+  it('derives readable user details from email when full name is unavailable', () => {
+    render(<UserAccountSummary user={{ email: 'maria.santos@example.com', role: 'patient' }} />)
+
+    expect(screen.getByText('Maria Santos')).toBeInTheDocument()
+    expect(screen.getByText('maria.santos@example.com')).toBeInTheDocument()
+  })
+})
 
 // --- navigation config ---
 
@@ -105,6 +136,11 @@ describe('Sidebar', () => {
     })
   })
 
+  it('does not render the intake tab for staff users', () => {
+    renderSidebar('staff')
+    expect(document.querySelector('a[href="/intake"]')).not.toBeInTheDocument()
+  })
+
   it('hides admin-only nav items from patient (Edge Case — unauthorised items hidden)', () => {
     renderSidebar('patient')
     const adminOnly = NAV_ITEMS.filter(
@@ -150,6 +186,11 @@ describe('BottomNav', () => {
     staffItems.forEach((item) => {
       expect(screen.getByRole('link', { name: new RegExp(item.label, 'i') })).toBeInTheDocument()
     })
+  })
+
+  it('does not render the intake tab for staff users', () => {
+    renderBottomNav('staff')
+    expect(document.querySelector('a[href="/intake"]')).not.toBeInTheDocument()
   })
 
   it('hides staff-only items from patient (Edge Case)', () => {
