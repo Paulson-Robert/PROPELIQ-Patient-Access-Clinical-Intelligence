@@ -25,7 +25,7 @@ export const Sidebar = ({ role }: SidebarProps) => {
       >
         <div className="mb-4 px-3">
           <span className="text-lg font-semibold tracking-tight text-sidebar-foreground font-display">
-            PropelIQ
+            HealthAccess
           </span>
         </div>
 
