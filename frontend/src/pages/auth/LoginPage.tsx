@@ -48,7 +48,7 @@ export const LoginPage = () => {
   return (
     <main className="flex min-h-screen bg-background text-foreground" id="main-content">
       <section className="hidden flex-1 bg-primary px-12 py-16 text-primary-foreground md:flex md:flex-col md:justify-center">
-        <h1 className="text-4xl font-bold tracking-tight">PropelIQ</h1>
+        <h1 className="text-4xl font-bold tracking-tight">HealthAccess</h1>
         <p className="mt-4 max-w-xl text-base/7 text-primary-foreground/85">
           Patient Access &amp; Clinical Intelligence Platform. Streamline appointments,
           intake, and care workflows from one secure place.

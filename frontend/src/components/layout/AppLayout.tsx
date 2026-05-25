@@ -28,7 +28,7 @@ export const AppLayout = ({ children, childrenOwnMain = false }: AppLayoutProps)
         <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background px-4 md:px-6">
           {/* Brand name shown only on mobile (sidebar shows it on desktop) */}
           <span className="text-base font-semibold tracking-tight text-foreground font-display md:hidden">
-            PropelIQ
+            HealthAccess
           </span>
         </header>
 

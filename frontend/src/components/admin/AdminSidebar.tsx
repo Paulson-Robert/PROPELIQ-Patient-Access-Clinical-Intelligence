@@ -48,7 +48,7 @@ export const AdminSidebar = ({ activePage }: AdminSidebarProps) => {
     >
       <div className="mb-6 flex items-center gap-2 text-sm font-semibold text-foreground">
         <LayoutDashboard className="h-5 w-5 text-primary" aria-hidden="true" />
-        PropelIQ
+        HealthAccess
       </div>
 
       <UserAccountSummary user={user} className="mb-4" />

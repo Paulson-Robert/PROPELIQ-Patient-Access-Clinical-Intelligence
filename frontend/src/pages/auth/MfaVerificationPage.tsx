@@ -114,7 +114,7 @@ export const MfaVerificationPage = () => {
       <section className="hidden flex-1 bg-primary px-12 py-16 text-primary-foreground md:flex md:flex-col md:justify-center">
         <div className="max-w-xl space-y-4">
           <ShieldCheck className="h-12 w-12" aria-hidden="true" />
-          <h1 className="text-4xl font-bold tracking-tight">PropelIQ</h1>
+          <h1 className="text-4xl font-bold tracking-tight">HealthAccess</h1>
           <p className="text-base/7 text-primary-foreground/85">
             Multi-factor verification protects staff and admin sessions before they reach the dashboard.
           </p>
