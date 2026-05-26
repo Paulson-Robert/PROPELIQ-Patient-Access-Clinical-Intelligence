@@ -64,9 +64,20 @@ public sealed class UsersController : ControllerBase
     // -------------------------------------------------------------------------
     [HttpPost]
     public async Task<ActionResult<UserDto>> CreateUser(
-        [FromBody] CreateUserCommand command,
+        [FromBody] CreateUserRequestBody body,
         CancellationToken cancellationToken)
     {
+        if (!Enum.TryParse<UserRole>(body.Role, ignoreCase: true, out var parsedRole))
+        {
+            return BadRequest(new { code = "invalid_role", message = "Role must be Patient, Staff, or Admin." });
+        }
+
+        var command = new CreateUserCommand(
+            body.Email ?? string.Empty,
+            body.Password ?? string.Empty,
+            body.FullName,
+            parsedRole);
+
         var validation = await _createValidator
             .ValidateAsync(command, cancellationToken)
             .ConfigureAwait(false);
@@ -166,6 +177,9 @@ public sealed class UsersController : ControllerBase
         return Guid.TryParse(value, out var id) ? id : null;
     }
 }
+
+/// <summary>Request body for POST /api/admin/users.</summary>
+public sealed record CreateUserRequestBody(string? Email, string? Password, string? FullName, string? Role);
 
 /// <summary>Request body for PATCH /api/admin/users/{userId}.</summary>
 public sealed record UpdateUserRequestBody(string? Email, string? FullName, string? Role);

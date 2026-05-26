@@ -38,22 +38,36 @@ public sealed class GetAuditLogQueryHandler
             .Include(l => l.ActorUser)
             .AsQueryable();
 
-        // AC-01: action type filter — uses ix_audit_logs_action_type
+        // AC-01: action type filter — case-insensitive contains so "Update" matches
+        // stored values like "UpdateUserCommand" written by AuditLoggingBehavior.
         if (!string.IsNullOrWhiteSpace(request.ActionType))
-            query = query.Where(l => l.ActionType == request.ActionType);
+        {
+            var actionTerm = request.ActionType.Trim().ToLower();
+            query = query.Where(l => l.ActionType.ToLower().Contains(actionTerm));
+        }
 
-        // AC-01: resource type filter — uses composite ix_audit_logs_resource_type_resource_id
+        // AC-01: resource type filter — case-insensitive contains so "User" matches
+        // stored values like "UpdateUser" derived by AuditLoggingBehavior.
         if (!string.IsNullOrWhiteSpace(request.ResourceType))
-            query = query.Where(l => l.ResourceType == request.ResourceType);
+        {
+            var resourceTerm = request.ResourceType.Trim().ToLower();
+            query = query.Where(l => l.ResourceType.ToLower().Contains(resourceTerm));
+        }
 
-        // AC-01: date range filter — uses ix_audit_logs_timestamp
+        // AC-01: date range filter — uses ix_audit_logs_timestamp.
+        // Incoming DateTime values from query-string binding arrive as Kind=Unspecified;
+        // SpecifyKind normalises them to UTC so Npgsql strict mode does not throw.
         if (request.FromDate.HasValue)
-            query = query.Where(l => l.Timestamp >= request.FromDate.Value);
+        {
+            var fromUtc = DateTime.SpecifyKind(request.FromDate.Value, DateTimeKind.Utc);
+            query = query.Where(l => l.Timestamp >= fromUtc);
+        }
 
         if (request.ToDate.HasValue)
         {
-            // Include the full ToDate day by clamping to end-of-day
-            var endOfDay = request.ToDate.Value.Date.AddDays(1).AddTicks(-1);
+            // Include the full ToDate day by clamping to end-of-day (UTC).
+            var endOfDay = DateTime.SpecifyKind(request.ToDate.Value.Date, DateTimeKind.Utc)
+                .AddDays(1).AddTicks(-1);
             query = query.Where(l => l.Timestamp <= endOfDay);
         }
 

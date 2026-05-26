@@ -1,0 +1,82 @@
+- generic [ref=e2]:
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - button "Notification history, no items" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - paragraph [ref=e10]
+  - link "Skip to main content" [ref=e33] [cursor=pointer]:
+    - /url: "#main"
+  - generic [ref=e34]:
+    - navigation "Admin navigation" [ref=e35]:
+      - generic [ref=e36]:
+        - img [ref=e37]
+        - text: PropelIQ
+      - generic "Signed in as Admin Seed, Admin" [ref=e42]:
+        - generic [ref=e43]:
+          - generic [ref=e44]: AS
+          - generic [ref=e45]:
+            - generic [ref=e46]:
+              - paragraph [ref=e47]: Admin Seed
+              - generic [ref=e48]: Admin
+            - paragraph [ref=e49]: admin.seed@propeliq.local
+      - list [ref=e50]:
+        - listitem [ref=e51]:
+          - generic [ref=e52]:
+            - img [ref=e53]
+            - text: Dashboard
+        - listitem [ref=e58]:
+          - button "User management" [ref=e59] [cursor=pointer]:
+            - img [ref=e60]
+            - text: User management
+        - listitem [ref=e65]:
+          - button "Audit log" [ref=e66] [cursor=pointer]:
+            - img [ref=e67]
+            - text: Audit log
+        - listitem [ref=e70]:
+          - button "Platform metrics" [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - text: Platform metrics
+      - button "Log out" [ref=e75] [cursor=pointer]:
+        - img [ref=e76]
+        - text: Log out
+    - generic [ref=e79]:
+      - banner [ref=e80]:
+        - heading "Admin dashboard" [level=1] [ref=e81]
+        - generic "User avatar" [ref=e82]: AU
+      - main [ref=e83]:
+        - generic [ref=e84]:
+          - heading "System overview" [level=2] [ref=e85]
+          - paragraph [ref=e86]: Platform health and activity summary.
+        - region "System overview statistics" [ref=e87]:
+          - generic [ref=e88]:
+            - generic [ref=e89]:
+              - generic [ref=e90]: Total users
+              - generic [ref=e91]: "0"
+            - generic [ref=e92]:
+              - generic [ref=e93]: Today's activity
+              - generic [ref=e94]: "0"
+              - generic [ref=e95]: Audit log entries
+            - generic [ref=e96]:
+              - generic [ref=e97]: System health
+              - status [ref=e99]:
+                - img [ref=e100]
+                - text: All systems operational
+        - region "Admin sections" [ref=e102]:
+          - generic [ref=e103]:
+            - button "Go to User management" [ref=e104] [cursor=pointer]:
+              - img [ref=e106]
+              - generic [ref=e111]:
+                - generic [ref=e112]: User management
+                - paragraph [ref=e113]: Create, edit, and deactivate user accounts. Manage role assignments.
+            - button "Go to Audit log" [ref=e114] [cursor=pointer]:
+              - img [ref=e116]
+              - generic [ref=e119]:
+                - generic [ref=e120]: Audit log
+                - paragraph [ref=e121]: Review system activity for compliance. Search, filter, and export log entries.
+            - button "Go to Platform metrics" [ref=e122] [cursor=pointer]:
+              - img [ref=e124]
+              - generic [ref=e126]:
+                - generic [ref=e127]: Platform metrics
+                - paragraph [ref=e128]: Monitor adoption rates, appointment trends, and AI agreement metrics.

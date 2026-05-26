@@ -199,3 +199,21 @@
 [60859826ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep) @ http://localhost:5173/node_modules/.vite/deps/react.js?v=d6c27e7b:0
 [60859826ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep) @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=d6c27e7b:0
 [60859827ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep) @ http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=d6c27e7b:0
+[214441490ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-PJEEZAML.js?v=d6c27e7b:21550
+[214441561ms] [WARNING] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition. @ http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=d6c27e7b:4392
+[214441562ms] [WARNING] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath. @ http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=d6c27e7b:4392
+[214469796ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5000/api/auth/login:0
+[214469812ms] TypeError: Failed to fetch
+    at postJson (http://localhost:5173/src/services/authApi.ts?t=1779635863297:59:26)
+    at Object.login (http://localhost:5173/src/services/authApi.ts?t=1779635863297:210:28)
+    at http://localhost:5173/src/hooks/useAuth.ts?t=1779688734961:87:40
+    at onLoginSubmit (http://localhost:5173/src/pages/auth/LoginPage.tsx?t=1779688734961:38:32)
+    at HTMLUnknownElement.callCallback2 (http://localhost:5173/node_modules/.vite/deps/chunk-PJEEZAML.js?v=d6c27e7b:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:5173/node_modules/.vite/deps/chunk-PJEEZAML.js?v=d6c27e7b:3699:24)
+    at invokeGuardedCallback (http://localhost:5173/node_modules/.vite/deps/chunk-PJEEZAML.js?v=d6c27e7b:3733:39)
+    at invokeGuardedCallbackAndCatchFirstError (http://localhost:5173/node_modules/.vite/deps/chunk-PJEEZAML.js?v=d6c27e7b:3736:33)
+    at executeDispatch (http://localhost:5173/node_modules/.vite/deps/chunk-PJEEZAML.js?v=d6c27e7b:7014:11)
+    at processDispatchQueueItemsInOrder (http://localhost:5173/node_modules/.vite/deps/chunk-PJEEZAML.js?v=d6c27e7b:7034:15)
+[214558393ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-PJEEZAML.js?v=d6c27e7b:21550
+[214558501ms] [WARNING] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition. @ http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=d6c27e7b:4392
+[214558501ms] [WARNING] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath. @ http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=d6c27e7b:4392

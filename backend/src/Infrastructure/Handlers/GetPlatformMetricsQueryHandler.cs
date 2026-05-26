@@ -60,7 +60,7 @@ public sealed class GetPlatformMetricsQueryHandler
     // Date window
     // -------------------------------------------------------------------------
 
-    private static (DateTime From, DateTime To) ResolveWindow(MetricsDateRange range)
+    internal static (DateTime From, DateTime To) ResolveWindow(MetricsDateRange range)
     {
         var today = DateTime.UtcNow.Date;
         var from = range switch
@@ -68,7 +68,7 @@ public sealed class GetPlatformMetricsQueryHandler
             MetricsDateRange.Last7Days => today.AddDays(-7),
             MetricsDateRange.Last30Days => today.AddDays(-30),
             MetricsDateRange.Last90Days => today.AddDays(-90),
-            MetricsDateRange.YearToDate => new DateTime(today.Year, 1, 1),
+            MetricsDateRange.YearToDate => new DateTime(today.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             _ => today.AddDays(-30),
         };
         // Include the full current day

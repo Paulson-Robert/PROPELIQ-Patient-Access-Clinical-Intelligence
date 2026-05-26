@@ -332,4 +332,105 @@ public sealed class GetAuditLogQueryHandlerTests
         Assert.Equal(5, result.Total);
         Assert.All(result.Entries, e => Assert.Null(e.ActorName));
     }
+
+    // -----------------------------------------------------------------------
+    // Regression: case-insensitive contains for action / resource filters
+    // (bug_datetime_kind_unspecified — filter mismatch fix)
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public async Task Handle_ActionFilter_SubstringMatchesStoredCommandName()
+    {
+        // Verifies that a simple frontend token (e.g. "Update") matches entries whose
+        // ActionType is a full command name (e.g. "UpdateUserCommand").
+        var db = CreateContext();
+        db.AuditLogs.Add(MakeEntry(
+            new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            "UpdateUserCommand", "UpdateUser", "USR-001"));
+        db.AuditLogs.Add(MakeEntry(
+            new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc),
+            "CreateAppointmentCommand", "CreateAppointment", "APT-001"));
+        await db.SaveChangesAsync();
+
+        var result = await BuildHandler(db).Handle(
+            new GetAuditLogQuery(null, "Update", null, null, null),
+            CancellationToken.None);
+
+        Assert.Equal(1, result.Total);
+        Assert.Equal("UpdateUserCommand", result.Entries[0].ActionType);
+    }
+
+    [Fact]
+    public async Task Handle_ResourceFilter_SubstringMatchesStoredDerivedName()
+    {
+        // Verifies that "User" matches resource types like "UpdateUser" and "DeleteUser"
+        // while not matching "Appointment".
+        var db = CreateContext();
+        db.AuditLogs.Add(MakeEntry(
+            new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            "UpdateUserCommand", "UpdateUser", "USR-001"));
+        db.AuditLogs.Add(MakeEntry(
+            new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc),
+            "DeleteUserCommand", "DeleteUser", "USR-002"));
+        db.AuditLogs.Add(MakeEntry(
+            new DateTime(2026, 1, 3, 0, 0, 0, DateTimeKind.Utc),
+            "CreateAppointmentCommand", "CreateAppointment", "APT-001"));
+        await db.SaveChangesAsync();
+
+        var result = await BuildHandler(db).Handle(
+            new GetAuditLogQuery(null, null, "User", null, null),
+            CancellationToken.None);
+
+        Assert.Equal(2, result.Total);
+        Assert.All(result.Entries, e => Assert.Contains("User", e.ResourceType));
+    }
+
+    // -----------------------------------------------------------------------
+    // Regression: DateTime.SpecifyKind normalises Kind=Unspecified date bounds
+    // (bug_datetime_kind_unspecified — Npgsql ArgumentException fix)
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public async Task Handle_FromDateFilter_KindUnspecified_FiltersCorrectly()
+    {
+        // Simulates query-string binding which produces Kind=Unspecified.
+        // The handler must normalise to UTC before using the value in a predicate.
+        var db = CreateContext();
+        db.AuditLogs.Add(MakeEntry(
+            new DateTime(2026, 1, 10, 0, 0, 0, DateTimeKind.Utc), "Login", "Session", "SES-1"));
+        db.AuditLogs.Add(MakeEntry(
+            new DateTime(2026, 1, 5, 0, 0, 0, DateTimeKind.Utc), "Login", "Session", "SES-2"));
+        await db.SaveChangesAsync();
+
+        // Kind=Unspecified — as produced by ASP.NET Core query-string model binding
+        var fromUnspecified = new DateTime(2026, 1, 8, 0, 0, 0, DateTimeKind.Unspecified);
+
+        var result = await BuildHandler(db).Handle(
+            new GetAuditLogQuery(null, null, null, fromUnspecified, null),
+            CancellationToken.None);
+
+        Assert.Equal(1, result.Total);
+        Assert.Equal("SES-1", result.Entries[0].ResourceId);
+    }
+
+    [Fact]
+    public async Task Handle_ToDateFilter_KindUnspecified_FiltersCorrectly()
+    {
+        var db = CreateContext();
+        db.AuditLogs.Add(MakeEntry(
+            new DateTime(2026, 1, 10, 0, 0, 0, DateTimeKind.Utc), "Login", "Session", "SES-1"));
+        db.AuditLogs.Add(MakeEntry(
+            new DateTime(2026, 1, 5, 0, 0, 0, DateTimeKind.Utc), "Login", "Session", "SES-2"));
+        await db.SaveChangesAsync();
+
+        // Kind=Unspecified — as produced by ASP.NET Core query-string model binding
+        var toUnspecified = new DateTime(2026, 1, 7, 0, 0, 0, DateTimeKind.Unspecified);
+
+        var result = await BuildHandler(db).Handle(
+            new GetAuditLogQuery(null, null, null, null, toUnspecified),
+            CancellationToken.None);
+
+        Assert.Equal(1, result.Total);
+        Assert.Equal("SES-2", result.Entries[0].ResourceId);
+    }
 }

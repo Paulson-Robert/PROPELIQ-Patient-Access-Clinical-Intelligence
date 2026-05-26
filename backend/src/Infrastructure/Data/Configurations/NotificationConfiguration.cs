@@ -20,8 +20,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
             .IsRequired();
 
         builder.Property(n => n.RetryCount)
-            .IsRequired()
-            .HasDefaultValue(0);
+            .IsRequired();
 
         builder.Property(n => n.FailureReason)
             .HasMaxLength(1024);
